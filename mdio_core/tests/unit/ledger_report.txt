@@ -1,0 +1,76 @@
+LEDGER|注册 22 行：Keyspace 11 / TruthTable 11 / Pending 0
+LEDGER|注册行 sdl_line_effect_equiv_production             Keyspace
+LEDGER|注册行 sdl_bq_scene_equiv_production                Keyspace
+LEDGER|注册行 sdl_cfc_equiv_production                     Keyspace
+LEDGER|注册行 sdl_list_scene_equiv_production              Keyspace
+LEDGER|注册行 sdl_blank_action_equiv_production            Keyspace
+LEDGER|注册行 sdl_eff_outer_equiv_production               Keyspace
+LEDGER|注册行 sdl_bq_content_equiv_production              TruthTable
+LEDGER|注册行 sdl_bq_blank_prefix_equiv_production         TruthTable
+LEDGER|注册行 sdl_bq_lazy_equiv_production                 TruthTable
+LEDGER|注册行 sdl_list_lazy_equiv_production               TruthTable
+LEDGER|注册行 sdl_bq_ic_lazy_equiv_production              TruthTable
+LEDGER|注册行 sdl_list_setext_equiv_production             TruthTable
+LEDGER|注册行 sdl_list_content_equiv_production            TruthTable
+LEDGER|注册行 sdl_cross_fiber_equiv_production             Keyspace
+LEDGER|注册行 sdl_top_classify_equiv_production            Keyspace
+LEDGER|注册行 sdl_interrupt_spec_equiv_production          TruthTable
+LEDGER|注册行 sdl_constraint_equiv_production              TruthTable
+LEDGER|注册行 sdl_admit_equiv_production                   TruthTable
+LEDGER|注册行 sdl_exempt_equiv_production                  TruthTable
+LEDGER|注册行 sdl_content_kind_equiv_production            Keyspace
+LEDGER|注册行 sdl_ctx_equiv_production                     Keyspace
+LEDGER|注册行 sdl_blank_equiv_production                   Keyspace
+LEDGER|语料 bq_list_fence            Spec 角色 7
+LEDGER|语料 table                    Spec 角色 7
+LEDGER|语料 heading_ol               Spec 角色 7
+LEDGER|语料 comment_htmlblock        Spec 角色 7
+LEDGER|语料 tilde_fence              Spec 角色 7
+LEDGER|语料 sdl_bq_list_lazy         Spec 角色 7
+LEDGER|语料 sdl_bq_heading_lazy      Spec 角色 7
+LEDGER|语料 sdl_mixed                Spec 角色 7
+LEDGER|语料 sdl_doc_00               Spec 角色 7
+LEDGER|语料 sdl_doc_02               Spec 角色 7
+LEDGER|语料 sdl_doc_03               Spec 角色 7
+LEDGER|语料 sdl_doc_05               Spec 角色 7
+LEDGER|语料 sdl_doc_06               Spec 角色 7
+LEDGER|语料 sdl_doc_07               Spec 角色 7
+LEDGER|语料 sdl_doc_08               Spec 角色 7
+LEDGER|语料 sdl_doc_09               Spec 角色 7
+LEDGER|语料 sdl_doc_10               Spec 角色 7
+LEDGER|语料 sdl_doc_11               Spec 角色 7
+LEDGER|语料 sdl_doc_12               Spec 角色 7
+LEDGER|语料 sdl_doc_14               Spec 角色 7
+LEDGER|语料 sdl_doc_15               Spec 角色 7
+LEDGER|语料 sdl_doc_16               Spec 角色 7
+LEDGER|语料 sdl_doc_18_div           Spec 角色 7
+LEDGER|语料 c3_m3_content_col_marker Spec 角色 7
+LEDGER|语料 c3_m4_dedent_sibling     Spec 角色 7
+LEDGER|语料 c3_f1_deep_marker_lazy   Spec 角色 7
+LEDGER|语料 c3_f4_zero_indent_lazy   Spec 角色 7
+LEDGER|语料 c3_n4_double_bq_close    Spec 角色 7
+LEDGER|语料 c3_n5_double_bq_in_item  Spec 角色 7
+LEDGER|语料 c3_p7_full_shape         Spec 角色 7
+LEDGER|KNOWN #542 跨行 rd 撤销（sdl_doc_17） since 2026-10-10 judge test_corpus_sweep_all_green
+LEDGER|KNOWN self 语料零分叉未达（cl 红 4 / 文本分叉 11） since 2026-10-10 judge self_corpus_scan
+LEDGER|KNOWN gauntlet.md 行 39 λ 分歧（深嵌套 BQ+有序列表） since 2026-10-13 judge test_e1_row_payload_agrees
+LEDGER|KNOWN trilogy_testbed 52 断言级读体未做 since 2026-10-10 judge test_corpus_sweep_all_green
+LEDGER|KNOWN n3 外层 BQ 未关（per-BQ 段落状态位缺失） since 2026-10-15 judge test_known_ledger_entries_are_aged
+LEDGER|KNOWN f5 item 内容列标题分类偏差（列表侧） since 2026-10-15 judge test_known_ledger_entries_are_aged
+LEDGER|KNOWN 键化空 rest bullet 的 content_start 双轨分叉（A2 残差） since 2026-10-15 judge test_known_ledger_entries_are_aged
+LEDGER|变异组 interrupt 14 点 wired=Some("interrupt")
+LEDGER|变异组 prev_closes 27 点 wired=Some("prev_closes")
+LEDGER|变异组 constraint 3 点 wired=Some("constraint_chain")
+LEDGER|变异组 admit 2 点 wired=Some("admit")
+LEDGER|变异组 exempt 4 点 wired=Some("exempt")
+LEDGER|变异组 blank 2 点 wired=Some("blank_continue")
+LEDGER|变异组 rules 2 点 wired=Some("bq_lazy")
+LEDGER|变异组 SDLScan 1 点 wired=Some("test_tree_mutation_capture_matrix")
+LEDGER|变异组 content_kind 3 点 wired=Some("test_ic_threshold_mutation_is_sensitive")
+LEDGER|变异组 ctx 2 点 wired=Some("test_ctx_mutation_stack_and_prev_sensitive")
+LEDGER|变异组 extract 3 点 wired=Some("test_ws_dual_arm_mutations_go_red")
+LEDGER|未覆盖 DomainMutation - 0 点
+LEDGER|层 SelfProving 入口 self_corpus_scan（self_corpus_scan（DEV/research 的 md 全过判官））
+LEDGER|层 Spec 入口 test_corpus_sweep_all_green（CORPUS 30 篇（手推黄金决策词））
+LEDGER|层 ExternalGolden 入口 test_commonmark_full_doc（commonmark.md 整篇（9811 行））
+LEDGER|层 ExternalGolden 入口 test_ctx_class_mirror_vs_production（gauntlet.md（1910 行；与 commonmark 同层，消费者 = A24 呈现画像对拍））

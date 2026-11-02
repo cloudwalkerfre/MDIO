@@ -1,0 +1,30 @@
+# 主题素材的来源与许可
+
+本目录的皮肤**不是**凭空写的：`github.css` / `mdmdt.css` / `macos27.css` / `bloom.css` 由生成器从 `vendor/` 里的上游文件机械转换而来
+（`scripts/port-theme-github.mjs` / `port-theme-mdmdt.mjs` / `port-theme-hostcss.mjs` / `gen-theme-fonts.mjs`）。
+`atelier.css` 是**本仓库原创**（「手作纸」，取法自近三年三类高质量 md 样式，非移植）；
+`parchment.css` 也是自有皮肤。改皮肤请改生成器或 vendor 上游，再重跑生成器；不要手改生成物。
+
+| 文件 | 上游 | 许可 | 义务 |
+|---|---|---|---|
+| `vendor/github-markdown.css` → `github.css` | rxliuli/tailwindcss-github-markdown 的 `src/github-markdown.css`；该文件本身是 sindresorhus/github-markdown-css 的拷贝 | MIT（© rxliuli；© Sindre Sorhus） | 保留版权与许可声明：生成物头部注释 + **完整许可正文** `vendor/github-markdown-LICENSE.txt` |
+| `vendor/mdmdt-light.css`、`vendor/mdmdt-dark.css` → `mdmdt.css` | cayxc/Mdmdt（Typora 主题） | Apache-2.0（© cayxc） | 保留**许可证副本** `vendor/Mdmdt-LICENSE.txt` + 标注修改（本文件与生成物头部） |
+| `vendor/macos27.css` → `macos27.css` | christoarmani/typora-theme-macos27（Typora 主题，2026-10） | MIT（© 2026 christoarmani） | 保留**许可证副本** `vendor/macos27-LICENSE.txt` + 标注修改 |
+| `vendor/bloom-mist.css`、`vendor/bloom-mist-dark.css` → `bloom.css` | webkubor/typora-Bloom-theme 的 built 主题（2025-12，24 套配色） | MIT（© 2025 webkubor） | 保留**许可证副本** `vendor/bloom-LICENSE.txt` + 标注修改；**上游随包 MiSans 字体未搬**（字体许可未随仓附），字体栈替换为系统 CJK 栈 |
+| `fonts/*.woff2` → `fonts.css`（base64 内联） | JetBrains Mono，latin 子集，400/700 | SIL Open Font License 1.1 | 保留字体名称与许可声明，**许可正文** `fonts/OFL.txt`；不得单独售卖字体 |
+| `parchment.css`、`atelier.css`、各生成脚本、本文件 | 本仓库自有 | 同仓库 | — |
+
+## 已知裁剪（转换时主动丢弃的内容）
+
+- GitHub：GitHub 网页专属 DOM（`.octicon` 锚点图标、`.markdown-alert`、`.highlight`、表单控件重置、task-list 专用类）；
+  印刷/暗色偏好由容器状态接管（不再用 `@media (prefers-color-scheme)`）。
+- Mdmdt：Typora 编辑器外壳（侧栏/文件树/大纲/CodeMirror/megamenu/通知/搜索/窗口 chrome，约 2/3 规则）、
+  全部 `@media`（响应式与打印）、标题折叠角标与链接外链图标、`.md-toc`/`.md-htmlblock`/`.md-math` 容器样式；
+  调色板变量统一改名 `--mdt-*`；暗色只输出与亮色**不同**的声明（不是第二份 68 KB）。
+
+## 两处与上游行为的差异（有意为之）
+
+1. Mdmdt 的 `--monospace`（JetBrains Mono 栈）在上游**声明了但 0 次使用**，代码块实际没有 mono 栈；
+   这里显式给 `code/pre/.md-codeblock` 补 `var(--mdt-mono)`（自托管 JBMono）。
+2. std 会把每个节再包一层 `.mdio-std`（floor 里 15px）；两份移植皮肤都补了
+   `[data-md-theme="…"] .mdio-doc .mdio-std { font-size: 16px }`，让上游的 em 级联按 16px 基准生效。

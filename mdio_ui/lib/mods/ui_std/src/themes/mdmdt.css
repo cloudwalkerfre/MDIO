@@ -1,0 +1,552 @@
+/* mdmdt —— Typora 主题 Mdmdt 的皮肤移植（由 scripts/port-theme-mdmdt.mjs 生成，勿手改）。
+ *
+ * 上游：cayxc/Mdmdt 的 mdmdt-light.css / mdmdt-dark.css（Apache-2.0，© cayxc，许可证见 themes/vendor/Mdmdt-LICENSE.txt）。
+ * 变换：剥离 Typora 编辑器外壳与全部 @media；#write → .mdio-doc；.md-alert* → .md-admonition*；.md-fences → .md-codeblock；
+ *       调色板 --* → --mdt-*；暗色只输出与亮色不同的声明。
+ * 补丁：上游 --monospace（JetBrains Mono 栈）声明了但 0 次使用 ⇒ 这里显式给代码块补 var(--mdt-mono)（自托管 JBMono）。
+ */
+
+/* 亮色 token */
+[data-md-theme="mdmdt"] {
+  --mdt-bg-color: rgb(250, 250, 252);
+  --mdt-bg-color2: rgb(236, 236, 238);
+  --mdt-text-color: #000;
+  --mdt-text-grey: #666;
+  --mdt-text-code: #2f479f;
+  --mdt-title-color: #070909;
+  --mdt-border-color: #d2d2d2;
+  --mdt-color-1: #3e69d7;
+  --mdt-color-1-0-a: rgba(62, 105, 215, 0.15);
+  --mdt-color-1-0-b: rgba(62, 105, 215, 0.06);
+  --mdt-color-2: #f59102;
+  --mdt-color-2-0-a: rgba(245, 145, 2, 0.15);
+  --mdt-color-2-0-b: rgba(245, 145, 2, 0.06);
+  --mdt-color-2-0-c: rgba(245, 145, 2, 0.3);
+  --mdt-color-3: #03b736;
+  --mdt-color-3-0-a: rgba(3, 183, 54, 0.15);
+  --mdt-color-3-0-b: rgba(3, 183, 54, 0.06);
+  --mdt-color-4: #8250df;
+  --mdt-color-4-0-a: rgba(130, 80, 223, 0.15);
+  --mdt-color-4-0-b: rgba(130, 80, 223, 0.06);
+  --mdt-color-5: #e30f2e;
+  --mdt-color-5-0-a: rgba(227, 15, 46, 0.15);
+  --mdt-color-5-0-b: rgba(227, 15, 46, 0.06);
+  --mdt-md-char-color: rgba(72, 93, 108, 0.75);
+  --mdt-meta-content-color: var(--mdt-md-char-color);
+  --mdt-primary-color: var(--mdt-color-1);
+  --mdt-primary-btn-border-color: var(--mdt-bg-color2);
+  --mdt-primary-btn-text-color: var(--mdt-text-color);
+  --mdt-window-border: 1px solid var(--mdt-border-color);
+  --mdt-active-file-bg-color: var(--mdt-bg-color2);
+  --mdt-active-file-text-color: var(--mdt-color-1);
+  --mdt-active-file-border-color: var(--mdt-color-1);
+  --mdt-side-bar-bg-color: var(--mdt-bg-color);
+  --mdt-item-hover-bg-color: var(--mdt-bg-color2);
+  --mdt-item-hover-text-color: var(--mdt-color-1);
+  --mdt-select-text-bg-color: var(--mdt-color-1-0-a);
+  --mdt-monospace: "JetBrains Mono", "Source Code Pro", "Fira Code", Consolas, Inconsolata, "Cascadia Code", Monaco, "Ubuntu Mono", monospace;
+  --mdt-mermaid-font-family: "trebuchet ms", verdana, arial, sans-serif;
+  --mdt-mermaid-sequence-numbers: on;
+  --mdt-mermaid-flowchart-curve: linear;
+  --mdt-mermaid--gantt-left-padding: 75;
+  --mdt-sans: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, "Helvetica Neue", Helvetica, sans-serif;
+  --mdt-mono: "JBMono", "JetBrains Mono", "Source Code Pro", Consolas, Menlo, ui-monospace, monospace;
+}
+
+/* 暗色 token：document 面与影子根面双写 */
+body.dark [data-md-theme="mdmdt"] {
+  --mdt-bg-color: #1b1b1f;
+  --mdt-bg-color2: rgb(40, 42, 50);
+  --mdt-text-color: #d0d0d0;
+  --mdt-text-grey: #464b50;
+  --mdt-text-code: #bbc7fd;
+  --mdt-title-color: var(--mdt-text-color);
+  --mdt-border-color: var(--mdt-text-grey);
+  --mdt-color-1: #3e69d7;
+  --mdt-color-1-0-a: rgba(62, 105, 215, 0.3);
+  --mdt-color-1-0-b: rgba(62, 105, 215, 0.12);
+  --mdt-color-2: #f59102;
+  --mdt-color-2-0-a: rgba(245, 145, 2, 0.3);
+  --mdt-color-2-0-b: rgba(245, 145, 2, 0.12);
+  --mdt-color-2-0-c: rgba(245, 145, 2, 0.4);
+  --mdt-color-3: #03b736;
+  --mdt-color-3-0-a: rgba(3, 183, 54, 0.3);
+  --mdt-color-3-0-b: rgba(3, 183, 54, 0.12);
+  --mdt-color-4: #8250df;
+  --mdt-color-4-0-a: rgba(130, 80, 223, 0.3);
+  --mdt-color-4-0-b: rgba(130, 80, 223, 0.12);
+  --mdt-color-5: #e30f2e;
+  --mdt-color-5-0-a: rgba(227, 15, 46, 0.3);
+  --mdt-color-5-0-b: rgba(227, 15, 46, 0.12);
+  --mdt-md-char-color: #667c89ff;
+  --mdt-meta-content-color: var(--mdt-md-char-color);
+  --mdt-primary-color: var(--mdt-color-1);
+  --mdt-primary-btn-border-color: var(--mdt-bg-color2);
+  --mdt-primary-btn-text-color: var(--mdt-text-color);
+  --mdt-window-border: 1px solid var(--mdt-border-color);
+  --mdt-active-file-bg-color: var(--mdt-bg-color2);
+  --mdt-active-file-text-color: var(--mdt-color-1);
+  --mdt-active-file-border-color: var(--mdt-color-1);
+  --mdt-side-bar-bg-color: var(--mdt-bg-color);
+  --mdt-item-hover-bg-color: var(--mdt-bg-color2);
+  --mdt-item-hover-text-color: var(--mdt-color-1);
+  --mdt-select-text-bg-color: var(--mdt-color-1-0-a);
+  --mdt-monospace: "JetBrains Mono", "Source Code Pro", "Fira Code", Consolas, Inconsolata, "Cascadia Code", Monaco, "Ubuntu Mono", monospace;
+  --mdt-mermaid-theme: dark;
+  --mdt-mermaid-font-family: "trebuchet ms", verdana, arial, sans-serif;
+  --mdt-mermaid-sequence-numbers: on;
+  --mdt-mermaid-flowchart-curve: linear;
+  --mdt-mermaid--gantt-left-padding: 75;
+}
+:host(.dark) [data-md-theme="mdmdt"] {
+  --mdt-bg-color: #1b1b1f;
+  --mdt-bg-color2: rgb(40, 42, 50);
+  --mdt-text-color: #d0d0d0;
+  --mdt-text-grey: #464b50;
+  --mdt-text-code: #bbc7fd;
+  --mdt-title-color: var(--mdt-text-color);
+  --mdt-border-color: var(--mdt-text-grey);
+  --mdt-color-1: #3e69d7;
+  --mdt-color-1-0-a: rgba(62, 105, 215, 0.3);
+  --mdt-color-1-0-b: rgba(62, 105, 215, 0.12);
+  --mdt-color-2: #f59102;
+  --mdt-color-2-0-a: rgba(245, 145, 2, 0.3);
+  --mdt-color-2-0-b: rgba(245, 145, 2, 0.12);
+  --mdt-color-2-0-c: rgba(245, 145, 2, 0.4);
+  --mdt-color-3: #03b736;
+  --mdt-color-3-0-a: rgba(3, 183, 54, 0.3);
+  --mdt-color-3-0-b: rgba(3, 183, 54, 0.12);
+  --mdt-color-4: #8250df;
+  --mdt-color-4-0-a: rgba(130, 80, 223, 0.3);
+  --mdt-color-4-0-b: rgba(130, 80, 223, 0.12);
+  --mdt-color-5: #e30f2e;
+  --mdt-color-5-0-a: rgba(227, 15, 46, 0.3);
+  --mdt-color-5-0-b: rgba(227, 15, 46, 0.12);
+  --mdt-md-char-color: #667c89ff;
+  --mdt-meta-content-color: var(--mdt-md-char-color);
+  --mdt-primary-color: var(--mdt-color-1);
+  --mdt-primary-btn-border-color: var(--mdt-bg-color2);
+  --mdt-primary-btn-text-color: var(--mdt-text-color);
+  --mdt-window-border: 1px solid var(--mdt-border-color);
+  --mdt-active-file-bg-color: var(--mdt-bg-color2);
+  --mdt-active-file-text-color: var(--mdt-color-1);
+  --mdt-active-file-border-color: var(--mdt-color-1);
+  --mdt-side-bar-bg-color: var(--mdt-bg-color);
+  --mdt-item-hover-bg-color: var(--mdt-bg-color2);
+  --mdt-item-hover-text-color: var(--mdt-color-1);
+  --mdt-select-text-bg-color: var(--mdt-color-1-0-a);
+  --mdt-monospace: "JetBrains Mono", "Source Code Pro", "Fira Code", Consolas, Inconsolata, "Cascadia Code", Monaco, "Ubuntu Mono", monospace;
+  --mdt-mermaid-theme: dark;
+  --mdt-mermaid-font-family: "trebuchet ms", verdana, arial, sans-serif;
+  --mdt-mermaid-sequence-numbers: on;
+  --mdt-mermaid-flowchart-curve: linear;
+  --mdt-mermaid--gantt-left-padding: 75;
+}
+
+[data-md-theme="mdmdt"] .mdio-doc {
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: 0.6px;
+  font-family: "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", Arial, "Helvetica Neue", Helvetica, sans-serif;
+  font-family: var(--mdt-sans);
+  background: transparent;
+}
+
+[data-md-theme="mdmdt"] .mdio-doc,
+[data-md-theme="mdmdt"] .mdio-doc p,
+[data-md-theme="mdmdt"] .mdio-doc li,
+[data-md-theme="mdmdt"] .mdio-doc td,
+[data-md-theme="mdmdt"] .mdio-doc blockquote {
+  color: var(--mdt-text-color);
+  letter-spacing: 0.6px;
+}
+
+/* 代码块补 mono（上游缺口） */
+[data-md-theme="mdmdt"] .mdio-doc code,
+[data-md-theme="mdmdt"] .mdio-doc pre,
+[data-md-theme="mdmdt"] .mdio-doc .md-codeblock {
+  font-family: var(--mdt-mono);
+}
+
+/* ── 外壳皮肤（整壳替换）：主题接管左栏文档树 / 面包屑 / 切换器的视觉。
+ * 依据 Mdmdt 自己的 Typora file-library 语言：列表项之间是发丝分隔线、hover 是「次级底 + 蓝字」、
+ * active 是「蓝框 + 无底色」；目录/大纲文字用正文色，计数降权。结构尺寸与交互仍归 app。
+ * 注意：[data-md-theme].br-shell 必须用复合选择器 —— 属性就写在 .br-shell 自身，后代选择器不成立。 */
+[data-md-theme="mdmdt"].br-shell { background: var(--mdt-bg-color); color: var(--mdt-text-color); }
+[data-md-theme="mdmdt"] .br-side { background: var(--mdt-bg-color2); border-right-color: var(--mdt-border-color); }
+[data-md-theme="mdmdt"] .br-eyebrow,
+[data-md-theme="mdmdt"] .br-crumb-label,
+[data-md-theme="mdmdt"] .br-crumb-sep,
+[data-md-theme="mdmdt"] .br-theme { color: var(--mdt-text-color); opacity: 0.6; }
+[data-md-theme="mdmdt"] .br-count,
+[data-md-theme="mdmdt"] .br-folder-count { color: var(--mdt-text-color); opacity: 0.55; }
+[data-md-theme="mdmdt"] .br-folder { color: var(--mdt-text-color); opacity: 0.78; }
+[data-md-theme="mdmdt"] .br-folder-name { color: var(--mdt-text-color); }
+[data-md-theme="mdmdt"] .br-caret { border-left-color: var(--mdt-text-color); opacity: 0.6; }
+[data-md-theme="mdmdt"] .br-item {
+  color: var(--mdt-text-color);
+  border-bottom: 1px solid var(--mdt-border-color);
+  border-radius: 0;
+}
+[data-md-theme="mdmdt"] .br-folder:hover,
+[data-md-theme="mdmdt"] .br-item:hover {
+  background: var(--mdt-bg-color);
+  color: var(--mdt-color-1);
+  border-radius: 5px;
+}
+[data-md-theme="mdmdt"] .br-item.is-active {
+  background: transparent;
+  border: 1px solid var(--mdt-color-1);
+  border-radius: 5px;
+  color: var(--mdt-text-color);
+}
+[data-md-theme="mdmdt"] .br-item.is-active::before { display: none; }
+[data-md-theme="mdmdt"] .br-file-glyph { border-color: var(--mdt-text-color); opacity: 0.7; }
+[data-md-theme="mdmdt"] .br-file-glyph::after { border-color: var(--mdt-text-color); background: var(--mdt-bg-color2); }
+[data-md-theme="mdmdt"] .br-item:hover .br-file-glyph::after { background: var(--mdt-bg-color); }
+[data-md-theme="mdmdt"] .br-item.is-active .br-file-glyph,
+[data-md-theme="mdmdt"] .br-item.is-active .br-file-glyph::after { border-color: var(--mdt-color-1); }
+[data-md-theme="mdmdt"] .br-item.is-active .br-file-glyph::after { background: transparent; }
+[data-md-theme="mdmdt"] .br-crumb { background: var(--mdt-bg-color); border-bottom-color: var(--mdt-border-color); }
+[data-md-theme="mdmdt"] .br-crumb-path { color: var(--mdt-color-1); }
+[data-md-theme="mdmdt"] .br-theme select { color: var(--mdt-text-color); background: var(--mdt-bg-color2); border-color: var(--mdt-border-color); }
+[data-md-theme="mdmdt"] .br-side-empty { color: var(--mdt-text-color); opacity: 0.6; }
+
+/* 暗色下 code 的暗色规则（:host(.dark) 前缀）特异性高于围栏内层中和 ⇒ 再中和一次，
+ * 否则代码块每一行又会被套上「行内代码」的蓝底芯片。 */
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-codeblock code,
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-codeblock code { background: transparent; padding: 0; border-radius: 0; }
+/* 外壳残余件：焦点环 / 滚动条 / 加载环（滚动条伪元素里 var() 不解析 ⇒ 字面色）。 */
+[data-md-theme="mdmdt"] .br-item:focus-visible,
+[data-md-theme="mdmdt"] .br-folder:focus-visible,
+[data-md-theme="mdmdt"] .br-theme select:focus-visible { outline-color: var(--mdt-color-1); }
+[data-md-theme="mdmdt"] .br-spin-ring { border-top-color: var(--mdt-color-1); }
+[data-md-theme="mdmdt"] .br-tree::-webkit-scrollbar-thumb,
+[data-md-theme="mdmdt"] .br-doc::-webkit-scrollbar-thumb { background-color: #d2d2d2; }
+body.dark [data-md-theme="mdmdt"] .br-tree::-webkit-scrollbar-thumb,
+body.dark [data-md-theme="mdmdt"] .br-doc::-webkit-scrollbar-thumb,
+:host(.dark) [data-md-theme="mdmdt"] .br-tree::-webkit-scrollbar-thumb,
+:host(.dark) [data-md-theme="mdmdt"] .br-doc::-webkit-scrollbar-thumb { background-color: #5a646c; }
+
+/* 画布：上游 body 的底色（浅 rgb(250,250,252) / 深 #1b1b1f）→ 宿主窗格 .br-doc；
+ * 不涂 .mdio-doc 的原因与其它皮肤一致：那是随内容高度截断的色块，会让 app 底色在正文尾部露出来。 */
+[data-md-theme="mdmdt"] .br-doc { background: var(--mdt-bg-color); }
+[data-md-theme="mdmdt"] .mdio-doc { background: transparent; }
+
+/* 兜底修正：std 的节包裹层 .mdio-std 在 floor 里是 15px，会打断上游的 em 级联 ⇒ 补回 16px/1.6/字距。 */
+[data-md-theme="mdmdt"] .mdio-doc .mdio-std { font-size: 16px; line-height: 1.6; letter-spacing: 0.6px; }
+
+/* ── Typora base floor（Mdmdt 是 overlay 主题：代码块内边距、首个块的顶距、内层 <code> 的裸样式
+ *    都由 Typora 内置 base CSS 提供，vendor CSS 里没有；Typora 的围栏是 pre.md-fences > CodeMirror，
+ *    mdio 是 div.md-codeblock > pre > code —— 直接套 overlay 会出现「文字贴边 + 每行都套行内代码芯片」。
+ *    这里补上等价的最小 base，并把误套到内层 code 上的芯片样式中和掉。 */
+[data-md-theme="mdmdt"] .mdio-doc .md-codeblock {
+  margin: 16px 0 0;
+  padding: 16px;
+  background: var(--mdt-bg-color2);
+  border-radius: 8px;
+  overflow: auto;
+}
+[data-md-theme="mdmdt"] .mdio-doc .md-codeblock > pre,
+[data-md-theme="mdmdt"] .mdio-doc .md-codeblock pre {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  border-radius: 0;
+  overflow: visible;
+}
+[data-md-theme="mdmdt"] .mdio-doc .md-codeblock code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+  font-size: inherit;
+  box-decoration-break: slice;
+  -webkit-box-decoration-break: slice;
+}
+[data-md-theme="mdmdt"] .mdio-doc > .mdio-std:first-child > :first-child { margin-top: 0 !important; }
+[data-md-theme="mdmdt"] .mdio-doc img { max-width: 100%; }
+
+
+/* ── mdio 扩展元素（上游无对应概念：按 Mdmdt 自己的组件语言推导，不另起风格）──────────
+ * 推导依据全部取自本皮肤已移植的上游值：
+ *   · 圆角 8px + 内边距 16px —— 上游 blockquote / pre / figure 的统一口径；
+ *   · 次级底 --mdt-bg-color2 —— 上游 pre / CodeMirror-gutters 用；
+ *   · 分隔线 --mdt-border-color、次字色 --mdt-text-grey、代码字色 --mdt-text-code；
+ *   · 强调色 --mdt-color-1，及其 12% 透明度底 --mdt-color-1-0-b（上游 md-alert-note 用同一对）；
+ *   · 语气色 --mdt-color-3/4/5（上游 tip/important/warning 用）；
+ *   · 正文 0.6px 字距、代码 JBMono 均沿用本皮肤已有口径。
+ * 约束：只接管颜色/底色/边框/圆角/字重，不动结构（grip 定位、md-image min-height、mermaid flex 居中仍归 floor）。
+ * Admonition 不在此列：上游 .md-alert* 映射已经给了底色/4px 左边/圆角/五档语气色。 */
+[data-md-theme="mdmdt"] .mdio-doc .md-bullet-key {
+  color: var(--mdt-text-color);
+  background-color: var(--mdt-bg-color2);
+  border-radius: 4px;
+  padding: 0 6px;
+  font-weight: 600;
+}
+[data-md-theme="mdmdt"] .mdio-doc .md-claim-badge {
+  color: var(--mdt-color-1);
+  background-color: var(--mdt-color-1-0-b);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+[data-md-theme="mdmdt"] .mdio-doc .md-col-grip::before { background-color: var(--mdt-border-color); }
+[data-md-theme="mdmdt"] .mdio-doc th:hover .md-col-grip::before { background-color: var(--mdt-color-1); }
+[data-md-theme="mdmdt"] .mdio-doc .md-math { color: var(--mdt-text-color); }
+[data-md-theme="mdmdt"] .mdio-doc .md-math--raw { color: var(--mdt-text-grey); font-family: var(--mdt-mono); }
+[data-md-theme="mdmdt"] .mdio-doc .md-mermaid {
+  background-color: var(--mdt-bg-color2);
+  border: 1px solid var(--mdt-border-color);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-x: auto;
+}
+[data-md-theme="mdmdt"] .mdio-doc .md-html { color: inherit; }
+[data-md-theme="mdmdt"] .mdio-doc .md-html-raw {
+  background-color: var(--mdt-bg-color2);
+  border: 1px dashed var(--mdt-border-color);
+  border-radius: 8px;
+  color: var(--mdt-text-grey);
+}
+[data-md-theme="mdmdt"] .mdio-doc .md-image { background-color: var(--mdt-bg-color2); border-radius: 8px; }
+[data-md-theme="mdmdt"] .mdio-doc .md-image.is-loaded { background-color: transparent; }
+[data-md-theme="mdmdt"] .mdio-doc ins {
+  color: var(--mdt-color-3);
+  text-decoration: underline;
+  text-decoration-color: var(--mdt-color-3);
+}
+
+[data-md-theme="mdmdt"] .mdio-doc h1,
+[data-md-theme="mdmdt"] .mdio-doc h2,
+[data-md-theme="mdmdt"] .mdio-doc h3,
+[data-md-theme="mdmdt"] .mdio-doc h4,
+[data-md-theme="mdmdt"] .mdio-doc h5,
+[data-md-theme="mdmdt"] .mdio-doc h6 { position: relative; line-height: 1.5; margin: 32px 0 18px; color: var(--mdt-title-color); letter-spacing: 2px; }
+[data-md-theme="mdmdt"] .mdio-doc h1 { font-size: 32px; border-bottom: 1px solid var(--mdt-border-color); }
+[data-md-theme="mdmdt"] .mdio-doc h2 { font-size: 28px; }
+[data-md-theme="mdmdt"] .mdio-doc h3 { font-size: 24px; }
+[data-md-theme="mdmdt"] .mdio-doc h4 { font-size: 20px; }
+[data-md-theme="mdmdt"] .mdio-doc h5 { font-size: 18px; }
+[data-md-theme="mdmdt"] .mdio-doc h6 { font-size: 16px; }
+[data-md-theme="mdmdt"] .mdio-doc > h1 + *,
+[data-md-theme="mdmdt"] .mdio-doc > h2 + *,
+[data-md-theme="mdmdt"] .mdio-doc > h3 + *,
+[data-md-theme="mdmdt"] .mdio-doc > h4 + *,
+[data-md-theme="mdmdt"] .mdio-doc > h5 + *,
+[data-md-theme="mdmdt"] .mdio-doc > h6 + * { margin-top: 18px !important; }
+[data-md-theme="mdmdt"] .mdio-doc hr { height: 1px; box-sizing: border-box; background: var(--mdt-border-color); border: none; }
+[data-md-theme="mdmdt"] .mdio-doc p { margin-top: 16px; margin-bottom: -5px; white-space: pre-wrap; }
+[data-md-theme="mdmdt"] .mdio-doc > p + p { margin-top: 24px; }
+[data-md-theme="mdmdt"] .mdio-doc strong { font-weight: 800; color: var(--mdt-title-color); }
+[data-md-theme="mdmdt"] .mdio-doc u { text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+[data-md-theme="mdmdt"] .mdio-doc em { font-weight: 400; }
+[data-md-theme="mdmdt"] .mdio-doc del { color: var(--mdt-text-grey); text-decoration: line-through; text-decoration-color: var(--mdt-color-5); -moz-text-decoration-color: var(--mdt-color-5); }
+[data-md-theme="mdmdt"] .mdio-doc mark { border-radius: 5px; background-color: var(--mdt-color-1); padding: 0 4px; color: var(--mdt-bg-color); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+[data-md-theme="mdmdt"] .mdio-doc a { position: relative; font-weight: 500; text-decoration: none; color: var(--mdt-color-1); font-size: 16px; text-underline-offset: 4px; }
+[data-md-theme="mdmdt"] .mdio-doc a:hover { color: var(--mdt-color-2); text-decoration: underline; cursor: pointer !important; }
+[data-md-theme="mdmdt"] .mdio-doc p a,
+[data-md-theme="mdmdt"] .mdio-doc table a,
+[data-md-theme="mdmdt"] .mdio-doc blockquote a,
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition a,
+[data-md-theme="mdmdt"] .mdio-doc li a { padding-left: 2px; }
+[data-md-theme="mdmdt"] .mdio-doc sup a { padding-left: 0 !important; }
+[data-md-theme="mdmdt"] .mdio-doc ul,
+[data-md-theme="mdmdt"] .mdio-doc ol { margin-top: 0; margin-bottom: 0; margin-left: 0; }
+[data-md-theme="mdmdt"] .mdio-doc > p + ul,
+[data-md-theme="mdmdt"] .mdio-doc > p + ol,
+[data-md-theme="mdmdt"] .mdio-doc blockquote > ul,
+[data-md-theme="mdmdt"] .mdio-doc blockquote > ol,
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition > ul,
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition > ol { margin-top: 11px; }
+[data-md-theme="mdmdt"] .mdio-doc ul { padding-left: 36px; }
+[data-md-theme="mdmdt"] .mdio-doc ol { padding-left: 40px; }
+[data-md-theme="mdmdt"] .mdio-doc ol ol { margin-left: -7px; }
+[data-md-theme="mdmdt"] .mdio-doc ol > li > ul { margin-left: -7px; }
+[data-md-theme="mdmdt"] .mdio-doc ul > li > ol { margin-left: -2px; }
+[data-md-theme="mdmdt"] .mdio-doc ul > li > p { margin: 0 0 0 -2px; }
+[data-md-theme="mdmdt"] .mdio-doc ol > li > p { margin: 0 0 0 -6px; }
+[data-md-theme="mdmdt"] .mdio-doc li { margin-top: 6px; }
+[data-md-theme="mdmdt"] .mdio-doc li > p { margin: -5px 0; }
+[data-md-theme="mdmdt"] .mdio-doc li img,
+[data-md-theme="mdmdt"] .mdio-doc li pre,
+[data-md-theme="mdmdt"] .mdio-doc li figure,
+[data-md-theme="mdmdt"] .mdio-doc li blockquote,
+[data-md-theme="mdmdt"] .mdio-doc li .md-admonition { margin-top: 11px !important; margin-bottom: 11px !important; }
+[data-md-theme="mdmdt"] .mdio-doc li pre pre { margin-top: 0 !important; margin-bottom: 0 !important; }
+[data-md-theme="mdmdt"] .mdio-doc img { margin: 16px auto 0 auto !important; border-radius: 8px !important; border: none !important; color: var(--mdt-md-char-color); }
+[data-md-theme="mdmdt"] .mdio-doc section img { margin: 0 !important; }
+[data-md-theme="mdmdt"] .mdio-doc section span > img { margin: 8px 0 !important; }
+[data-md-theme="mdmdt"] .mdio-doc section span > img:first-of-type { margin-top: 0 !important; }
+[data-md-theme="mdmdt"] .mdio-doc section span > img:last-of-type { margin-bottom: 0 !important; }
+[data-md-theme="mdmdt"] .mdio-doc code { border-radius: 4px; background: var(--mdt-color-1-0-a); padding: 3px 5px; color: var(--mdt-text-code); font-size: 14px; box-decoration-break: clone; -webkit-box-decoration-break: clone; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+[data-md-theme="mdmdt"] .mdio-doc h1 code { font-size: 26px; }
+[data-md-theme="mdmdt"] .mdio-doc h2 code { font-size: 22px; }
+[data-md-theme="mdmdt"] .mdio-doc h3 code { font-size: 18px; }
+[data-md-theme="mdmdt"] .mdio-doc h4 code { font-size: 16px; }
+[data-md-theme="mdmdt"] .mdio-doc pre { margin-top: 16px; margin-bottom: 0; box-sizing: border-box; background: var(--mdt-bg-color2) !important; border-radius: 8px; font-size: 14px !important; color: var(--mdt-text-code); }
+[data-md-theme="mdmdt"] .mdio-doc pre pre { background: transparent !important; padding: 5px 10px; border: none; }
+[data-md-theme="mdmdt"] .mdio-doc pre .CodeMirror-wrap { padding: 16px 16px 16px 0; }
+[data-md-theme="mdmdt"] .mdio-doc pre .CodeMirror-wrap .CodeMirror-scroll { overflow-x: auto; }
+[data-md-theme="mdmdt"] .mdio-doc pre .CodeMirror-sizer { padding-left: 4px; }
+[data-md-theme="mdmdt"] .mdio-doc pre .CodeMirror-gutters { background: var(--mdt-bg-color2); border-color: var(--mdt-border-color); }
+[data-md-theme="mdmdt"] .mdio-doc blockquote,
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition { margin-top: 16px !important; margin-bottom: 0; padding: 16px; background: var(--mdt-color-1-0-b); box-sizing: border-box; border-radius: 8px; border-left: 4px solid var(--mdt-color-1); border-right: 0.1px solid transparent; border-bottom: 0.1px solid transparent; border-top: 0.1px solid transparent; }
+[data-md-theme="mdmdt"] .mdio-doc blockquote > *:first-child,
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition > *:first-child { margin-top: 0 !important; }
+[data-md-theme="mdmdt"] .mdio-doc blockquote > *:last-child,
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition > *:last-child { margin-bottom: 0 !important; }
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--note { border-left-color: var(--mdt-color-1); background: var(--mdt-color-1-0-b); color: var(--mdt-color-1); }
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--note .md-admonition-title { color: var(--mdt-color-1); }
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--danger { border-left-color: var(--mdt-color-2); background: var(--mdt-color-2-0-b); color: var(--mdt-color-2); }
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--danger .md-admonition-title { color: var(--mdt-color-2); }
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--tip { border-left-color: var(--mdt-color-3); background: var(--mdt-color-3-0-b); color: var(--mdt-color-3); }
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--tip .md-admonition-title { color: var(--mdt-color-3); }
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--info { border-left-color: var(--mdt-color-4); background: var(--mdt-color-4-0-b); color: var(--mdt-color-4); }
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--info .md-admonition-title { color: var(--mdt-color-4); }
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--warning { border-left-color: var(--mdt-color-5); background: var(--mdt-color-5-0-b); color: var(--mdt-color-5); }
+[data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--warning .md-admonition-title { color: var(--mdt-color-5); }
+[data-md-theme="mdmdt"] .mdio-doc sup,
+[data-md-theme="mdmdt"] .mdio-doc sub { font-size: 12px; }
+[data-md-theme="mdmdt"] .mdio-doc sup.md-footnote { background: transparent; padding: 0 2px; color: var(--mdt-color-1); }
+[data-md-theme="mdmdt"] .mdio-doc sup.md-footnote:hover { color: var(--mdt-color-2); cursor: pointer; }
+[data-md-theme="mdmdt"] .mdio-doc kbd { display: inline-block; border: none; border-image: none; border-radius: 5px; background: var(--mdt-title-color); padding: 0 6px; box-shadow: none; box-decoration-break: clone; -webkit-box-decoration-break: clone; font-size: 14px; font-weight: 900; color: var(--mdt-bg-color); }
+[data-md-theme="mdmdt"] ::selection { background: var(--mdt-color-2-0-c); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+[data-md-theme="mdmdt"] .mdio-doc table,
+[data-md-theme="mdmdt"] .mdio-doc figure { width: 100%; margin-bottom: 0; border-radius: 8px; padding: 0 !important; border-collapse: separate; border-spacing: 0; }
+[data-md-theme="mdmdt"] .mdio-doc figure { margin-top: 16px !important; }
+[data-md-theme="mdmdt"] .mdio-doc table { margin-top: 0; border: 1px solid var(--mdt-border-color) !important; overflow: hidden; }
+[data-md-theme="mdmdt"] .mdio-doc table thead tr th { background: var(--mdt-bg-color2); }
+[data-md-theme="mdmdt"] .mdio-doc table tbody tr:nth-child(even) td { background: var(--mdt-bg-color2); }
+[data-md-theme="mdmdt"] .mdio-doc table tbody tr:nth-child(odd) td { background: var(--mdt-bg-color); }
+[data-md-theme="mdmdt"] .mdio-doc table tr th,
+[data-md-theme="mdmdt"] .mdio-doc table tr td { padding: 10px !important; white-space: pre-wrap !important; }
+[data-md-theme="mdmdt"] .mdio-doc table tr td,
+[data-md-theme="mdmdt"] .mdio-doc table thead tr th { border-left: 1px solid var(--mdt-border-color) !important; }
+[data-md-theme="mdmdt"] .mdio-doc table tbody tr td:first-of-type,
+[data-md-theme="mdmdt"] .mdio-doc table thead tr th:first-of-type { border-left: none !important; }
+[data-md-theme="mdmdt"] .mdio-doc textarea { margin-top: 14px !important; margin-bottom: 0; }
+[data-md-theme="mdmdt"] .mdio-doc input { position: relative; border-radius: 5px !important; border: 1px solid var(--mdt-border-color); outline: none !important; padding: 0 6px; line-height: 1.2; }
+[data-md-theme="mdmdt"] .mdio-doc input::placeholder { font-size: 14px; color: var(--mdt-text-grey) !important; }
+[data-md-theme="mdmdt"] .mdio-doc input[type="checkbox"],
+[data-md-theme="mdmdt"] .mdio-doc input[type="radio"] { margin-right: 10px !important; margin-bottom: -2px !important; width: 14px !important; height: 14px !important; box-sizing: border-box; background: transparent !important; border: 1px solid var(--mdt-border-color) !important; border-radius: 3px !important; padding: 0 !important; outline: none; appearance: none; -webkit-appearance: none; -moz-appearance: none; -ms-appearance: none; list-style: none; }
+[data-md-theme="mdmdt"] .mdio-doc input[type="checkbox"]:checked,
+[data-md-theme="mdmdt"] .mdio-doc input[type="radio"]:checked { background: var(--mdt-color-1) !important; border-color: transparent !important; }
+[data-md-theme="mdmdt"] .mdio-doc input[type="radio"] { border-radius: 50% !important; -webkit-border-radius: 50% !important; -moz-border-radius: 50% !important; border: 1px solid var(--mdt-border-color) !important; }
+[data-md-theme="mdmdt"] .mdio-doc { margin: 0 auto; width: 100%; max-width: 1424px; min-width: 300px; padding: 32px 112px; overflow: auto; }
+[data-md-theme="mdmdt"] .mdio-doc > *:first-child { margin-top: 0; }
+[data-md-theme="mdmdt"] .mdio-doc li > .outline-item-active:before { width: 7px !important; }
+[data-md-theme="mdmdt"] .mdio-doc li > .outline-item-active,
+[data-md-theme="mdmdt"] .mdio-doc li > .outline-item:hover { margin-left: 4px !important; padding-left: 7px !important; }
+[data-md-theme="mdmdt"] .cm-s-inner .CodeMirror-line::selection,
+[data-md-theme="mdmdt"] .cm-s-inner .CodeMirror-line > span::selection,
+[data-md-theme="mdmdt"] .cm-s-inner .CodeMirror-line > span > span::selection { background: var(--mdt-color-2-0-c); }
+[data-md-theme="mdmdt"] .mdio-doc .md-codeblock { background-color: var(--mdt-bg-color2); color: var(--mdt-text-grey); }
+[data-md-theme="mdmdt"] .mdio-doc .md-codeblock .code-tooltip { z-index: 50; right: 0 !important; bottom: -28px !important; padding: 0; border-radius: 5px; background-color: var(--mdt-bg-color2); color: var(--mdt-text-color); }
+[data-md-theme="mdmdt"] .mdio-doc .md-codeblock .code-tooltip input,
+[data-md-theme="mdmdt"] .mdio-doc .md-codeblock .code-tooltip span { margin: 0; padding: 3px; border-radius: 5px; }
+[data-md-theme="mdmdt"] .mdio-doc ul,
+[data-md-theme="mdmdt"] .mdio-doc ul { padding-left: 34px; }
+[data-md-theme="mdmdt"] .mdio-doc ol,
+[data-md-theme="mdmdt"] .mdio-doc ol { padding-left: 36px; }
+[data-md-theme="mdmdt"] .mdio-doc ul ul,
+[data-md-theme="mdmdt"] .mdio-doc ol ol,
+[data-md-theme="mdmdt"] .mdio-doc ul > li > ol,
+[data-md-theme="mdmdt"] .mdio-doc ol > li > ul,
+[data-md-theme="mdmdt"] .mdio-doc ul ul,
+[data-md-theme="mdmdt"] .mdio-doc ol ol,
+[data-md-theme="mdmdt"] .mdio-doc ul > li > ol,
+[data-md-theme="mdmdt"] .mdio-doc ol > li > ul { margin-left: 0; }
+[data-md-theme="mdmdt"] .mdio-doc ol > li > p,
+[data-md-theme="mdmdt"] .mdio-doc ol > li > p { margin: 0 0 0 -2px; }
+[data-md-theme="mdmdt"] .mdio-doc pre.md-focus .md-diagram-panel { margin-top: 4px; }
+[data-md-theme="mdmdt"] .mdio-doc li.outline-item-open > .outline-item > .outline-label { padding-left: 13px; }
+
+/* ── 暗色差分 ── */
+body.dark [data-md-theme="mdmdt"] .mdio-doc h1, .mdio-doc h2, .mdio-doc h3, .mdio-doc h4, .mdio-doc h5, .mdio-doc h6 { position: relative; line-height: 1.5; margin: 32px 0 18px; color: var(--mdt-title-color); letter-spacing: 2px }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc h1, .mdio-doc h2, .mdio-doc h3, .mdio-doc h4, .mdio-doc h5, .mdio-doc h6 { position: relative; line-height: 1.5; margin: 32px 0 18px; color: var(--mdt-title-color); letter-spacing: 2px }
+body.dark [data-md-theme="mdmdt"] .mdio-doc h1 { border-bottom: 1px solid var(--mdt-border-color) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc h1 { border-bottom: 1px solid var(--mdt-border-color) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc hr { background: var(--mdt-border-color) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc hr { background: var(--mdt-border-color) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc strong { color: #cfdfff }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc strong { color: #cfdfff }
+body.dark [data-md-theme="mdmdt"] .mdio-doc del { color: var(--mdt-text-grey); text-decoration-color: var(--mdt-color-5); -moz-text-decoration-color: var(--mdt-color-5) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc del { color: var(--mdt-text-grey); text-decoration-color: var(--mdt-color-5); -moz-text-decoration-color: var(--mdt-color-5) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc mark { background-color: var(--mdt-color-1); color: rgb(250, 250, 250) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc mark { background-color: var(--mdt-color-1); color: rgb(250, 250, 250) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc a { color: var(--mdt-color-1) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc a { color: var(--mdt-color-1) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc a:hover { color: var(--mdt-color-2); text-decoration: underline; cursor: pointer !important }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc a:hover { color: var(--mdt-color-2); text-decoration: underline; cursor: pointer !important }
+body.dark [data-md-theme="mdmdt"] .mdio-doc a:hover { color: var(--mdt-color-2) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc a:hover { color: var(--mdt-color-2) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc ul, .mdio-doc ol { margin-top: 0; margin-bottom: 0; margin-left: 0 }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc ul, .mdio-doc ol { margin-top: 0; margin-bottom: 0; margin-left: 0 }
+body.dark [data-md-theme="mdmdt"] .mdio-doc img { color: var(--mdt-md-char-color) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc img { color: var(--mdt-md-char-color) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc code { background: var(--mdt-color-1-0-a); color: var(--mdt-text-code) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc code { background: var(--mdt-color-1-0-a); color: var(--mdt-text-code) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc pre { background: var(--mdt-bg-color2) !important; color: var(--mdt-text-code) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc pre { background: var(--mdt-bg-color2) !important; color: var(--mdt-text-code) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc pre .CodeMirror-gutters { background: var(--mdt-bg-color2); border-color: var(--mdt-border-color) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc pre .CodeMirror-gutters { background: var(--mdt-bg-color2); border-color: var(--mdt-border-color) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc blockquote, .mdio-doc .md-admonition { background: var(--mdt-color-1-0-b); border-left: 4px solid var(--mdt-color-1) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc blockquote, .mdio-doc .md-admonition { background: var(--mdt-color-1-0-b); border-left: 4px solid var(--mdt-color-1) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--note { border-left-color: var(--mdt-color-1); background: var(--mdt-color-1-0-b); color: var(--mdt-color-1) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--note { border-left-color: var(--mdt-color-1); background: var(--mdt-color-1-0-b); color: var(--mdt-color-1) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--note .md-admonition-title { color: var(--mdt-color-1) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--note .md-admonition-title { color: var(--mdt-color-1) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--danger { border-left-color: var(--mdt-color-2); background: var(--mdt-color-2-0-b); color: var(--mdt-color-2) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--danger { border-left-color: var(--mdt-color-2); background: var(--mdt-color-2-0-b); color: var(--mdt-color-2) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--danger .md-admonition-title { color: var(--mdt-color-2) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--danger .md-admonition-title { color: var(--mdt-color-2) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--tip { border-left-color: var(--mdt-color-3); background: var(--mdt-color-3-0-b); color: var(--mdt-color-3) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--tip { border-left-color: var(--mdt-color-3); background: var(--mdt-color-3-0-b); color: var(--mdt-color-3) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--tip .md-admonition-title { color: var(--mdt-color-3) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--tip .md-admonition-title { color: var(--mdt-color-3) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--info { border-left-color: var(--mdt-color-4); background: var(--mdt-color-4-0-b); color: var(--mdt-color-4) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--info { border-left-color: var(--mdt-color-4); background: var(--mdt-color-4-0-b); color: var(--mdt-color-4) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--info .md-admonition-title { color: var(--mdt-color-4) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--info .md-admonition-title { color: var(--mdt-color-4) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--warning { border-left-color: var(--mdt-color-5); background: var(--mdt-color-5-0-b); color: var(--mdt-color-5) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--warning { border-left-color: var(--mdt-color-5); background: var(--mdt-color-5-0-b); color: var(--mdt-color-5) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--warning .md-admonition-title { color: var(--mdt-color-5) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-admonition.md-admonition--warning .md-admonition-title { color: var(--mdt-color-5) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc sup.md-footnote { color: var(--mdt-color-1) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc sup.md-footnote { color: var(--mdt-color-1) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc sup.md-footnote:hover { color: var(--mdt-color-2) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc sup.md-footnote:hover { color: var(--mdt-color-2) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc kbd { background: var(--mdt-color-2); color: rgb(250, 250, 250) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc kbd { background: var(--mdt-color-2); color: rgb(250, 250, 250) }
+body.dark [data-md-theme="mdmdt"] ::selection { background: var(--mdt-color-2-0-c) }
+:host(.dark) [data-md-theme="mdmdt"] ::selection { background: var(--mdt-color-2-0-c) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc table, .mdio-doc figure { width: 100%; margin-bottom: 0; border-radius: 8px; padding: 0 !important; border-collapse: separate; border-spacing: 0 }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc table, .mdio-doc figure { width: 100%; margin-bottom: 0; border-radius: 8px; padding: 0 !important; border-collapse: separate; border-spacing: 0 }
+body.dark [data-md-theme="mdmdt"] .mdio-doc table { border: 1px solid var(--mdt-border-color) !important }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc table { border: 1px solid var(--mdt-border-color) !important }
+body.dark [data-md-theme="mdmdt"] .mdio-doc table thead tr th { background: var(--mdt-bg-color2) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc table thead tr th { background: var(--mdt-bg-color2) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc table tbody tr:nth-child(even) td { background: var(--mdt-bg-color2) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc table tbody tr:nth-child(even) td { background: var(--mdt-bg-color2) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc table tbody tr:nth-child(odd) td { background: var(--mdt-bg-color) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc table tbody tr:nth-child(odd) td { background: var(--mdt-bg-color) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc table tr td, .mdio-doc table thead tr th { border-left: 1px solid var(--mdt-border-color) !important }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc table tr td, .mdio-doc table thead tr th { border-left: 1px solid var(--mdt-border-color) !important }
+body.dark [data-md-theme="mdmdt"] .mdio-doc input { border: 1px solid var(--mdt-border-color) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc input { border: 1px solid var(--mdt-border-color) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc input::placeholder { color: var(--mdt-text-grey) !important }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc input::placeholder { color: var(--mdt-text-grey) !important }
+body.dark [data-md-theme="mdmdt"] .mdio-doc input[type="checkbox"], .mdio-doc input[type="radio"] { border: 1px solid var(--mdt-border-color) !important }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc input[type="checkbox"], .mdio-doc input[type="radio"] { border: 1px solid var(--mdt-border-color) !important }
+body.dark [data-md-theme="mdmdt"] .mdio-doc input[type="checkbox"]:checked, .mdio-doc input[type="radio"]:checked { background: var(--mdt-color-1) !important }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc input[type="checkbox"]:checked, .mdio-doc input[type="radio"]:checked { background: var(--mdt-color-1) !important }
+body.dark [data-md-theme="mdmdt"] .mdio-doc input[type="radio"] { border: 1px solid var(--mdt-border-color) !important }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc input[type="radio"] { border: 1px solid var(--mdt-border-color) !important }
+body.dark [data-md-theme="mdmdt"] .cm-s-inner .CodeMirror-line::selection, .cm-s-inner .CodeMirror-line > span::selection, .cm-s-inner .CodeMirror-line > span > span::selection { background: var(--mdt-color-2-0-c) }
+:host(.dark) [data-md-theme="mdmdt"] .cm-s-inner .CodeMirror-line::selection, .cm-s-inner .CodeMirror-line > span::selection, .cm-s-inner .CodeMirror-line > span > span::selection { background: var(--mdt-color-2-0-c) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-codeblock { background-color: var(--mdt-bg-color2); color: var(--mdt-text-grey) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-codeblock { background-color: var(--mdt-bg-color2); color: var(--mdt-text-grey) }
+body.dark [data-md-theme="mdmdt"] .mdio-doc .md-codeblock .code-tooltip { background-color: var(--mdt-bg-color2); color: var(--mdt-text-color) }
+:host(.dark) [data-md-theme="mdmdt"] .mdio-doc .md-codeblock .code-tooltip { background-color: var(--mdt-bg-color2); color: var(--mdt-text-color) }

@@ -1,0 +1,14 @@
+# Vite+ 的 workspace 边界（**不在仓库根**，也不在仓库根的下一层之上再放任何东西）。
+#
+# 为什么是这一层：vp 要求任务配置所在的目录**必须是 workspace 的包**（任务定义在 mdio_ui/demo/vite.config.ts），
+# 而构建目标 mdio_ui/lib/mods/** 必须在 **workspace root 之内**（否则 vp 的缓存不跟踪它们、静默假命中）。
+# 同时罩住这两者的最深层 = mdio_ui/（放 lib/mods/ 罩不到 demo；放 demo/ 罩不到 lib/mods）。
+#
+# 为什么 packages 只列 demo：
+#   · `mdio_ui/lib/mods/api_*` 里 ui_core / ui_devview **没有自己的 marker**；若把它们列进来，
+#     它们会变成本 workspace 的成员（实测 `Scope: all 5 workspace projects`）⇒ pnpm 行为被改，
+#     正是 ui_base/ui_std 用 packages:[] 隔离要避免的那一类问题。
+#   · 根之内 ≠ 必须是成员：任务只按**路径参数**构建目标，不需要目标成为 workspace 包。
+# demo 自己有 marker（就近第一个赢仍是它），本文件只为 vp 提供边界。
+packages:
+  - 'demo'

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>monaco smoke</title>
+<link rel="stylesheet" href="/vendor/monaco.api.css">
+<style>body{margin:0;background:#0f0f12;color:#f4f4f5;font:12px ui-monospace,Menlo,monospace}#log{padding:8px;white-space:pre-wrap}#host{height:420px;border-top:1px solid #333}</style>
+</head><body>
+<div id="log">boot</div>
+<div id="host"></div>
+<script type="module">
+const log = (m) => { const el = document.getElementById('log'); el.textContent += '\n' + m; document.title = m; };
+const t0 = performance.now();
+const at = () => Math.round(performance.now() - t0) + 'ms';
+try {
+  log('0 start');
+  const res = await fetch('/vendor/monaco.api.mjs');
+  log('1 fetched ' + res.status + ' ' + at());
+  const text = await res.text();
+  log('2 text ' + text.length + 'B ' + at());
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/javascript' }));
+  log('3 blob ' + at());
+  const api = await import(url);
+  log('4 imported editor=' + typeof api.editor + ' ' + at());
+  self.MonacoEnvironment = { getWorker: () => null };
+  const ed = api.editor.create(document.getElementById('host'), { value: '# smoke\n\n- a\n', language: 'markdown', theme: 'vs-dark', automaticLayout: false, minimap: { enabled: false } });
+  log('5 created lines=' + ed.getModel().getLineCount() + ' ' + at());
+  ed.setPosition({ lineNumber: 3, column: 3 });
+  ed.trigger('smoke', 'type', { text: '- SMOKE1\n' });
+  log('6 edited value=' + JSON.stringify(ed.getValue().slice(-24)) + ' ' + at());
+  log('DONE');
+} catch (e) {
+  log('ERR ' + String(e && e.message || e) + ' ' + at());
+}
+</script></body></html>

@@ -1,0 +1,40 @@
+{
+  "name": "ui_std",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./comps": "./src/comps.js",
+    "./basic_render": "./src/basic_render.jsx",
+    "./claimEval": "./src/claimEval.js",
+    "./std": "./src/std.js",
+    "./theme": "./src/theme.js"
+  },
+  "esmx": {
+    "uses": [
+      "ui_base"
+    ],
+    "exports": {
+      "./comps": "./src/comps.js",
+      "./basic_render": "./src/basic_render.jsx",
+      "./claimEval": "./src/claimEval.js",
+      "./std": "./src/std.js",
+      "./theme": "./src/theme.js"
+    }
+  },
+  "//": "两种依赖分开：① 第三方运行时依赖（dompurify/katex/mermaid/shiki）**装在本包** node_modules/.pnpm（`node scripts/pm-install.mjs --dir <本包>`；自包含 + pnpm-lock.yaml，不跨树借链）；② 共享单例（react/mobx 系）只声明在 peerDependencies 供 esmx 读范围，**本地不装**（.npmrc auto-install-peers=false）。uses 承重：去掉它会把 react 内联进产物。",
+  "dependencies": {
+    "ui_base": "link:../ui_base",
+    "dompurify": "3.4.17",
+    "katex": "0.18.9",
+    "mermaid": "12.0.0",
+    "shiki": "4.4.3"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "mobx": "^7.0.6",
+    "mobx-react-lite": "^5.1.0",
+    "mobx-state-tree": "^8.0.0",
+    "react-dom": "^19.3.0"
+  }
+}

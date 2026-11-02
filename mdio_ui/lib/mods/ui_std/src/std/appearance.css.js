@@ -1,0 +1,126 @@
+// @ts-check
+/**
+ * std/appearance.css —— **默认外观自带的样式**（随件走，不依赖任何宿主的样式表）。
+ *
+ * 默认外观样式随件走，不依赖宿主样式表；宿主只需提供容器（与 katex-css.js 同法：宿主零参与、无资源 404）。
+ *
+ * 边界（有意保留）：**排版归件，主题色归宿主** —— 颜色仍读宿主的 --color-md-* token，
+ * 但每个都带上了宿主默认值作回退 ⇒ 没有宿主主题时也能正常渲染（主题可换、件不塌）。
+ */
+export const STD_CSS = `
+/* ── MD basic render（std lib 排版，.mdio-std 容器下按元素选择器） ── */
+/* std 只管排版：容器留白/宽度归宿主外层（默认认领递归下每节各是一个 .mdio-std 实例，
+   自带 padding 会节节叠出大空白） */
+.mdio-std { position: relative; color: var(--color-md-fg, #3f3f46); line-height: 1.65; font-size: 15px; }
+.mdio-std:first-child h1 { margin-top: 0; }
+.mdio-std ::selection { background: rgba(96, 165, 250, 0.25); color: var(--color-md-heading, #18181b); }
+.mdio-std h1 { margin: 0 0 0.75em; font-size: 2rem; line-height: 1.25; font-weight: 600; color: var(--color-md-heading, #18181b); border-bottom: 1px solid var(--color-md-border, #e4e4e7); padding-bottom: .3em; }
+.mdio-std h2 { margin: 1.75em 0 0.5em; font-size: 1.5rem; line-height: 1.25; font-weight: 600; color: var(--color-md-heading, #18181b); border-bottom: 1px solid var(--color-md-border, #e4e4e7); padding-bottom: .25em; }
+.mdio-std h3 { margin: 1.5em 0 0.4em; font-size: 1.25rem; line-height: 1.25; font-weight: 600; color: var(--color-md-heading, #18181b); }
+.mdio-std h4 { margin: 1.25em 0 0.3em; font-size: 1rem; line-height: 1.25; font-weight: 600; color: var(--color-md-heading, #18181b); }
+.mdio-std h5 { margin: 1.25em 0 0.3em; font-size: .875rem; line-height: 1.25; font-weight: 600; color: var(--color-md-heading, #18181b); }
+.mdio-std h6 { margin: 1.25em 0 0.3em; font-size: .85rem; line-height: 1.25; font-weight: 600; color: var(--color-md-muted, #71717a); }
+.mdio-std p { margin: 0 0 1em; line-height: 1.65; }
+.mdio-std li p { margin: 0; }
+.mdio-std ul, .mdio-std ol { margin: 0 0 1em; padding-left: 1.6em; }
+.mdio-std li { margin: 2px 0; }
+.mdio-std strong { font-weight: 600; }
+.mdio-std em { font-style: italic; }
+.mdio-std blockquote { margin: 0 0 1em; padding: 2px 0 2px 14px; border-left: 3px solid var(--color-md-blockquote-border, #d4d4d8); color: var(--color-md-blockquote-fg, #52525b); }
+.mdio-std hr { border: none; border-top: 1px solid var(--color-md-border, #e4e4e7); margin: 1.5em 0; }
+.mdio-std code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; }
+.mdio-std .md-inline-code { background: var(--color-md-inline-code-bg, rgba(219, 39, 119, 0.1)); color: var(--color-md-inline-code-fg); padding: 1px 5px; border-radius: 4px; }
+.mdio-std pre { background: var(--color-md-code-bg, rgba(24, 24, 27, 0.06)); border: 1px solid var(--color-md-code-border, rgba(24, 24, 27, 0.12)); border-radius: 8px; padding: 12px 14px; overflow: auto; margin: 0 0 1em; white-space: pre; tab-size: 2; font-size: 13px; }
+/* 代码块/表格的横向滚动条：细条 + 主题化 —— 默认 OS 滚动条在深色下刺眼、占高（2026-10-11 业主报「难看+难受」）。
+   颜色走宿主 token（--color-md-scroll），缺省给中性灰（明暗两主题都成立）。 */
+.mdio-std pre, .mdio-std .md-table-wrap { scrollbar-width: thin; scrollbar-color: var(--color-md-scroll, rgba(127, 127, 127, 0.45)) transparent; }
+.mdio-std pre::-webkit-scrollbar, .mdio-std .md-table-wrap::-webkit-scrollbar { width: 8px; height: 8px; }
+.mdio-std pre::-webkit-scrollbar-track, .mdio-std .md-table-wrap::-webkit-scrollbar-track { background: transparent; }
+.mdio-std pre::-webkit-scrollbar-thumb, .mdio-std .md-table-wrap::-webkit-scrollbar-thumb { background: var(--color-md-scroll, rgba(127, 127, 127, 0.45)); border-radius: 4px; }
+.mdio-std pre::-webkit-scrollbar-thumb:hover, .mdio-std .md-table-wrap::-webkit-scrollbar-thumb:hover { background: var(--color-md-scroll-hover, rgba(127, 127, 127, 0.7)); }
+.mdio-std a { color: var(--color-md-link, #2563eb); text-decoration: none; }
+.mdio-std a:hover { text-decoration: underline; }
+.mdio-std table { border-collapse: collapse; margin: 0 0 1em; font-size: .92em; }
+.mdio-std th { background: var(--color-md-table-header-bg, #f4f4f5); font-weight: 600; }
+.mdio-std th, .mdio-std td { border: 1px solid var(--color-md-border, #e4e4e7); padding: 5px 12px; text-align: left; }
+.mdio-std tr:nth-child(2n) td { background: var(--color-md-table-stripe, rgba(244, 244, 245, 0.5)); }
+/* 表格列宽拖拽（std 的 MDTable 提供行为，样式归宿主）：手柄要有真实尺寸才点得到 */
+.mdio-std .md-table-wrap { max-width: 100%; overflow-x: auto; margin: 0 0 1em; }
+.mdio-std .md-table-wrap .md-table { margin: 0; }
+.mdio-std th { position: relative; }
+/* 列宽拖拽手柄：贴在单元格右缘（绝对定位、不占内容流）——旧式 inline-block + border-left
+   悬在表头文字旁，长得像一根没对齐的 |（2026-10-11 业主误报「第一行多了 |」）。
+   新式：默认隐形，表头悬停时显形（贴边的 2px 圆角竖线 = 高亮边框，不再被读成竖线内容）。 */
+.mdio-std .md-col-grip { position: absolute; top: 0; right: -5px; width: 10px; height: 100%; cursor: col-resize; opacity: 0; transition: opacity 0.12s; }
+.mdio-std .md-col-grip::before { content: ""; position: absolute; top: 5px; bottom: 5px; left: 4px; width: 2px; border-radius: 1px; background: var(--color-md-scroll-hover, rgba(127, 127, 127, 0.7)); }
+.mdio-std th:hover .md-col-grip { opacity: .9; }
+.mdio-std .md-col-grip:active { opacity: 1; }
+/* 图片：懒加载占位 + 点击放大（放大层挂在 body 上，故用顶层选择器） */
+/* Shiki 双主题：MDCode 输出 --shiki-light/--shiki-dark 变量（defaultColor:false），颜色由宿主主题决定 */
+.mdio-std .md-codeblock { margin: 0 0 1em; }
+.mdio-std .md-codeblock pre { margin: 0; }
+.mdio-std .md-codeblock .shiki span { color: var(--shiki-light); }
+body.dark .mdio-std .md-codeblock .shiki span { color: var(--shiki-dark); }
+.mdio-std .md-codeblock .shiki { background-color: var(--shiki-light-bg); }
+body.dark .mdio-std .md-codeblock .shiki { background-color: var(--shiki-dark-bg); }
+/* ⚠️ 2026-10-08（实测）：app 内容住 #app 影子根 ⇒ body.dark 的规则跨界不生效（深色下代码块底色恒浅）。
+   下面两条用 :host(.dark)（只在影子样式表里生效）补上；document 里该规则被丢弃 ⇒ 无副作用。
+   ⚠️ 2026-10-11（回归修复）：这两条当时只写进了生成的 appearance.css、没回写本源文件，
+   重新生成时被抹掉 ⇒ 代码块不跟随主题。**源 = 本文件**，改样式只改这里。 */
+:host(.dark) .mdio-std .md-codeblock .shiki { background-color: var(--shiki-dark-bg); }
+:host(.dark) .mdio-std .md-codeblock .shiki span { color: var(--shiki-dark); }
+/* Mermaid 图容器 */
+.mdio-std .md-mermaid { display: flex; justify-content: center; padding: 6px 0 14px; }
+.mdio-std .md-mermaid svg { max-width: 100%; height: auto; }
+.mdio-std .md-mermaid--err, .mdio-std .md-mermaid--pending { display: block; }
+.mdio-std .md-image { display: block; background: rgba(127,127,127,.08); min-height: 12px; }
+.md-image-zoom { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.82); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; cursor: zoom-out; }
+.md-image-zoom img { max-width: 92vw; max-height: 82vh; border-radius: 10px; cursor: default; }
+.md-image-act { padding: 6px 12px; border-radius: 6px; background: rgba(255,255,255,.14); color: #fff; font-size: 12px; border: 0; cursor: pointer; text-decoration: none; }
+/* ── HTML 渲染件（hb/he 块与表格单元格行内 HTML）—— 与 .mdio-std 既有排版同一作用域 ── */
+/* 1. 容器收口：块间距交给子元素，首尾不双份（GitHub 同款口径） */
+.mdio-std .md-html { margin: 0 0 1em; }
+.mdio-std .md-html > :first-child { margin-top: 0; }
+.mdio-std .md-html > :last-child { margin-bottom: 0; }
+.mdio-std td > :last-child { margin-bottom: 0; }
+/* 2. 未解释原文（首帧 / 清洗失败）：可读、且一眼看出不是正文 */
+.mdio-std .md-html-raw { margin: 0 0 1em; padding: 8px 10px; border: 1px dashed var(--color-md-border, #e4e4e7); border-radius: 8px; background: var(--color-md-code-bg, rgba(24, 24, 27, .06)); color: var(--color-md-muted, #71717a); font: .82em/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; overflow-x: auto; }
+/* 3. 行内图片：HTML 块内 / 表格单元格里的 <img> 保持行内（markdown 图片仍 block） */
+.mdio-std .md-html img.md-image, .mdio-std td img.md-image { display: inline-block; vertical-align: middle; background: transparent; min-height: 0; }
+/* P2：<img align=left|right> 走 UA 的 float，GitHub 只补 padding */
+.mdio-std img.md-image[align="left"] { padding-right: 20px; }
+.mdio-std img.md-image[align="right"] { padding-left: 20px; }
+/* 4. HTML 专属语义元素补齐（md 引擎不产这些节点，只影响 HTML 块） */
+.mdio-std details { display: block; margin: 0 0 1em; }
+.mdio-std summary { display: list-item; cursor: pointer; color: var(--color-md-fg, #3f3f46); }
+.mdio-std details[open] > summary { margin-bottom: .5em; }
+.mdio-std details > :not(summary) { margin: .5em 0 0; }
+.mdio-std figure { display: block; margin: 1em 0; }
+.mdio-std figcaption { display: block; margin: .25em 0 .75em; color: var(--color-md-muted, #71717a); font-size: .9em; }
+.mdio-std dl { margin: 0 0 1em; }
+.mdio-std dt { margin-top: 1em; font-weight: 600; }
+.mdio-std dd { margin: .25em 0 0 1.5em; color: var(--color-md-muted, #71717a); }
+.mdio-std caption { margin: .25em 0 .5em; text-align: left; color: var(--color-md-muted, #71717a); font-size: .9em; }
+.mdio-std center { display: block; text-align: center; }
+.mdio-std del { color: var(--color-md-del-fg, #a1a1aa); }
+.mdio-std mark { background: var(--color-md-mark-bg, rgba(234, 179, 8, 0.3)); border-radius: 2px; padding: 0 2px; }
+.mdio-std ins { color: var(--color-md-ins-fg, #16a34a); }
+.mdio-std .md-admonition { border: 1px solid; border-left-width: 4px; border-radius: 8px; padding: 10px 14px; margin: 0 0 1em; }
+.mdio-std .md-admonition-title { font-weight: 600; margin-bottom: 4px; font-size: .92em; }
+.mdio-std .md-admonition--note { border-color: var(--color-md-ad-note); }
+.mdio-std .md-admonition--tip { border-color: var(--color-md-ad-tip); }
+.mdio-std .md-admonition--warning { border-color: var(--color-md-ad-warning); }
+.mdio-std .md-admonition--danger { border-color: var(--color-md-ad-danger); }
+.mdio-std .md-admonition--info { border-color: var(--color-md-ad-info); }
+.mdio-std .md-admonition--note .md-admonition-title { color: var(--color-md-ad-note); }
+.mdio-std .md-admonition--tip .md-admonition-title { color: var(--color-md-ad-tip); }
+.mdio-std .md-admonition--warning .md-admonition-title { color: var(--color-md-ad-warning); }
+.mdio-std .md-admonition--danger .md-admonition-title { color: var(--color-md-ad-danger); }
+.mdio-std .md-admonition--info .md-admonition-title { color: var(--color-md-ad-info); }
+.mdio-std .md-claim-badge { font-size: 11px; color: var(--color-app-fg-muted); font-family: ui-monospace, Menlo, monospace; padding: 2px 0; }
+
+/* 行内公式（mt/math_inline）：等宽 + 略淡（旧壳口径） */
+.mdio-std .md-math { font-family: ui-monospace, Menlo, monospace; font-size: .95em; opacity: .9; }
+/* 列表项 key（bullet 的键名）：不额外加样式，与值同色（旧壳口径） */
+.mdio-std .md-bullet-key { font-weight: inherit; }
+`;

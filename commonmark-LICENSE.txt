@@ -1,0 +1,24 @@
+CommonMark specification
+=======================
+
+File in this repository: `commonmark.md` (verbatim copy, used as a parser test
+fixture by `mdio_core/tests`).
+
+- Title: CommonMark Spec, version 0.31.2 (2024-01-28)
+- Author: John MacFarlane
+- Source: https://spec.commonmark.org/0.31.2/
+- License: Creative Commons Attribution-ShareAlike 4.0 International
+  (CC BY-SA 4.0), https://creativecommons.org/licenses/by-sa/4.0/
+
+This file is **not** covered by the project's MIT license. It remains under
+CC BY-SA 4.0. If you redistribute it, or a modified version of it, you must:
+
+1. keep the attribution above (author, source, license), and
+2. license any modified version under CC BY-SA 4.0 as well.
+
+The file is kept verbatim. It is bundled only so the test suite can run without
+network access; it is not part of the project's documentation and is not
+incorporated into any MIT-licensed work.
+
+The full license text is available at:
+https://creativecommons.org/licenses/by-sa/4.0/legalcode

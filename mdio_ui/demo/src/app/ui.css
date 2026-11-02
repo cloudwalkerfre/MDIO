@@ -1,0 +1,120 @@
+/* ui.css —— **宿主样式面**：tailwind 入口 + `@source` 扫描面 + **设计 tokens**（观感面）。
+ * 外壳样式（header/三栏/footer/log/文件树/wt 切换）已**随件走** → `mdio_ui/lib/mods/ui_devview/src/chrome.css`（见文末指针）。
+ * MD 排版在渲染件自己那里 → `mdio_ui/lib/mods/ui_std/src/std/appearance.css`。
+ */
+/*
+ * tailwind 由**平台提供**（平台包根的 style.css；tailwindcss 与 @tailwindcss/vite 的依赖都声明在 mdio_ui）。
+ * 本文件不再自己 import "tailwindcss/*" —— 与 react/mobx 一样，底层能力统一由平台给。
+ * 扫描范围用 **glob**：加/删 wt 目录不需要改这里（此前是手抄清单，删 exp_pages/ui 时就漏改过）。
+ */
+/* tailwind 由**平台层**提供（`mdio_ui` 包根的 style.css：theme + utilities，不引 preflight）。
+   跨包 `@import` 靠 `demo/node_modules/mdio_ui` 链接解析 —— 2026-10-01 那次解析失败的唯一原因是**软链还没改名**，
+   而不是"跨包 import 不行"（更正我先前的判断）。 */
+@import "ui_base/style.css";
+/* 扫描范围给**文件 glob**：只给目录名时实测一条 utility 都不生成（tailwind 需要文件） */
+/* ⚠️ glob 相对**本文件所在目录**解析：S2 把 ui.css 从 src/ 搬到 src/app/ 后深了一层，
+   原 glob 全部指空 ⇒ tailwind 零工具类（stats/swap 这类全 tailwind 写的页直接塌）——2026-10-01 修复。
+   【版本注记 2026-10-01】下面两条把 `wt/**` 下的**文档**纳入扫描面：在 tailwind 插件 4.3.2/4.3.3 上，
+   扫描输入一变它就硬发整页重载（改一个 MD 就刷页）。现依赖预发布 `0.0.0-insiders.fa81d69` 修掉了它
+   （官方 #20414，正式版已发布后请把两处 package.json 改回正式版并复跑「改文档不得导航」这条验收）。 */
+@source "../../../../*/ui/**/*.{js,jsx,ts,tsx,md}";
+@source "../../../../*/wt/**/*.{js,jsx,ts,tsx,md}";
+@source "../../../../worktrees/*/ui/**/*.{js,jsx,ts,tsx,md}";
+@source "../../../../worktrees/*/wt/**/*.{js,jsx,ts,tsx,md}";
+@source "../**/*.{js,jsx,ts,tsx,css,md}";
+/* 官方件（mdio_ui/lib/mods/**）：G11——官方 mod 从工作树搬到这里后，**必须仍被扫描**，
+   否则它们的 tailwind 工具类会静默清零（S2 的另一种形态）。三条覆盖：包根 src/、一 mod 一包的 src/、一 mod 一包的根级源码。 */
+/* 注意：空 glob 会被规则 11 当场判红（实测）⇒ 只写匹配得到的。
+   **一 mod 一包用通配**（lib/mods/<mod>/src/**）：2026-10-01 platform 从 lib/std/ 搬进 lib/mods/ 时，
+   std 专用的那条 glob 覆盖不到它 ⇒ 规则 11b 当场判红（工具类会静默清零）。通配后新增 mod 包不必再改这里。 */
+@source "../../../lib/mods/*/src/**/*.{js,jsx,ts,tsx,md}";   /* 一 mod 一包（std/ · platform/ · devview/ · core/）：容器自身没有 src，别写 `lib/mods/src/**`（空 glob 会被规则 11 判红） */
+
+/* ── Tokens ──
+   浅色 token 同时挂 `:root` 与 `body`（2026-10-01 实测）：只写 `:root` 时，`body` 上的
+   `background: var(--color-app-bg)` 在**移除 `dark` 之后解析不到变量** ⇒ 背景变 `rgba(0,0,0,0)`
+   ⇒ `cdp-devview` 的 A3「主题切换 → 亮色」判红（判定式读 body 的计算背景 = rgb(255,255,255)）。
+   显式挂 body 让浅色不依赖 `:root` 的继承路径；`body.dark` 特异性更高，暗色仍然胜出。 */
+:root, body {
+  --color-app-bg: #ffffff;
+  --color-app-surface: #fafafa;
+  --color-app-surface-alt: #f4f4f5;
+  --color-app-border: #e4e4e7;
+  --color-app-border-hover: #d4d4d8;
+  --color-app-fg: #18181b;
+  --color-app-fg-muted: #71717a;
+  --color-app-fg-subtle: #52525b;
+  --color-md-fg: #3f3f46;
+  --color-md-heading: #18181b;
+  --color-md-muted: #71717a;
+  --color-md-border: #e4e4e7;
+  --color-md-surface: #fafafa;
+  --color-md-link: #2563eb;
+  --color-md-code-bg: rgba(24, 24, 27, 0.06);
+  --color-md-code-border: rgba(24, 24, 27, 0.12);
+  --color-md-blockquote-fg: #52525b;
+  --color-md-blockquote-border: #d4d4d8;
+  --color-md-table-header-bg: #f4f4f5;
+  --color-md-table-stripe: rgba(244, 244, 245, 0.5);
+  --color-md-scroll: rgba(127, 127, 127, 0.45);
+  --color-md-scroll-hover: rgba(127, 127, 127, 0.7);
+  --color-md-del-fg: #a1a1aa;
+  --color-md-mark-bg: rgba(234, 179, 8, 0.3);
+  --color-md-ins-fg: #16a34a;
+  --color-md-inline-code-bg: rgba(219, 39, 119, 0.1);
+  --color-md-inline-code-fg: #db2777;
+  --color-md-ad-note: #3b82f6;
+  --color-md-ad-tip: #22c55e;
+  --color-md-ad-warning: #eab308;
+  --color-md-ad-danger: #ef4444;
+  --color-md-ad-info: #06b6d4;
+}
+body.dark {   /* 暗色覆盖（特异性高于 `:root, body` ⇒ 胜出） */
+  --color-app-bg: #0f0f12;
+  --color-app-surface: #18181b;
+  --color-app-surface-alt: #27272a;
+  --color-app-border: #27272a;
+  --color-app-border-hover: #3f3f46;
+  --color-app-fg: #f4f4f5;
+  --color-app-fg-muted: #71717a;
+  --color-app-fg-subtle: #a1a1aa;
+  --color-md-fg: #d4d4d8;
+  --color-md-heading: #f4f4f5;
+  --color-md-muted: #71717a;
+  --color-md-border: #27272a;
+  --color-md-surface: #18181b;
+  --color-md-link: #60a5fa;
+  --color-md-code-bg: rgba(15, 23, 42, 0.85);
+  --color-md-code-border: rgba(148, 163, 184, 0.2);
+  --color-md-blockquote-fg: #a1a1aa;
+  --color-md-blockquote-border: #3f3f46;
+  --color-md-table-header-bg: #18181b;
+  --color-md-table-stripe: rgba(24, 24, 27, 0.5);
+  --color-md-scroll: rgba(161, 161, 170, 0.5);
+  --color-md-scroll-hover: rgba(161, 161, 170, 0.75);
+  --color-md-del-fg: #71717a;
+  --color-md-mark-bg: rgba(234, 179, 8, 0.3);
+  --color-md-ins-fg: #4ade80;
+  --color-md-inline-code-bg: rgba(244, 114, 182, 0.12);
+  --color-md-inline-code-fg: #f472b6;
+  --color-md-ad-note: #60a5fa;
+  --color-md-ad-tip: #4ade80;
+  --color-md-ad-warning: #facc15;
+  --color-md-ad-danger: #f87171;
+  --color-md-ad-info: #22d3ee;
+}
+/* ── Base ── */
+html, body, #root { height: 100%; margin: 0; overflow: hidden; background: var(--color-app-bg); color: var(--color-app-fg); }
+body { -webkit-font-smoothing: antialiased; font-optical-sizing: auto; font-size: 14px; line-height: 1.5; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(113, 113, 122, 0.35); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(113, 113, 122, 0.55); }
+
+/* ── devview 壳：**已随件走**（2026-10-01）──────────────────────────────────────────────
+   外壳样式（header · 三栏 · footer · log · 文件树 · wt 切换，约 150 条规则）现在住在壳包：
+     `mdio_ui/lib/mods/ui_devview/src/chrome.css`
+   由 `DevView.jsx` **静态 import** 引入 ⇒ Vite 在首屏前注入，**无 FOUC**（不走运行时采纳那条路）。
+   它只用本文件的 tokens（`var(--color-app-*)`），自己**不定义**颜色 ⇒ 换主题 = 换这里；外壳不动。
+   若在这里再写一份外壳样式，就是第二处定义（§1 原则 P1）。
+   （同类先例：MD 排版已随渲染件走 —— `lib/mods/ui_std/src/std/appearance.css`，`std.js` 静态 import。）
+ */

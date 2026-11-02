@@ -1,0 +1,2 @@
+# 平台包的依赖解析走软链（node_modules → ../demo/node_modules）；软链不匹配根级 node_modules/ 规则，这里显式忽略
+node_modules

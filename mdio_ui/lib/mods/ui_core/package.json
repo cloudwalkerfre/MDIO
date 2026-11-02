@@ -1,0 +1,68 @@
+{
+  "name": "ui_core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./boot": "./src/services/boot.js",
+    "./client": "./src/services/client.js",
+    "./cssAdopt": "./src/services/cssAdopt.js",
+    "./modLoader": "./src/services/modLoader.js",
+    "./mdScope": "./src/services/mdScope.js",
+    "./locator": "./src/services/locator.js",
+    "./mdLine": "./src/services/mdLine.js",
+    "./monitor": "./src/services/monitor.js",
+    "./logBus": "./src/services/logBus.js",
+    "./appRouter": "./src/services/appRouter.js",
+    "./domScope": "./src/services/domScope.js",
+    "./snapshot": "./src/services/snapshot.js",
+    "./uiMd": "./src/services/uiMd.js",
+    "./claimEval": "./src/services/claimEval.js",
+    "./envOf": "./src/services/envOf.js",
+    "./DocPane": "./src/render/DocPane.jsx",
+    "./ErrorBoundary": "./src/render/ErrorBoundary.jsx",
+    "./uiStore": "./src/store/uiStore.js",
+    "./services/*": "./src/services/*",
+    "./render/*": "./src/render/*",
+    "./store/*": "./src/store/*"
+  },
+  "dependencies": {
+    "@esmap/guard": "^0.1.0",
+    "ui_base": "link:../ui_base",
+    "ui_wasm": "link:../ui_wasm"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "mobx": "^7.0.6",
+    "mobx-react-lite": "^5.1.0",
+    "mobx-state-tree": "^8.0.0",
+    "react-dom": "^19.3.0"
+  },
+  "esmx": {
+    "uses": [
+      "ui_base",
+      "ui_wasm"
+    ],
+    "exports": {
+      "./boot": "./src/services/boot.js",
+      "./client": "./src/services/client.js",
+      "./cssAdopt": "./src/services/cssAdopt.js",
+      "./envOf": "./src/services/envOf.js",
+      "./modLoader": "./src/services/modLoader.js",
+      "./mdScope": "./src/services/mdScope.js",
+      "./locator": "./src/services/locator.js",
+      "./mdLine": "./src/services/mdLine.js",
+      "./monitor": "./src/services/monitor.js",
+      "./logBus": "./src/services/logBus.js",
+    "./appRouter": "./src/services/appRouter.js",
+    "./domScope": "./src/services/domScope.js",
+      "./snapshot": "./src/services/snapshot.js",
+      "./uiMd": "./src/services/uiMd.js",
+    "./claimEval": "./src/services/claimEval.js",
+      "./DocPane": "./src/render/DocPane.jsx",
+      "./ErrorBoundary": "./src/render/ErrorBoundary.jsx",
+      "./uiStore": "./src/store/uiStore.js",
+      "./compTable": "./src/render/compTable.jsx"
+    }
+  }
+}

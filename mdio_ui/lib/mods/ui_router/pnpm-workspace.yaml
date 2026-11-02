@@ -1,0 +1,3 @@
+# 平台包自带依赖：把自己认作 workspace 根（packages 为空 = 没有子包）。
+# 与 ui_base/ui_std 同款：避免被 mdio_ui 根 workspace 收编（demo 的子路径 peer 会让裸 install 报无效名）。
+packages: []

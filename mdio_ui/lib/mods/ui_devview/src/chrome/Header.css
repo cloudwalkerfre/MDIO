@@ -1,0 +1,100 @@
+/* Header.css —— 只服务 chrome/Header.jsx（随件走：样式与组件同一个目录、由该组件静态 import）。
+ * tokens 由宿主给（`var(--color-app-*)`），本文件不定义颜色。 */
+.dv-header { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 12px; background: var(--color-app-surface); border-bottom: 1px solid var(--color-app-border); flex-shrink: 0; }
+.dv-header .dv-spacer { flex: 1; }
+.dv-switch { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--color-app-border); background: var(--color-app-surface-alt); color: var(--color-app-fg-muted); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; cursor: pointer; transition: color .15s, background .15s; }
+.dv-switch:hover { color: var(--color-app-fg); background: var(--color-app-surface); border-color: var(--color-app-border-hover); }
+.dv-seg { display: inline-flex; align-items: center; gap: 2px; background: var(--color-app-surface-alt); border-radius: 4px; padding: 2px; margin-right: 10px; }
+.dv-toggle { width: 66px; padding: 0 7px; border: none; border-radius: 2px; cursor: pointer; font-size: 12px; line-height: 20px; font-family: inherit; text-align: center; background: transparent; color: var(--color-app-fg-muted); transition: all .2s; }
+.dv-toggle:hover { color: var(--color-app-fg); }
+.dv-toggle.on { background: #1677ff; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.dv-seg .dv-toggle.wide { width: auto; padding: 0 10px; white-space: nowrap; }
+.dv-filetag { display: inline-flex; align-items: baseline; gap: 6px; font-size: 13px; font-weight: 600; }
+.dv-filetag .p { font-weight: 400; font-size: 12px; opacity: 0.65; font-family: ui-monospace, Menlo, monospace; }
+.dv-conn { font-size: 12px; color: var(--color-app-fg-muted); display: inline-flex; align-items: center; gap: 5px; margin-right: 8px; }
+.dv-conn::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #facc15; }
+.dv-conn.ok::before { background: #22c55e; }
+.dv-errtag { font-size: 11px; color: #ff7b72; border: 1px solid #ff7b72; border-radius: 3px; padding: 0 5px; margin-right: 6px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── wt 切换：触发钮 + 树形下拉菜单 ─────────────────────────────────────────── */
+.dv-wtswitch { position: relative; flex-shrink: 0; display: block; }
+.dv-wtbtn { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; border: 1px solid var(--color-app-border); border-radius: 6px; cursor: pointer; text-align: left; font-family: inherit; font-size: 12px; font-weight: 600; background: rgba(22,119,255,.14); color: #7ab8ff; transition: background .15s, border-color .15s; }
+.dv-wtbtn:hover { background: rgba(22,119,255,.2); border-color: var(--color-app-border-hover); }
+.dv-wtbtn.open { background: rgba(22,119,255,.24); }
+.dv-wtbtn .ico { display: inline-flex; align-items: center; font-size: 10px; transition: transform .18s cubic-bezier(.215,.61,.355,1); }
+.dv-wtbtn.open .ico { transform: rotate(180deg); }
+.dv-wtbtn .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* popup：淡入 + 0.9→1 缩放，origin = 触发器顶部；关闭先播 160ms 再卸载。 */
+.dv-wtmenu {
+  position: absolute; left: 0; top: calc(100% + 6px); z-index: 40;
+  width: 340px; max-height: min(70vh, 540px);
+  display: flex; flex-direction: column;
+  padding: 6px;
+  background: var(--color-app-surface);
+  border: 1px solid var(--color-app-border);
+  border-radius: 10px;
+  box-shadow: 0 18px 48px rgba(0,0,0,.5), 0 4px 12px rgba(0,0,0,.32);
+  transform-origin: top left;
+  overflow: hidden;
+}
+.dv-wtmenu.open { animation: dv-wtmenu-in .22s cubic-bezier(.215,.61,.355,1) both; }
+.dv-wtmenu.closing { animation: dv-wtmenu-out .16s cubic-bezier(.4,0,1,1) both; pointer-events: none; }
+@keyframes dv-wtmenu-in { from { opacity: 0; transform: scale(.9) translateY(-3px); } to { opacity: 1; transform: none; } }
+@keyframes dv-wtmenu-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.96) translateY(-2px); } }
+
+/* 顶部筛选 */
+.dv-wtfilter { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px; margin-bottom: 6px; background: var(--color-app-surface-alt); border: 1px solid var(--color-app-border); border-radius: 8px; transition: border-color .15s; }
+.dv-wtfilter:focus-within { border-color: #1677ff; }
+.dv-wtfilter-ico { font-size: 13px; opacity: .55; flex: none; }
+.dv-wtfilter input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; color: var(--color-app-fg); font: inherit; font-size: 12px; }
+.dv-wtfilter input::placeholder { color: var(--color-app-fg-muted); opacity: .75; }
+.dv-wtfilter-clear { flex: none; width: 18px; height: 18px; border: none; border-radius: 999px; background: transparent; color: var(--color-app-fg-muted); cursor: pointer; font-size: 13px; line-height: 18px; padding: 0; }
+.dv-wtfilter-clear:hover { background: rgba(255,255,255,.08); color: var(--color-app-fg); }
+
+/* 默认 / 全部：低饱和分段条（不用高亮蓝填充，避免“太冲”） */
+.dv-wtseg { display: flex; gap: 2px; padding: 2px; margin-bottom: 4px; background: transparent; border: 1px solid var(--color-app-border); border-radius: 7px; }
+.dv-wtsegbtn { flex: 1; border: none; border-radius: 5px; background: transparent; color: var(--color-app-fg-muted); font: inherit; font-size: 11px; line-height: 20px; cursor: pointer; transition: background .15s, color .15s, box-shadow .15s; }
+.dv-wtsegbtn:hover { color: var(--color-app-fg); background: rgba(255,255,255,.05); }
+.dv-wtsegbtn.on { background: var(--color-app-fg-muted); color: #fff; box-shadow: none; }
+
+/* 树 */
+.dv-wttree { flex: 1; min-height: 0; overflow: auto; padding: 1px 2px 2px; scrollbar-width: thin; }
+.dv-wttree::-webkit-scrollbar { width: 8px; }
+.dv-wttree::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 999px; }
+.dv-wtrow { display: flex; align-items: center; gap: 6px; padding: 5px 8px; margin: 1px 0; border-radius: 7px; cursor: pointer; font-size: 12px; line-height: 18px; color: var(--color-app-fg); outline: none; animation: dv-wtrow-in .3s cubic-bezier(.215,.61,.355,1) both; transition: background .12s ease, color .12s ease; }
+.dv-wtrow:hover { background: rgba(255,255,255,.06); }
+.dv-wtrow:focus-visible { box-shadow: inset 0 0 0 1px #1677ff; }
+.dv-wtrow.on { background: var(--color-app-fg-muted); color: #fff; box-shadow: none; }
+@keyframes dv-wtrow-in { from { opacity: 0; transform: translateX(8px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+.dv-wtrow .dv-wtcaret { flex: none; width: 16px; height: 16px; border: none; border-radius: 4px; background: transparent; color: var(--color-app-fg-muted); font-size: 10px; line-height: 16px; padding: 0; cursor: pointer; transition: transform .16s ease, background .15s, color .15s; }
+.dv-wtrow .dv-wtcaret:hover { background: rgba(255,255,255,.08); color: var(--color-app-fg); }
+.dv-wtrow .dv-wtcaret.open { transform: rotate(90deg); }
+.dv-wtrow .dv-wtcaret.ghost { visibility: hidden; }
+.dv-wtrow-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.dv-wtrow .dv-wttag { flex: none; font-size: 9.5px; line-height: 14px; padding: 0 5px; border-radius: 999px; background: transparent; border: 1px solid rgba(34,197,94,.26); color: #6ee7a0; font-weight: 600; letter-spacing: .02em; }
+.dv-wtrow .dv-wtver { flex: none; font-size: 10px; opacity: .5; font-family: ui-monospace, Menlo, monospace; }
+.dv-wtrow .dv-wtuid { flex: none; font-size: 10px; opacity: .42; font-family: ui-monospace, Menlo, monospace; }
+.dv-wtempty { padding: 12px 8px; text-align: center; font-size: 12px; color: var(--color-app-fg-muted); }
+
+/* 底部：从 GitHub 加载（研究项：接口未接时给研究结论） */
+.dv-wtload { flex: none; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--color-app-border); }
+.dv-wtload-label { font-size: 10px; line-height: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-app-fg-muted); margin-bottom: 6px; }
+.dv-wtload-form { display: flex; gap: 6px; }
+.dv-wtload-form input { flex: 1; min-width: 0; height: 28px; padding: 0 8px; background: var(--color-app-surface-alt); border: 1px solid var(--color-app-border); border-radius: 7px; color: var(--color-app-fg); font: inherit; font-size: 11px; outline: none; transition: border-color .15s; }
+.dv-wtload-form input:focus { border-color: #1677ff; }
+.dv-wtload-form input::placeholder { color: var(--color-app-fg-muted); opacity: .7; }
+.dv-wtload-form button { flex: none; height: 28px; padding: 0 12px; border: none; border-radius: 7px; background: #1677ff; color: #fff; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: filter .15s, opacity .15s; }
+.dv-wtload-form button:hover { filter: brightness(1.08); }
+.dv-wtload-form button:disabled { opacity: .6; cursor: default; }
+.dv-wtload-msg { margin-top: 6px; font-size: 11px; line-height: 1.55; color: var(--color-app-fg-muted); }
+.dv-wtload-msg.err { color: #ff7b72; }
+
+/* 减少动效：不缩放、不滑入，只淡入 */
+@media (prefers-reduced-motion: reduce) {
+  .dv-wtmenu.open { animation: dv-wtmenu-fade .12s linear both; }
+  .dv-wtmenu.closing { animation: none; }
+  .dv-wtrow { animation: dv-wtmenu-fade .12s linear both; }
+  .dv-wtbtn .ico, .dv-wtrow .dv-wtcaret { transition: none; }
+}
+@keyframes dv-wtmenu-fade { from { opacity: 0; } to { opacity: 1; } }

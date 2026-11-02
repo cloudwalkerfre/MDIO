@@ -1,0 +1,4 @@
+/* Split.css —— 只服务 chrome/Split.jsx（栏宽/行高拖动条）。 */
+.dv-split { flex: 0 0 4px; cursor: col-resize; background: transparent; position: relative; }
+.dv-split::after { content: ""; position: absolute; inset: 0 1px; background: var(--color-app-border); }
+.dv-split:hover::after, .dv-split:active::after { background: #1677ff; }

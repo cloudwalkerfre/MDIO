@@ -1,0 +1,3 @@
+# 本包自成 workspace 根（packages 空）：否则 pnpm 会把本包当仓库根 workspace 的成员，装错依赖。
+# 原由 mdio_ui/lib/mods/ 容器统一挡着；容器拿掉后（mods 下只留纯 mod）改由各包自己声明。
+packages: []

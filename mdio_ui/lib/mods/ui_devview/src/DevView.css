@@ -1,0 +1,37 @@
+/* DevView.css —— 只服务 DevView.jsx（外壳骨架：行/列/栏位尺寸 + 产品模式）。
+ * 子组件的样式各自随件走：chrome/Header.css · chrome/Footer.css · chrome/Split.css · devkit/*.css。
+ * 外壳骨架样式（行/列/栏位尺寸 + 产品模式）在本文件。 */
+.dv-root { display: flex; flex-direction: column; height: 100vh; background: var(--color-app-bg); color: var(--color-app-fg); }
+/* 三行：header / workspace / footer —— 每行都横贯整页宽；workspace 内是 4 列 */
+/* 开发者视图：外层是「行」——左栏（wt 切换器 + 文件）满高，右列 = header / 工作区 / footer */
+/* 开发者模式关闭（产品面）：只留 header + app —— 其余**隐藏但不卸载**（无重载、Monaco 与文档 session 都不断） */
+.dv-root.is-product .dv-left,
+.dv-root.is-product .dv-split,
+.dv-root.is-product .dv-log-col,
+.dv-root.is-product .dv-footer { display: none !important; }
+.dv-root.is-product .dv-app { flex: 1 1 auto; }
+.dv-body { display: flex; flex: 1; min-height: 0; }
+.dv-body--app { display: flex; }   /* 纯 APP：单一内容栏（工作区与 footer 都属 devview，已收起） */
+.dv-pane { display: flex; flex-direction: column; min-width: 0; }
+.dv-pane-head { padding: 6px 10px; background: var(--color-app-surface-alt); font-size: 11px; font-weight: 600; color: var(--color-app-fg-muted); border-bottom: 1px solid var(--color-app-border); flex-shrink: 0; letter-spacing: 0.03em; }
+.dv-pane-empty { padding: 16px; color: var(--color-app-fg-muted); font-size: 12px; }
+.dv-doc-inner { max-width: 760px; margin: 0 auto; padding: 20px 20px 60px; }
+/* app 槽：**全幅、不居中、不限宽** —— appview 是 app 的地盘，文档那套阅读列宽不适用（实测：不限宽时 app 只有 760px 且右移 337px）。 */
+.dv-doc-inner.is-app { max-width: none; margin: 0; padding: 0; height: 100%; }
+/* 切树过渡：当前内容模糊 + 居中 spinner；导航在过渡**可见之后**才发生 */
+.dv-pane.dv-app { position: relative; }
+.dv-switching { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; backdrop-filter: blur(3px); background: rgba(15, 17, 21, 0.35); z-index: 5; }
+.dv-spin { width: 24px; height: 24px; border: 2px solid rgba(255, 255, 255, 0.15); border-top-color: #7aa2f7; border-radius: 50%; animation: dvspin 0.9s linear infinite; }
+.dv-switching-t { font-size: 12px; opacity: 0.85; }
+@keyframes dvspin { to { transform: rotate(360deg); } }
+.dv-app { flex: 1 1 40%; min-width: 240px; }
+.dv-app-body { flex: 1; overflow: auto; min-height: 0; }
+/* 右列：自上而下 [Perf] → [log]（Perf 不悬浮，占顶部一小条） */
+.dv-log-col { width: 340px; flex-shrink: 0; border-left: 1px solid var(--color-app-border); background: var(--color-app-surface); display: flex; flex-direction: column; min-height: 0; }
+/* 左格合并 app：整格是 appview 元素的地盘；宽度由外壳 leftW 给，内部再分树/编辑器 */
+.dv-left { flex-shrink: 0; display: flex; flex-direction: column; min-height: 0; min-width: 0; border-right: 1px solid var(--color-app-border); background: var(--color-app-surface); }
+.dv-left-body { flex: 1 1 auto; min-height: 0; }
+/* 右格 log app 槽：appview 元素撑满剩余高度 */
+.dv-log-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.dv-log-app { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+/* `#app` 的布局/绘制容器与作用域属性现在由 ui_appview 的元素自己设置（见 ui_appview/src/appView.js）。 */

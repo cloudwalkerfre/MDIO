@@ -1,0 +1,214 @@
+// MDIO grammar（LALR 兼容）
+
+%import common.WS
+%import common.SH_COMMENT
+%ignore WS
+%ignore SH_COMMENT
+
+start: stmt_seq
+
+?stmt_seq: stmt (";" stmt)* ";"?
+
+stmt: pipe_chain
+
+pipe_chain: atom ("|" atom?)*
+
+?atom: literal
+     | f_string
+     | scope_block
+     | exec_block
+     | basic_op
+     | func_call
+     | plugin_call
+     | MACRO_IDENT
+     | UNDERSCORE
+
+?arg_atom: literal
+         | f_string
+         | exec_block
+         | basic_op
+         | func_call
+         | plugin_call
+         | UNDERSCORE
+         | MACRO_IDENT
+         | path_prefix
+
+literal: string_lit | list_lit | dict_lit | number_lit | bool_lit
+
+string_lit: RAW_TRIPLE_STRING_DOUBLE | RAW_TRIPLE_STRING_SINGLE
+          | RAW_STRING_DOUBLE | RAW_STRING_SINGLE
+          | TRIPLE_STRING_DOUBLE | TRIPLE_STRING_SINGLE
+          | STRING_DOUBLE | STRING_SINGLE
+
+f_string: F_MARKER string_lit
+
+// Structural Elements
+?ident: PATH_IDENT | FUNC_NAME
+
+scope_block: locator_core "::"? "{" stmt_seq "}"
+
+exec_block: "(" pipe_chain? ")"
+
+basic_op: read_op | write_op | hook_op | mem_read_op
+read_op: "$" locator kwarg_flag*
+mem_read_op: "$$" locator? kwarg_flag*
+write_op: WRITE_OP (locator | read_op) kwarg_flag*
+hook_op: HOOK_KW kwarg_flag*
+
+locator: exec_block | locator_core
+ctx_prefix: (NUMBER | MACRO_IDENT) DOUBLE_COLON
+locator_core: ctx_prefix? path_chain? DOUBLE_COLON step_chain? (COLON key_spec)?
+            | ctx_prefix? path_chain DOUBLE_COLON path_chain? DOUBLE_COLON step_chain? (COLON key_spec)?
+            | ctx_prefix? step_chain (COLON key_spec)?
+
+// 步骤序列：path 与 filter 按书写顺序交错（filter 后投影/
+// slice 位置语义——"书写顺序 = 执行顺序"）。保持原文法约束
+// （locator 以 path 开头或为空）；filter 后的投影段用 path_tail
+// （无 NUMBER/string_lit——避免与字面量 number_lit 的 LALR 归约冲突）。
+step_chain: path_chain filter_chain? path_tail?
+
+// filter 后的投影段：drill/递归/类型标注/通配——无数字与字符串字面量
+path_tail: (PATH_IDENT | FUNC_NAME | WILDCARD | RECURSIVE_SEP | DOT | TILDE | TYPE_ANNOT)+
+
+// The Universal Path (万能路径吞噬者)
+
+path_chain: path_part+
+?path_part: PATH_IDENT
+          | FUNC_NAME
+          | NUMBER
+          | string_lit
+          | WILDCARD
+          | RECURSIVE_SEP
+          | DOT
+          | SLASH
+          | TILDE
+          | TYPE_ANNOT
+
+path_prefix: SLASH path_part*
+
+key_spec: ident | string_lit | NUMBER
+
+// Filters & Logic
+
+filter_chain: filter_expr+
+?filter_expr: "[" filter_content "]"
+filter_content: filter_logic | slice_chain
+
+?filter_logic: or_expr
+
+or_expr: and_expr ("||" and_expr)*
+and_expr: not_expr ("&&" not_expr)*
+
+?not_expr: "!" not_expr -> negated_condition
+         | atom_expr
+
+?atom_expr: comparison_expr
+          | "(" or_expr ")" -> grouped_condition
+          | type_expr
+
+comparison_expr: FILTER_FIELD comparison_op value
+               | FILTER_FIELD ".re" "(" string_lit ")" -> regex_match
+
+type_expr: PATH_IDENT method?
+
+method: FILTER_FIELD comparison_op value
+      | FILTER_FIELD "." PATH_IDENT "(" method_arg ")"
+      | FILTER_FIELD "." PATH_IDENT "[" filter_content "]" by_tail?   -> by_method
+      | FILTER_FIELD "." EMPTY_KW
+      | "." PATH_IDENT "(" method_arg ")"
+      | "." PATH_IDENT "[" filter_content "]" by_tail?   -> by_bare_method
+      | "." EMPTY_KW
+
+?by_tail: "." EMPTY_KW   -> by_empty
+        | "." PATH_IDENT "[" filter_content "]"   -> by_quantifier
+method_arg: string_lit | NUMBER | bool_lit
+
+value: string_lit | NUMBER | bool_lit
+comparison_op: EQ | NEQ | GE | LE | ASSIGN
+
+// Slice Chain
+
+slice_chain: slice_item ("," slice_item)*
+slice_item: NUMBER | range_slice
+range_slice: [NUMBER] COLON [NUMBER] [COLON [NUMBER]]
+
+// Functions & Plugins
+
+func_call: FUNC_NAME args? kwarg_flag*
+plugin_call: "@" ident ("." ident | "(" args? ")")* kwarg_flag*
+args: arg_atom ("," arg_atom)*
+
+kwarg_flag: "-" ident kwarg_value?    -> short_flag
+          | "--" ident kwarg_value?   -> long_flag
+
+?kwarg_value: BOOL
+            | exec_block
+            | read_op
+            | UNDERSCORE
+            | list_lit
+            | dict_lit
+            | kwarg_path
+
+kwarg_path: (path_part | DOUBLE_COLON | COLON)+
+
+
+list_lit: "[" [literal (("," literal)*)?] "]"
+dict_lit: "{" [pair (("," pair)*)?] "}"
+pair: (string_lit | ident) ":" literal
+
+number_lit: NUMBER
+bool_lit: BOOL
+
+// TOKENS DEFINITIONS
+
+TILDE: "~"
+
+FUNC_NAME.100: /[a-zA-Z_][a-zA-Z0-9_]*/
+F_MARKER.90: "f"
+
+RAW_TRIPLE_STRING_DOUBLE.102: /r\"\"\"[\s\S]*?\"\"\"/
+RAW_TRIPLE_STRING_SINGLE.102: /r\'\'\'[\s\S]*?\'\'\'/
+TRIPLE_STRING_DOUBLE.80: /\"\"\"[\s\S]*?\"\"\"/
+TRIPLE_STRING_SINGLE.80: /\'\'\'[\s\S]*?\'\'\'/
+RAW_STRING_DOUBLE.101: /r"(?:[^"\\]|\\.)*"/
+RAW_STRING_SINGLE.101: /r'(?:[^'\\]|\\.)*'/
+STRING_DOUBLE.70: /"(?:[^"\\]|\\.)*"/
+STRING_SINGLE.70: /'(?:[^'\\]|\\.)*'/
+
+NUMBER.65: /-?\d+(\.\d+)?/
+
+DOUBLE_COLON.60: "::"
+
+FILTER_FIELD.55: /\.(tag|content|container|raw|mark|ctn|t|ct|r|m)(?![a-zA-Z0-9_])/
+PATH_IDENT.50: /\w[\w\-]*/
+
+WILDCARD: "*"
+RECURSIVE_SEP: ".."
+DOT: "."
+SLASH: "/"
+
+WRITE_OP: "+>" | "/>" | "->" | "~>"
+EQ.45: "=="
+NEQ.45: "!="
+GE.45: ">="
+LE.45: "<="
+ASSIGN.40: "="
+
+BOOL.60: "true" | "false" | "TRUE" | "FALSE"
+
+LBRACE: "{"
+RBRACE: "}"
+LPAR: "("
+RPAR: ")"
+LSQB: "["
+RSQB: "]"
+VBAR: "|"
+SEMICOLON: ";"
+COLON: ":"
+DOLLAR: "$"
+AT: "@"
+UNDERSCORE.110: /_(?!\w)/
+HOOK_KW.110: /hook(?!\w)/
+EMPTY_KW.110: /empty(?!\w)/
+MACRO_IDENT.110: /%[a-zA-Z_][a-zA-Z0-9_]*/
+TYPE_ANNOT.105: /_[a-zA-Z][\w\-]*/

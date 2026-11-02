@@ -1,0 +1,16 @@
+[package]
+name = "mdio-dircheck"
+version = "0.1.0"
+edition = "2021"
+
+# 方向闸扫描器（DEV/check_core_layers_plan_20261012）：syn 解析源码取模块级 import 边 +
+# domain.rs 的 outlet 字段。不 import mdio_core——事实全部来自源码。
+
+[dependencies]
+syn = { version = "2", features = ["full", "visit"] }
+quote = "1"
+
+# testbed 验证（复盘研究结论）：integration test 需直接解析合成源码
+[dev-dependencies]
+syn = { version = "2", features = ["full", "visit"] }
+quote = "1"

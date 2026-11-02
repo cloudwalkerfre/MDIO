@@ -1,0 +1,887 @@
+/* macos27 —— macOS 27 Themes 移植（由 scripts/port-theme-hostcss.mjs 生成，勿手改）。
+ *
+ * 上游：christoarmani/typora-theme-macos27 的 macos27.css（MIT，© 2026 christoarmani），许可见 vendor/macos27-LICENSE.txt。
+ * 变换：@media(prefers-color-scheme:dark) 块 → 容器暗色状态；#write → .mdio-doc；正文基座与画布分离；
+ *       丢弃 Typora 编辑器外壳与 print/响应式/prefers-* 媒体块；token 改名 --mac-* 并挂在门控元素上。
+ * 上游宣称：全部文本对 ≥4.5:1、控件/焦点 ≥3:1（WCAG 2.2 AA）；暗色跟随系统。 */
+
+/* 亮色 token（上游 :root） */
+[data-md-theme="macos27"] {
+  --mac-mermaid-theme: macos27;
+  --mac-mermaid-font-family: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --mac-node-fill: rgb(232, 241, 255);
+  --mac-cluster-fill: var(--mac-m-surface-2);
+  --mac-node-text-color: var(--mac-m-text);
+  --mac-mermaid-background: var(--mac-m-bg);
+  --mac-bg-color: #FFFFFF;
+  --mac-text-color: #1D1D1F;
+  --mac-side-bar-bg-color: #F3F3F5;
+  --mac-control-text-color: #5E5E63;
+  --mac-control-text-hover-bg-color: #E6E6EB;
+  --mac-item-hover-bg-color: #E6E6EB;
+  --mac-item-hover-text-color: #1D1D1F;
+  --mac-active-file-bg-color: #0064D2;
+  --mac-active-file-text-color: #FFFFFF;
+  --mac-active-file-border-color: #0064D2;
+  --mac-window-border: 1px solid #E1E1E6;
+  --mac-primary-color: #0064D2;
+  --mac-primary-btn-border-color: #0064D2;
+  --mac-primary-btn-text-color: #FFFFFF;
+  --mac-select-text-bg-color: #B3D7FF;
+  --mac-select-text-font-color: #1D1D1F;
+  --mac-md-char-color: #6A6A6F;
+  --mac-meta-content-color: #5E5E63;
+  --mac-heading-char-color: #6A6A6F;
+  --mac-search-select-bg-color: #FF9F0A;
+  --mac-search-select-text-color: #1D1D1F;
+  --mac-rawblock-edit-panel-bd: #F5F5F7;
+  --mac-blur-text-color: #5E5E63;
+  --mac-code-block-bg-color: #F5F5F7;
+  --mac-drag-placeholder-color: #5E5E63;
+  --mac-m-bg: #FFFFFF;
+  --mac-m-surface: #F3F3F5;
+  --mac-m-surface-2: #F5F5F7;
+  --mac-m-zebra: #FAFAFB;
+  --mac-m-hover-bg: #E6E6EB;
+  --mac-m-active-bg: #0064D2;
+  --mac-m-on-accent: #FFFFFF;
+  --mac-m-accent-fill: #0064D2;
+  --mac-m-accent-fill-hover: #0057B7;
+  --mac-m-text: #1D1D1F;
+  --mac-m-text-2: #5E5E63;
+  --mac-m-heading: #111113;
+  --mac-m-md-char: #6A6A6F;
+  --mac-m-link: #0060C7;
+  --mac-m-link-hover: #004A9E;
+  --mac-m-link-underline: rgba(0, 96, 199, 0.45);
+  --mac-m-code-text: #B1221B;
+  --mac-m-border: #E1E1E6;
+  --mac-m-border-strong: #C7C7CC;
+  --mac-m-control-border: #86868B;
+  --mac-m-quote-bar: #86868B;
+  --mac-m-focus: #007AFF;
+  --mac-m-focus-halo: rgba(0, 122, 255, 0.28);
+  --mac-m-caret: #0064D2;
+  --mac-m-select-bg: #B3D7FF;
+  --mac-m-select-text: #1D1D1F;
+  --mac-m-match-bg: #DCEBFF;
+  --mac-m-mark-bg: #FFE27A;
+  --mac-m-mark-text: #1D1D1F;
+  --mac-m-search-bg: #FFE27A;
+  --mac-m-search-text: #1D1D1F;
+  --mac-m-search-current-bg: #FF9F0A;
+  --mac-m-search-current-text: #1D1D1F;
+  --mac-m-scroll-thumb: rgba(0, 0, 0, 0.22);
+  --mac-m-shadow-pop: 0 0 0 0.5px rgba(0,0,0,0.08), 0 10px 32px rgba(0,0,0,0.14);
+  --mac-m-alert-note: #0060C7;
+  --mac-m-alert-tip: #1A7F37;
+  --mac-m-alert-important: #7B3FC4;
+  --mac-m-alert-warning: #9A5B00;
+  --mac-m-alert-caution: #C4261D;
+  --mac-m-chart-1: #0088FF;
+  --mac-m-chart-2: #CB30E0;
+  --mac-m-chart-3: #34C759;
+  --mac-m-chart-4: #FF8D28;
+  --mac-m-chart-5: #FF2D55;
+  --mac-m-chart-6: #00C3D0;
+  --mac-m-diagram-node: var(--mac-m-bg);
+  --mac-s-keyword: #9B2393;
+  --mac-s-number: #1C00CF;
+  --mac-s-def: #0F5F91;
+  --mac-s-variable: #2E6870;
+  --mac-s-type: #6A36A6;
+  --mac-s-comment: #5D6C79;
+  --mac-s-string: #B1221B;
+  --mac-s-meta: #7A4A1E;
+  --mac-s-builtin: #3900A0;
+  --mac-s-attribute: #7A5A00;
+  --mac-s-error: #C4261D;
+  --mac-s-positive: #1A7F37;
+  --mac-monospace: "SF Mono", ui-monospace, Menlo, Monaco, monospace;
+  --mac-m-font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --mac-m-font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+  --mac-m-font-serif: "New York", ui-serif, Georgia, serif;
+  --mac-m-radius-s: 6px;
+  --mac-m-radius-m: 10px;
+  --mac-m-radius-l: 12px;
+}
+
+/* 画布：上游 body 底色/渐变 → 宿主窗格 .br-doc */
+[data-md-theme="macos27"] .br-doc { background: var(--mac-m-bg); }
+[data-md-theme="macos27"] .mdio-doc { background-color: transparent; }
+
+/* 正文基座 */
+[data-md-theme="macos27"] .mdio-doc { font-size: 16px; font-family: var(--mac-m-font-text); color: var(--mac-m-text); line-height: 1.65; letter-spacing: -0.005em; font-feature-settings: "kern", "liga", "calt"; color: var(--mac-m-text); }
+
+/* 亮色规则（门控） */
+[data-md-theme="macos27"] .mdio-doc > ul:first-child,
+[data-md-theme="macos27"] .mdio-doc > ol:first-child { margin-top: 2rem; }
+[data-md-theme="macos27"] ::selection { background: var(--mac-m-select-bg); color: var(--mac-m-select-text); }
+[data-md-theme="macos27"] .mdio-doc ::selection { background: var(--mac-m-select-bg); color: var(--mac-m-select-text); }
+[data-md-theme="macos27"] .mdio-doc h1,
+[data-md-theme="macos27"] .mdio-doc h2,
+[data-md-theme="macos27"] .mdio-doc h3,
+[data-md-theme="macos27"] .mdio-doc h4,
+[data-md-theme="macos27"] .mdio-doc h5,
+[data-md-theme="macos27"] .mdio-doc h6 { position: relative; font-family: var(--mac-m-font-display); color: var(--mac-m-heading); font-weight: 700; line-height: 1.25; margin: 2em 0 0.6em; }
+[data-md-theme="macos27"] .mdio-doc h1 { font-size: 2.125rem; letter-spacing: -0.022em; margin-top: 0.5em; }
+[data-md-theme="macos27"] .mdio-doc h2 { font-size: 1.625rem; letter-spacing: -0.019em; padding-bottom: 0.35em; border-bottom: 1px solid var(--mac-m-border); }
+[data-md-theme="macos27"] .mdio-doc h3 { font-size: 1.3125rem; letter-spacing: -0.014em; font-weight: 650; }
+[data-md-theme="macos27"] .mdio-doc h4 { font-size: 1.0625rem; letter-spacing: -0.008em; font-weight: 650; }
+[data-md-theme="macos27"] .mdio-doc h5 { font-size: 1rem; font-weight: 650; }
+[data-md-theme="macos27"] .mdio-doc h6 { font-size: 0.875rem; font-weight: 650; color: var(--mac-m-text-2); text-transform: uppercase; letter-spacing: 0.04em; }
+[data-md-theme="macos27"] .mdio-doc h1 + h2,
+[data-md-theme="macos27"] .mdio-doc h2 + h3,
+[data-md-theme="macos27"] .mdio-doc h3 + h4 { margin-top: 0.8em; }
+[data-md-theme="macos27"] .mdio-doc .md-heading .md-meta,
+[data-md-theme="macos27"] .mdio-doc .md-header-anchor { color: var(--mac-m-md-char); }
+[data-md-theme="macos27"] .mdio-doc p,
+[data-md-theme="macos27"] .mdio-doc blockquote,
+[data-md-theme="macos27"] .mdio-doc ul,
+[data-md-theme="macos27"] .mdio-doc ol,
+[data-md-theme="macos27"] .mdio-doc dl,
+[data-md-theme="macos27"] .mdio-doc table,
+[data-md-theme="macos27"] .mdio-doc pre:not(.CodeMirror-line) { margin: 0 0 1.1em; }
+[data-md-theme="macos27"] .mdio-doc p { line-height: 1.65; }
+[data-md-theme="macos27"] .mdio-doc strong { font-weight: 650; color: var(--mac-m-heading); }
+[data-md-theme="macos27"] .mdio-doc em { font-style: italic; }
+[data-md-theme="macos27"] .mdio-doc del,
+[data-md-theme="macos27"] .mdio-doc s { color: var(--mac-m-text-2); }
+[data-md-theme="macos27"] .mdio-doc sup,
+[data-md-theme="macos27"] .mdio-doc sub { font-size: 0.75em; }
+[data-md-theme="macos27"] .mdio-doc a { color: var(--mac-m-link); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.18em; text-decoration-skip-ink: none; -webkit-text-decoration-skip: none; text-decoration-color: var(--mac-m-link-underline); }
+[data-md-theme="macos27"] .mdio-doc a:hover { color: var(--mac-m-link-hover); text-decoration-color: currentColor; text-decoration-thickness: 2px; }
+[data-md-theme="macos27"] .mdio-doc a:focus-visible { outline: 2px solid var(--mac-m-focus); outline-offset: 2px; border-radius: 2px; }
+[data-md-theme="macos27"] .mdio-doc mark { background: var(--mac-m-mark-bg); color: var(--mac-m-mark-text); padding: 0.05em 0.25em; border-radius: 3px; }
+[data-md-theme="macos27"] .mdio-doc kbd { display: inline-block; font-family: var(--mac-m-font-text); font-size: 0.8125em; font-weight: 500; line-height: 1.35; padding: 0.1em 0.45em; color: var(--mac-m-text); background: var(--mac-m-surface-2); border: 1px solid var(--mac-m-border-strong); border-bottom-width: 2px; border-radius: var(--mac-m-radius-s); vertical-align: 0.05em; }
+[data-md-theme="macos27"] .mdio-doc ul,
+[data-md-theme="macos27"] .mdio-doc ol { padding-left: 1.6em; }
+[data-md-theme="macos27"] .mdio-doc li { margin: 0.25em 0; }
+[data-md-theme="macos27"] .mdio-doc li > p { margin: 0.25em 0; }
+[data-md-theme="macos27"] .mdio-doc li::marker { color: var(--mac-m-text-2); }
+[data-md-theme="macos27"] .mdio-doc ol > li::marker { font-variant-numeric: tabular-nums; }
+[data-md-theme="macos27"] .mdio-doc ul ul,
+[data-md-theme="macos27"] .mdio-doc ul ol,
+[data-md-theme="macos27"] .mdio-doc ol ul,
+[data-md-theme="macos27"] .mdio-doc ol ol { margin: 0.25em 0; }
+[data-md-theme="macos27"] .mdio-doc .md-task-list-item > input { -webkit-appearance: none; appearance: none; width: 1rem; height: 1rem; margin: 0.32em 0 0 -1.5em; border: 1.5px solid var(--mac-m-control-border); border-radius: 4px; background: var(--mac-m-bg); cursor: pointer; position: absolute; }
+[data-md-theme="macos27"] .mdio-doc .md-task-list-item > input:checked { background-color: var(--mac-m-accent-fill); border-color: var(--mac-m-accent-fill); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.3l2.6 2.6L12 5.4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-size: 100% 100%; }
+[data-md-theme="macos27"] .mdio-doc .md-task-list-item > input:focus-visible { outline: 2px solid var(--mac-m-focus); outline-offset: 2px; }
+[data-md-theme="macos27"] .mdio-doc .md-task-list-item.task-list-done > p,
+[data-md-theme="macos27"] .mdio-doc .task-list-done > p { color: var(--mac-m-text-2); text-decoration: line-through; text-decoration-color: var(--mac-m-text-2); }
+[data-md-theme="macos27"] .mdio-doc blockquote { margin-left: 0; margin-right: 0; padding: 0.6em 1.1em; color: var(--mac-m-text-2); background: var(--mac-m-surface-2); border-left: 3px solid var(--mac-m-quote-bar); border-radius: 0 var(--mac-m-radius-m) var(--mac-m-radius-m) 0; }
+[data-md-theme="macos27"] .mdio-doc blockquote > :last-child { margin-bottom: 0; }
+[data-md-theme="macos27"] .mdio-doc blockquote blockquote { background: transparent; padding-right: 0; }
+[data-md-theme="macos27"] .mdio-doc .md-admonition { color: var(--mac-m-text); background: var(--mac-m-surface-2); border-left-width: 3px; border-radius: 0 var(--mac-m-radius-m) var(--mac-m-radius-m) 0; padding: 0.6em 1.1em; }
+[data-md-theme="macos27"] .mdio-doc .md-admonition > :last-child { margin-bottom: 0; }
+[data-md-theme="macos27"] .mdio-doc .md-admonition-text { font-weight: 650; }
+[data-md-theme="macos27"] .mdio-doc .md-admonition--note { border-left-color: var(--mac-m-alert-note); }
+[data-md-theme="macos27"] .mdio-doc .md-admonition--tip { border-left-color: var(--mac-m-alert-tip); }
+[data-md-theme="macos27"] .mdio-doc .md-admonition--info { border-left-color: var(--mac-m-alert-important); }
+[data-md-theme="macos27"] .mdio-doc .md-admonition--warning { border-left-color: var(--mac-m-alert-warning); }
+[data-md-theme="macos27"] .mdio-doc .md-admonition--danger { border-left-color: var(--mac-m-alert-caution); }
+[data-md-theme="macos27"] .mdio-doc .md-admonition--note .md-admonition-text-container { color: var(--mac-m-alert-note); }
+[data-md-theme="macos27"] .mdio-doc .md-admonition--tip .md-admonition-text-container { color: var(--mac-m-alert-tip); }
+[data-md-theme="macos27"] .mdio-doc .md-admonition--info .md-admonition-text-container { color: var(--mac-m-alert-important); }
+[data-md-theme="macos27"] .mdio-doc .md-admonition--warning .md-admonition-text-container { color: var(--mac-m-alert-warning); }
+[data-md-theme="macos27"] .mdio-doc .md-admonition--danger .md-admonition-text-container { color: var(--mac-m-alert-caution); }
+[data-md-theme="macos27"] .mdio-doc .md-admonition-text-container svg { fill: currentColor; }
+[data-md-theme="macos27"] .mdio-doc hr { height: 1px; margin: 2.5em 0; padding: 0; border: 0; background: var(--mac-m-border); }
+[data-md-theme="macos27"] .mdio-doc code,
+[data-md-theme="macos27"] .mdio-doc tt,
+[data-md-theme="macos27"] .mdio-doc .md-codeblock,
+[data-md-theme="macos27"] .mdio-doc .CodeMirror { font-family: var(--mac-monospace); }
+[data-md-theme="macos27"] .mdio-doc code { font-size: 0.875em; padding: 0.12em 0.38em; color: var(--mac-m-code-text); background: var(--mac-m-surface-2); border: 1px solid var(--mac-m-border); border-radius: var(--mac-m-radius-s);; overflow-wrap: anywhere; }
+[data-md-theme="macos27"] .mdio-doc a code { color: inherit; }
+[data-md-theme="macos27"] .mdio-doc .md-codeblock { font-size: 0.8125rem; line-height: 1.6; padding: 0.9rem 1.1rem; margin: 0 0 1.25em; color: var(--mac-m-text); background: var(--mac-m-surface-2); border: 1px solid var(--mac-m-border); border-radius: var(--mac-m-radius-m); }
+[data-md-theme="macos27"] .mdio-doc .md-codeblock .CodeMirror-lines { padding: 0; }
+[data-md-theme="macos27"] .mdio-doc .md-codeblock.md-focus { border-color: var(--mac-m-control-border); }
+[data-md-theme="macos27"] .mdio-doc .md-codeblock .code-tooltip { color: var(--mac-m-text-2); background: var(--mac-m-surface); border: 1px solid var(--mac-m-border); border-radius: var(--mac-m-radius-s); box-shadow: var(--mac-m-shadow-pop); }
+[data-md-theme="macos27"] .mdio-doc .md-codeblock .code-tooltip input { color: var(--mac-m-text); background: var(--mac-m-bg); border: 1px solid var(--mac-m-control-border); border-radius: 4px; }
+[data-md-theme="macos27"] .CodeMirror-line::selection,
+[data-md-theme="macos27"] .CodeMirror-line > span::selection,
+[data-md-theme="macos27"] .CodeMirror-line > span > span::selection { background: var(--mac-m-select-bg) !important; }
+[data-md-theme="macos27"] .mdio-doc table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--mac-m-border); border-radius: var(--mac-m-radius-m); font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
+[data-md-theme="macos27"] .mdio-doc table th,
+[data-md-theme="macos27"] .mdio-doc table td { padding: 0.55em 0.9em; border: 0; border-bottom: 1px solid var(--mac-m-border); text-align: left; vertical-align: top; }
+[data-md-theme="macos27"] .mdio-doc table th + th,
+[data-md-theme="macos27"] .mdio-doc table td + td { border-left: 1px solid var(--mac-m-border); }
+[data-md-theme="macos27"] .mdio-doc table tr:last-child td { border-bottom: 0; }
+[data-md-theme="macos27"] .mdio-doc table thead th { font-weight: 650; color: var(--mac-m-heading); background: var(--mac-m-surface-2); border-bottom: 1px solid var(--mac-m-border-strong); }
+[data-md-theme="macos27"] .mdio-doc table tbody tr:nth-child(even) td { background: var(--mac-m-zebra); }
+[data-md-theme="macos27"] .mdio-doc table > :first-child > tr:first-child > :first-child { border-top-left-radius: calc(var(--mac-m-radius-m) - 1px); }
+[data-md-theme="macos27"] .mdio-doc table > :first-child > tr:first-child > :last-child { border-top-right-radius: calc(var(--mac-m-radius-m) - 1px); }
+[data-md-theme="macos27"] .mdio-doc table tbody tr:last-child > :first-child,
+[data-md-theme="macos27"] .mdio-doc table thead:last-child tr:last-child > :first-child { border-bottom-left-radius: calc(var(--mac-m-radius-m) - 1px); }
+[data-md-theme="macos27"] .mdio-doc table tbody tr:last-child > :last-child,
+[data-md-theme="macos27"] .mdio-doc table thead:last-child tr:last-child > :last-child { border-bottom-right-radius: calc(var(--mac-m-radius-m) - 1px); }
+[data-md-theme="macos27"] .mdio-doc table td.md-focus,
+[data-md-theme="macos27"] .mdio-doc table th.md-focus { box-shadow: inset 0 0 0 2px var(--mac-m-focus); }
+[data-md-theme="macos27"] .mdio-doc .ty-table-edit.md-table-edit { display: flex; align-items: center; gap: 2px; width: auto; height: 28px; box-sizing: border-box; margin-left: 0; margin-top: -6px; padding: 0 3px; color: var(--mac-m-text-2); background: var(--mac-m-surface); border: 1px solid var(--mac-m-border); border-radius: var(--mac-m-radius-s); box-shadow: var(--mac-m-shadow-pop); }
+[data-md-theme="macos27"] .mdio-doc .ty-table-edit .md-th-button,
+[data-md-theme="macos27"] .mdio-doc .ty-table-edit .right-th-button { float: none; display: inline-flex; align-items: center; }
+[data-md-theme="macos27"] .mdio-doc .ty-table-edit .right-th-button:first-of-type { margin-left: 6px; padding-left: 6px; border-left: 1px solid var(--mac-m-border); }
+[data-md-theme="macos27"] .mdio-doc .ty-table-edit button { display: inline-flex; align-items: center; justify-content: center; height: 22px; min-width: 22px; padding: 0 5px; line-height: 1; border: 0; border-radius: var(--mac-m-radius-s); color: var(--mac-m-text-2); background: transparent; }
+[data-md-theme="macos27"] .mdio-doc .ty-table-edit button:hover,
+[data-md-theme="macos27"] .mdio-doc .ty-table-edit button.active { color: var(--mac-m-text); background: var(--mac-m-hover-bg); }
+[data-md-theme="macos27"] .mdio-doc .md-image-btn { border-radius: var(--mac-m-radius-s); padding: 0 8px; background: rgba(0, 0, 0, 0.5); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+[data-md-theme="macos27"] .mdio-doc .md-image-btn.selected,
+[data-md-theme="macos27"] .mdio-doc .md-image-btn:hover { background: rgba(0, 0, 0, 0.72); }
+[data-md-theme="macos27"] .mdio-doc img { max-width: 100%; border-radius: var(--mac-m-radius-s); }
+[data-md-theme="macos27"] .mdio-doc p > .md-image:only-child { display: block; text-align: center; }
+[data-md-theme="macos27"] .mdio-doc .md-image > .md-meta { color: var(--mac-m-md-char); }
+[data-md-theme="macos27"] .mdio-doc figcaption,
+[data-md-theme="macos27"] .mdio-doc .md-image + em { display: block; text-align: center; color: var(--mac-m-text-2); font-size: 0.875rem; }
+[data-md-theme="macos27"] .mdio-doc .md-footnote,
+[data-md-theme="macos27"] .mdio-doc sup.md-footnote { color: var(--mac-m-link); background: transparent; font-weight: 600; }
+[data-md-theme="macos27"] .mdio-doc .footnotes-area { color: var(--mac-m-text-2); font-size: 0.9375rem; border-top: 1px solid var(--mac-m-border); margin-top: 3em; padding-top: 1em; }
+[data-md-theme="macos27"] .mdio-doc .footnotes-area hr { display: none; }
+[data-md-theme="macos27"] .mdio-doc .footnote-line { color: var(--mac-m-text-2); }
+[data-md-theme="macos27"] .mdio-doc .md-rawblock-tooltip { top: -34px; right: 0; height: 28px; box-sizing: border-box; padding: 0 3px 0 10px; line-height: 22px; font-size: 12px; font-weight: 600; color: var(--mac-m-text-2); background: var(--mac-m-surface); border: 1px solid var(--mac-m-border); border-radius: var(--mac-m-radius-s); box-shadow: var(--mac-m-shadow-pop); }
+[data-md-theme="macos27"] .mdio-doc .md-rawblock:hover > .md-rawblock-tooltip,
+[data-md-theme="macos27"] .mdio-doc .md-rawblock.ty-hover > .md-rawblock-tooltip,
+[data-md-theme="macos27"] .mdio-doc .md-rawblock-on-edit > .md-rawblock-tooltip { display: flex !important; align-items: center; animation: none; }
+[data-md-theme="macos27"] .mdio-doc .md-rawblock-tooltip-name { padding-left: 0; opacity: 1; margin-right: 4px; }
+[data-md-theme="macos27"] .mdio-doc .md-rawblock-tooltip-btn { width: auto; min-width: 22px; height: 22px; line-height: 22px; padding: 0 6px; text-align: center; color: var(--mac-m-text-2); border-radius: var(--mac-m-radius-s); }
+[data-md-theme="macos27"] .mdio-doc .md-rawblock-tooltip-btn:hover { color: var(--mac-m-text); background: var(--mac-m-hover-bg); }
+[data-md-theme="macos27"] .mdio-doc .mathjax-block { color: var(--mac-m-text); }
+[data-md-theme="macos27"] .mdio-doc .md-rawblock .code-tooltip { color: var(--mac-m-text); background: var(--mac-m-surface-2); border-radius: var(--mac-m-radius-m); }
+[data-md-theme="macos27"] .mdio-doc .md-rawblock-container { color: var(--mac-m-text); background: transparent; border-radius: var(--mac-m-radius-m); }
+[data-md-theme="macos27"] .mdio-doc .md-rawblock:hover > .md-rawblock-container,
+[data-md-theme="macos27"] .mdio-doc .md-rawblock-on-edit > .md-rawblock-container { background: var(--mac-m-surface-2); }
+[data-md-theme="macos27"] .mdio-doc .md-rawblock-control { color: var(--mac-m-text-2); background: var(--mac-m-surface); }
+[data-md-theme="macos27"] .mdio-doc details { margin: 0 0 1.1em; }
+[data-md-theme="macos27"] .mdio-doc summary { cursor: pointer; font-weight: 600; list-style: none; }
+[data-md-theme="macos27"] .mdio-doc summary::-webkit-details-marker { display: none; }
+[data-md-theme="macos27"] .mdio-doc details > :not(summary) { margin-left: 1.15em; }
+[data-md-theme="macos27"] .mdio-doc details[open] > summary { margin-bottom: 0.5em; }
+[data-md-theme="macos27"] .mdio-doc > iframe,
+[data-md-theme="macos27"] .mdio-doc > video { display: block; margin: 0 auto; max-width: 100%; border-radius: var(--mac-m-radius-m); }
+[data-md-theme="macos27"] .mdio-doc > audio { display: block; width: 100%; }
+[data-md-theme="macos27"] .mdio-doc mjx-container,
+[data-md-theme="macos27"] .mdio-doc .MathJax_SVG { color: var(--mac-m-text); }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel { color: var(--mac-m-text); }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel-error { color: var(--mac-s-error); }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .node rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .node polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .node circle:not(.state-start),
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .node ellipse,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .node path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .classGroup rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .stateGroup rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel rect.actor,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .actor-box,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .cluster rect { fill: var(--mac-m-diagram-node) !important; stroke: var(--mac-m-border-strong) !important; stroke-width: 1px !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .classGroup line,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .divider path { stroke: var(--mac-m-border-strong) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .nodeLabel,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .label,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .label text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .classLabel .label,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel text.actor,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel text.actor tspan,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .messageText,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .noteText,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .noteText tspan,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .stateLabel text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .cluster-label { color: var(--mac-m-text) !important; fill: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .flowchart-link,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .edgePath .path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .relation,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .transition,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .messageLine0,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .messageLine1 { stroke: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .actor-line { stroke: var(--mac-m-border-strong) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel marker path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .arrowheadPath,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .arrowMarkerPath,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel #arrowhead path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel #crosshead path { fill: var(--mac-m-text-2) !important; stroke: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .state-start,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel circle.state-start,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .end-state-inner,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .node circle.end-state-inner:not(.state-start) { fill: var(--mac-m-text) !important; stroke: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .state-end,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .end-state-outer,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .node circle.end-state-outer:not(.state-start) { fill: var(--mac-m-diagram-node) !important; stroke: var(--mac-m-text) !important; stroke-width: 1.5px !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.node[id*="_end"] > g > path { fill: var(--mac-m-diagram-node) !important; stroke: var(--mac-m-text) !important; stroke-width: 1.5px !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.node[id*="_end"] > g > g path { fill: var(--mac-m-text) !important; stroke: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel rect.note,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .note { fill: color-mix(in srgb, var(--mac-m-chart-1) 14%, var(--mac-m-surface)) !important; stroke: color-mix(in srgb, var(--mac-m-chart-1) 45%, transparent) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .edgeLabel,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .edgeLabel p,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .labelBkg { background-color: var(--mac-m-surface-2) !important; color: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .edgeLabel rect { fill: var(--mac-m-surface-2) !important; opacity: 1 !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel foreignObject p,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel foreignObject span { white-space: inherit !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel foreignObject p { color: inherit !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel text.actor,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel text.actor tspan { dominant-baseline: central; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .pieCircle:nth-of-type(6n+1),
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .legend:nth-of-type(6n+1) rect { fill: var(--mac-m-chart-1) !important; stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .pieCircle:nth-of-type(6n+2),
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .legend:nth-of-type(6n+2) rect { fill: var(--mac-m-chart-2) !important; stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .pieCircle:nth-of-type(6n+3),
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .legend:nth-of-type(6n+3) rect { fill: var(--mac-m-chart-3) !important; stroke: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .pieCircle:nth-of-type(6n+4),
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .legend:nth-of-type(6n+4) rect { fill: var(--mac-m-chart-4) !important; stroke: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .pieCircle:nth-of-type(6n+5),
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .legend:nth-of-type(6n+5) rect { fill: var(--mac-m-chart-5) !important; stroke: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .pieCircle:nth-of-type(6n),
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .legend:nth-of-type(6n) rect { fill: var(--mac-m-chart-6) !important; stroke: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .pieCircle { stroke: var(--mac-m-surface-2) !important; stroke-width: 2px !important; opacity: 1 !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .pieOuterCircle { stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .slice { fill: #FFFFFF !important; font-weight: 600; paint-order: stroke; stroke: rgba(0,0,0,0.35); stroke-width: 3px; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .pieTitleText,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .legend text { fill: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .task0,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .active0,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .done0,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .crit0 { fill: var(--mac-m-chart-1) !important; stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .task1,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .active1,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .done1,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .crit1 { fill: var(--mac-m-chart-2) !important; stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .task2,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .active2,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .done2,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .crit2 { fill: var(--mac-m-chart-3) !important; stroke: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .task3,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .active3,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .done3,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .crit3 { fill: var(--mac-m-chart-4) !important; stroke: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section0,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section2 { fill: color-mix(in srgb, var(--mac-m-chart-1) 7%, transparent) !important; opacity: 1 !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section1,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section3 { fill: transparent !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .taskText,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .taskTextOutsideRight,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .taskTextOutsideLeft { fill: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .taskText { fill: #FFFFFF !important; font-weight: 600; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .sectionTitle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .titleText,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .grid .tick text { fill: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .titleText { fill: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .grid .tick line { stroke: var(--mac-m-border) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .grid path { stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .today { stroke: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg rect,
+[data-md-theme="macos27"] .mdio-doc :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg rect,
+[data-md-theme="macos27"] .mdio-doc :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg path:not([fill="none"]) { fill: var(--mac-m-diagram-node) !important; stroke: var(--mac-m-border-strong) !important; stroke-width: 1px !important; }
+[data-md-theme="macos27"] .mdio-doc :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg path,
+[data-md-theme="macos27"] .mdio-doc :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg line,
+[data-md-theme="macos27"] .mdio-doc :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg path[fill="none"] { stroke: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg text,
+[data-md-theme="macos27"] .mdio-doc :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg tspan,
+[data-md-theme="macos27"] .mdio-doc :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg text,
+[data-md-theme="macos27"] .mdio-doc :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg tspan { fill: var(--mac-m-text) !important; stroke: none !important; font-family: var(--mac-m-font-text) !important; }
+[data-md-theme="macos27"] .mdio-doc :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg marker path,
+[data-md-theme="macos27"] .mdio-doc :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg marker path { fill: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg rect[stroke="none"] { fill: var(--mac-m-surface-2) !important; stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg path[fill="none"],
+[data-md-theme="macos27"] .mdio-doc :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg path { stroke-width: 1.25px !important; }
+[data-md-theme="macos27"] .mdio-doc :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg defs path,
+[data-md-theme="macos27"] .mdio-doc :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg marker *,
+[data-md-theme="macos27"] .mdio-doc :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg defs path { fill: var(--mac-m-text-2) !important; stroke: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-comment,
+[data-md-theme="macos27"] .mdio-doc .md-html-inline .md-comment { color: var(--mac-s-comment); }
+[data-md-theme="macos27"] .mdio-doc .md-html-inline { color: var(--mac-m-text-2); }
+[data-md-theme="macos27"] .mdio-doc .md-emoji { font-family: "Apple Color Emoji", sans-serif; }
+[data-md-theme="macos27"] .mdio-doc .md-search-hit { background: var(--mac-m-search-bg) !important; color: var(--mac-m-search-text) !important; border-radius: 2px; }
+[data-md-theme="macos27"] .mdio-doc .md-search-select { background: var(--mac-m-search-current-bg) !important; color: var(--mac-m-search-current-text) !important; box-shadow: 0 0 0 1px var(--mac-m-search-current-text); }
+[data-md-theme="macos27"] .mdio-doc input[type="text"],
+[data-md-theme="macos27"] .mdio-doc input[type="search"] { color: var(--mac-m-text); background: var(--mac-m-bg); border: 1px solid var(--mac-m-control-border); border-radius: var(--mac-m-radius-s); box-shadow: none; }
+[data-md-theme="macos27"] .mdio-doc input::placeholder { color: var(--mac-m-text-2); opacity: 1; }
+[data-md-theme="macos27"] .mdio-doc input:focus { outline: none; border-color: var(--mac-m-focus); box-shadow: 0 0 0 3px var(--mac-m-focus-halo); }
+[data-md-theme="macos27"] .mdio-doc abbr[title] { text-decoration: underline dotted var(--mac-m-text-2); text-underline-offset: 0.2em; cursor: help; }
+[data-md-theme="macos27"] .mdio-doc ins { text-decoration: underline; text-decoration-color: var(--mac-m-alert-tip); text-underline-offset: 0.2em; }
+[data-md-theme="macos27"] .mdio-doc samp { font-family: var(--mac-m-font-mono); font-size: 0.875em; }
+[data-md-theme="macos27"] .mdio-doc var { font-style: italic; color: var(--mac-m-text); }
+[data-md-theme="macos27"] .mdio-doc q { quotes: "\201C" "\201D" "\2018" "\2019"; }
+[data-md-theme="macos27"] .mdio-doc small { font-size: 0.8125em; color: var(--mac-m-text-2); }
+[data-md-theme="macos27"] .mdio-doc [dir="rtl"] blockquote,
+[data-md-theme="macos27"] .mdio-doc blockquote[dir="rtl"] { border-left: 0; border-right: 3px solid var(--mac-m-quote-bar); }
+[data-md-theme="macos27"] .mdio-doc [dir="rtl"] ul,
+[data-md-theme="macos27"] .mdio-doc [dir="rtl"] ol,
+[data-md-theme="macos27"] .mdio-doc ul[dir="rtl"],
+[data-md-theme="macos27"] .mdio-doc ol[dir="rtl"] { padding-left: 0; padding-right: 1.6em; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section--mac-1 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section--mac-1 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section--mac-1 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section--mac-1 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section--mac-1 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section--mac-1 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-1) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge--mac-1 { stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-0 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-0 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-0 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-0 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-0 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-0 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-2) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge-0 { stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-1 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-1 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-1 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-1 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-1 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-1 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-3) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge-1 { stroke: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-2 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-2 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-2 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-2 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-2 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-2 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-4) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge-2 { stroke: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-3 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-3 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-3 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-3 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-3 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-3 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-5) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge-3 { stroke: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-4 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-4 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-4 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-4 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-4 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-4 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-6) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge-4 { stroke: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-5 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-5 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-5 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-5 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-5 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-5 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-1) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge-5 { stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-6 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-6 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-6 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-6 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-6 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-6 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-2) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge-6 { stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-7 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-7 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-7 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-7 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-7 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-7 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-3) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge-7 { stroke: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-8 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-8 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-8 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-8 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-8 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-8 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-4) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge-8 { stroke: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-9 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-9 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-9 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-9 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-9 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-9 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-5) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge-9 { stroke: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-10 > rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-10 > path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-10 > circle,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-10 > polygon,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-10 rect,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-10 path.node-bkg { fill: color-mix(in srgb, var(--mac-m-chart-6) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-edge-10 { stroke: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel [class*="section-"] text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel [class*="section-"] .nodeLabel,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .timeline-node text { fill: var(--mac-m-text) !important; color: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .lineWrapper line { stroke: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .lineWrapper marker path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel marker#arrowhead path { fill: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section--mac-1 line { stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-0 line { stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-1 line { stroke: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-2 line { stroke: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-3 line { stroke: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-4 line { stroke: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-5 line { stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-6 line { stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-7 line { stroke: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-8 line { stroke: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-9 line { stroke: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .section-10 line { stroke: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch { stroke: var(--mac-m-border-strong) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit-label-bkg { fill: var(--mac-m-surface-2) !important; opacity: 1 !important; stroke: var(--mac-m-border) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit-label { fill: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit-merge,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit-reverse { fill: var(--mac-m-bg) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .arrow0 { stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit0 { fill: var(--mac-m-chart-1) !important; stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branchLabelBkg.label0 { fill: var(--mac-m-chart-1) !important; stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label0 text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label0 tspan { fill: #FFFFFF !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .arrow1 { stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit1 { fill: var(--mac-m-chart-2) !important; stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branchLabelBkg.label1 { fill: var(--mac-m-chart-2) !important; stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label1 text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label1 tspan { fill: #FFFFFF !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .arrow2 { stroke: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit2 { fill: var(--mac-m-chart-3) !important; stroke: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branchLabelBkg.label2 { fill: var(--mac-m-chart-3) !important; stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label2 text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label2 tspan { fill: #FFFFFF !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .arrow3 { stroke: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit3 { fill: var(--mac-m-chart-4) !important; stroke: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branchLabelBkg.label3 { fill: var(--mac-m-chart-4) !important; stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label3 text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label3 tspan { fill: #FFFFFF !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .arrow4 { stroke: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit4 { fill: var(--mac-m-chart-5) !important; stroke: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branchLabelBkg.label4 { fill: var(--mac-m-chart-5) !important; stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label4 text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label4 tspan { fill: #FFFFFF !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .arrow5 { stroke: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit5 { fill: var(--mac-m-chart-6) !important; stroke: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branchLabelBkg.label5 { fill: var(--mac-m-chart-6) !important; stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label5 text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label5 tspan { fill: #FFFFFF !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .arrow6 { stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit6 { fill: var(--mac-m-chart-1) !important; stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branchLabelBkg.label6 { fill: var(--mac-m-chart-1) !important; stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label6 text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label6 tspan { fill: #FFFFFF !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .arrow7 { stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .commit7 { fill: var(--mac-m-chart-2) !important; stroke: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branchLabelBkg.label7 { fill: var(--mac-m-chart-2) !important; stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label7 text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel .branch-label7 tspan { fill: #FFFFFF !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="sankey"] .link { mix-blend-mode: normal !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="sankey"] .links { stroke-opacity: 0.4; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="sankey"] .node-labels text { fill: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+1) rect { fill: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+2) rect { fill: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+3) rect { fill: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+4) rect { fill: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+5) rect { fill: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+6) rect { fill: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="c4"] rect:not([fill="none"]) { fill: color-mix(in srgb, var(--mac-m-chart-1) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="c4"] text { fill: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="c4"] text[font-style="italic"] { font-size: 9px !important; font-style: normal !important; font-weight: 500; fill: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="c4"] line,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="c4"] path { stroke: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="architecture"] text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="timeline"] > text { fill: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] rect.task,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] rect.journey-section { fill: color-mix(in srgb, var(--mac-m-chart-1) 22%, var(--mac-m-surface-2)) !important; stroke: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-0 { fill: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-1 { fill: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-2 { fill: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-3 { fill: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-4 { fill: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-5 { fill: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] text { font-family: var(--mac-mermaid-font-family) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] line { stroke: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="journey"] marker path { fill: var(--mac-m-text-2) !important; stroke: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="quadrantChart"] text { fill: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="quadrantChart"] .quadrant:nth-child(1) rect { fill: color-mix(in srgb, var(--mac-m-chart-1) 18%, var(--mac-m-surface-2)) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="quadrantChart"] .quadrant:nth-child(2) rect { fill: color-mix(in srgb, var(--mac-m-chart-2) 18%, var(--mac-m-surface-2)) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="quadrantChart"] .quadrant:nth-child(3) rect { fill: color-mix(in srgb, var(--mac-m-chart-3) 18%, var(--mac-m-surface-2)) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="quadrantChart"] .quadrant:nth-child(4) rect { fill: color-mix(in srgb, var(--mac-m-chart-4) 18%, var(--mac-m-surface-2)) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="quadrantChart"] .border line { stroke: var(--mac-m-border-strong) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel svg[aria-roledescription="quadrantChart"] .data-point circle { fill: var(--mac-m-chart-1) !important; stroke: var(--mac-m-bg) !important; }
+[data-md-theme="macos27"] .mdio-doc :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg rect[stroke="none"] { fill: transparent !important; stroke: none !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.main > rect.background { fill: transparent !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.chart-title text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.left-axis text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.bottom-axis text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.top-axis text,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.right-axis text { fill: var(--mac-m-text-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.chart-title text { fill: var(--mac-m-text) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.left-axis path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.bottom-axis path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.top-axis path,
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.right-axis path { stroke: var(--mac-m-border-strong) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.bar-plot-0 rect { fill: var(--mac-m-chart-1) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.line-plot-0 path { stroke: var(--mac-m-chart-1) !important; stroke-width: 2px; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.bar-plot-1 rect { fill: var(--mac-m-chart-2) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.line-plot-1 path { stroke: var(--mac-m-chart-2) !important; stroke-width: 2px; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.bar-plot-2 rect { fill: var(--mac-m-chart-3) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.line-plot-2 path { stroke: var(--mac-m-chart-3) !important; stroke-width: 2px; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.bar-plot-3 rect { fill: var(--mac-m-chart-4) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.line-plot-3 path { stroke: var(--mac-m-chart-4) !important; stroke-width: 2px; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.bar-plot-4 rect { fill: var(--mac-m-chart-5) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.line-plot-4 path { stroke: var(--mac-m-chart-5) !important; stroke-width: 2px; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.bar-plot-5 rect { fill: var(--mac-m-chart-6) !important; }
+[data-md-theme="macos27"] .mdio-doc .md-diagram-panel g.line-plot-5 path { stroke: var(--mac-m-chart-6) !important; stroke-width: 2px; }
+
+/* 暗色 token：document 面 body.dark / 影子根面 :host(.dark) */
+body.dark [data-md-theme="macos27"] {
+  --mac-mermaid-theme: macos27;
+  --mac-mermaid-font-family: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --mac-node-fill: rgb(36, 52, 76);
+  --mac-cluster-fill: var(--mac-m-surface-2);
+  --mac-node-text-color: var(--mac-m-text);
+  --mac-mermaid-background: var(--mac-m-bg);
+  --mac-bg-color: #1C1C1E;
+  --mac-text-color: #F2F2F7;
+  --mac-side-bar-bg-color: #252527;
+  --mac-control-text-color: #B4B4BA;
+  --mac-control-text-hover-bg-color: #3A3A3C;
+  --mac-item-hover-bg-color: #3A3A3C;
+  --mac-item-hover-text-color: #F2F2F7;
+  --mac-active-file-bg-color: #0059C7;
+  --mac-active-file-text-color: #FFFFFF;
+  --mac-active-file-border-color: #0059C7;
+  --mac-window-border: 1px solid #424245;
+  --mac-primary-color: #0A6CE0;
+  --mac-primary-btn-border-color: #0A6CE0;
+  --mac-primary-btn-text-color: #FFFFFF;
+  --mac-select-text-bg-color: #3F638B;
+  --mac-select-text-font-color: #FFFFFF;
+  --mac-md-char-color: #A0A0A6;
+  --mac-meta-content-color: #B4B4BA;
+  --mac-heading-char-color: #A0A0A6;
+  --mac-search-select-bg-color: #FF9F0A;
+  --mac-search-select-text-color: #1D1D1F;
+  --mac-rawblock-edit-panel-bd: #2C2C2E;
+  --mac-blur-text-color: #B4B4BA;
+  --mac-code-block-bg-color: #2C2C2E;
+  --mac-drag-placeholder-color: #B4B4BA;
+  --mac-m-bg: #1C1C1E;
+  --mac-m-surface: #252527;
+  --mac-m-surface-2: #2C2C2E;
+  --mac-m-zebra: #28282A;
+  --mac-m-hover-bg: #3A3A3C;
+  --mac-m-active-bg: #0059C7;
+  --mac-m-on-accent: #FFFFFF;
+  --mac-m-accent-fill: #0A6CE0;
+  --mac-m-accent-fill-hover: #0A5FC6;
+  --mac-m-text: #F2F2F7;
+  --mac-m-text-2: #B4B4BA;
+  --mac-m-heading: #FFFFFF;
+  --mac-m-md-char: #A0A0A6;
+  --mac-m-link: #5EAEFF;
+  --mac-m-link-hover: #8EC5FF;
+  --mac-m-link-underline: rgba(94, 174, 255, 0.5);
+  --mac-m-code-text: #FF8A80;
+  --mac-m-border: #424245;
+  --mac-m-border-strong: #5E5E63;
+  --mac-m-control-border: #8A8A90;
+  --mac-m-quote-bar: #8A8A90;
+  --mac-m-focus: #4DA3FF;
+  --mac-m-focus-halo: rgba(77, 163, 255, 0.35);
+  --mac-m-caret: #4DA3FF;
+  --mac-m-select-bg: #3F638B;
+  --mac-m-select-text: #FFFFFF;
+  --mac-m-match-bg: #21456E;
+  --mac-m-mark-bg: #FFD60A;
+  --mac-m-mark-text: #1D1D1F;
+  --mac-m-search-bg: #6B5A00;
+  --mac-m-search-text: #FFFFFF;
+  --mac-m-search-current-bg: #FF9F0A;
+  --mac-m-search-current-text: #1D1D1F;
+  --mac-m-scroll-thumb: rgba(255, 255, 255, 0.24);
+  --mac-m-shadow-pop: 0 0 0 0.5px rgba(255,255,255,0.12), 0 10px 32px rgba(0,0,0,0.45);
+  --mac-m-alert-note: #5EAEFF;
+  --mac-m-alert-tip: #4CD964;
+  --mac-m-alert-important: #C59BFF;
+  --mac-m-alert-warning: #FFB340;
+  --mac-m-alert-caution: #FF7A70;
+  --mac-m-chart-1: #0091FF;
+  --mac-m-chart-2: #DB34F2;
+  --mac-m-chart-3: #30D158;
+  --mac-m-chart-4: #FF9230;
+  --mac-m-chart-5: #FF375F;
+  --mac-m-chart-6: #00D2E0;
+  --mac-m-diagram-node: color-mix(in srgb, var(--mac-m-surface-2) 90%, var(--mac-m-text));
+  --mac-s-keyword: #FC5FA3;
+  --mac-s-number: #D9C97C;
+  --mac-s-def: #5DC4E0;
+  --mac-s-variable: #78C2B3;
+  --mac-s-type: #D0A8FF;
+  --mac-s-comment: #8F9BA6;
+  --mac-s-string: #FC8A7D;
+  --mac-s-meta: #FD9F5B;
+  --mac-s-builtin: #B48CF2;
+  --mac-s-attribute: #E0B070;
+  --mac-s-error: #FF7A70;
+  --mac-s-positive: #4CD964;
+}
+:host(.dark) [data-md-theme="macos27"] {
+  --mac-mermaid-theme: macos27;
+  --mac-mermaid-font-family: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --mac-node-fill: rgb(36, 52, 76);
+  --mac-cluster-fill: var(--mac-m-surface-2);
+  --mac-node-text-color: var(--mac-m-text);
+  --mac-mermaid-background: var(--mac-m-bg);
+  --mac-bg-color: #1C1C1E;
+  --mac-text-color: #F2F2F7;
+  --mac-side-bar-bg-color: #252527;
+  --mac-control-text-color: #B4B4BA;
+  --mac-control-text-hover-bg-color: #3A3A3C;
+  --mac-item-hover-bg-color: #3A3A3C;
+  --mac-item-hover-text-color: #F2F2F7;
+  --mac-active-file-bg-color: #0059C7;
+  --mac-active-file-text-color: #FFFFFF;
+  --mac-active-file-border-color: #0059C7;
+  --mac-window-border: 1px solid #424245;
+  --mac-primary-color: #0A6CE0;
+  --mac-primary-btn-border-color: #0A6CE0;
+  --mac-primary-btn-text-color: #FFFFFF;
+  --mac-select-text-bg-color: #3F638B;
+  --mac-select-text-font-color: #FFFFFF;
+  --mac-md-char-color: #A0A0A6;
+  --mac-meta-content-color: #B4B4BA;
+  --mac-heading-char-color: #A0A0A6;
+  --mac-search-select-bg-color: #FF9F0A;
+  --mac-search-select-text-color: #1D1D1F;
+  --mac-rawblock-edit-panel-bd: #2C2C2E;
+  --mac-blur-text-color: #B4B4BA;
+  --mac-code-block-bg-color: #2C2C2E;
+  --mac-drag-placeholder-color: #B4B4BA;
+  --mac-m-bg: #1C1C1E;
+  --mac-m-surface: #252527;
+  --mac-m-surface-2: #2C2C2E;
+  --mac-m-zebra: #28282A;
+  --mac-m-hover-bg: #3A3A3C;
+  --mac-m-active-bg: #0059C7;
+  --mac-m-on-accent: #FFFFFF;
+  --mac-m-accent-fill: #0A6CE0;
+  --mac-m-accent-fill-hover: #0A5FC6;
+  --mac-m-text: #F2F2F7;
+  --mac-m-text-2: #B4B4BA;
+  --mac-m-heading: #FFFFFF;
+  --mac-m-md-char: #A0A0A6;
+  --mac-m-link: #5EAEFF;
+  --mac-m-link-hover: #8EC5FF;
+  --mac-m-link-underline: rgba(94, 174, 255, 0.5);
+  --mac-m-code-text: #FF8A80;
+  --mac-m-border: #424245;
+  --mac-m-border-strong: #5E5E63;
+  --mac-m-control-border: #8A8A90;
+  --mac-m-quote-bar: #8A8A90;
+  --mac-m-focus: #4DA3FF;
+  --mac-m-focus-halo: rgba(77, 163, 255, 0.35);
+  --mac-m-caret: #4DA3FF;
+  --mac-m-select-bg: #3F638B;
+  --mac-m-select-text: #FFFFFF;
+  --mac-m-match-bg: #21456E;
+  --mac-m-mark-bg: #FFD60A;
+  --mac-m-mark-text: #1D1D1F;
+  --mac-m-search-bg: #6B5A00;
+  --mac-m-search-text: #FFFFFF;
+  --mac-m-search-current-bg: #FF9F0A;
+  --mac-m-search-current-text: #1D1D1F;
+  --mac-m-scroll-thumb: rgba(255, 255, 255, 0.24);
+  --mac-m-shadow-pop: 0 0 0 0.5px rgba(255,255,255,0.12), 0 10px 32px rgba(0,0,0,0.45);
+  --mac-m-alert-note: #5EAEFF;
+  --mac-m-alert-tip: #4CD964;
+  --mac-m-alert-important: #C59BFF;
+  --mac-m-alert-warning: #FFB340;
+  --mac-m-alert-caution: #FF7A70;
+  --mac-m-chart-1: #0091FF;
+  --mac-m-chart-2: #DB34F2;
+  --mac-m-chart-3: #30D158;
+  --mac-m-chart-4: #FF9230;
+  --mac-m-chart-5: #FF375F;
+  --mac-m-chart-6: #00D2E0;
+  --mac-m-diagram-node: color-mix(in srgb, var(--mac-m-surface-2) 90%, var(--mac-m-text));
+  --mac-s-keyword: #FC5FA3;
+  --mac-s-number: #D9C97C;
+  --mac-s-def: #5DC4E0;
+  --mac-s-variable: #78C2B3;
+  --mac-s-type: #D0A8FF;
+  --mac-s-comment: #8F9BA6;
+  --mac-s-string: #FC8A7D;
+  --mac-s-meta: #FD9F5B;
+  --mac-s-builtin: #B48CF2;
+  --mac-s-attribute: #E0B070;
+  --mac-s-error: #FF7A70;
+  --mac-s-positive: #4CD964;
+}
+
+/* 暗色差分 */
+
+
+/* 补上游漏声明：macOS 27 的 samp 规则用了 var(--m-font-mono) 但从未声明 ⇒ 这里给系统等宽栈。 */
+[data-md-theme="macos27"] { --mac-m-font-mono: "SF Mono", Menlo, Monaco, "JetBrains Mono", ui-monospace, monospace; }
+/* ── 外壳皮肤（整壳替换）：接管左栏文档树 / 面包屑 / 切换器的视觉；结构尺寸与交互仍归 app。 */
+[data-md-theme="macos27"].br-shell { background: var(--mac-m-bg); color: var(--mac-m-text); }
+[data-md-theme="macos27"] .br-side { background: var(--mac-m-surface); border-right-color: var(--mac-m-border); }
+[data-md-theme="macos27"] .br-eyebrow,
+[data-md-theme="macos27"] .br-count,
+[data-md-theme="macos27"] .br-folder-count,
+[data-md-theme="macos27"] .br-folder,
+[data-md-theme="macos27"] .br-item,
+[data-md-theme="macos27"] .br-side-empty,
+[data-md-theme="macos27"] .br-crumb-label,
+[data-md-theme="macos27"] .br-crumb-sep,
+[data-md-theme="macos27"] .br-theme { color: var(--mac-m-text-2); }
+[data-md-theme="macos27"] .br-folder-name { color: var(--mac-m-text); }
+[data-md-theme="macos27"] .br-caret { border-left-color: var(--mac-m-text-2); }
+[data-md-theme="macos27"] .br-folder:hover,
+[data-md-theme="macos27"] .br-item:hover { background: var(--mac-m-hover-bg); color: var(--mac-m-text); }
+[data-md-theme="macos27"] .br-item.is-active { background: var(--mac-m-active-bg); color: var(--mac-m-on-accent); }
+[data-md-theme="macos27"] .br-item.is-active::before { background: var(--mac-m-accent-fill); }
+[data-md-theme="macos27"] .br-file-glyph { border-color: var(--mac-m-control-border); }
+[data-md-theme="macos27"] .br-file-glyph::after { border-color: var(--mac-m-control-border); background: var(--mac-m-surface); }
+[data-md-theme="macos27"] .br-item:hover .br-file-glyph::after { background: var(--mac-m-hover-bg); }
+[data-md-theme="macos27"] .br-item.is-active .br-file-glyph,
+[data-md-theme="macos27"] .br-item.is-active .br-file-glyph::after { border-color: var(--mac-m-accent-fill); }
+[data-md-theme="macos27"] .br-item.is-active .br-file-glyph::after { background: var(--mac-m-active-bg); }
+[data-md-theme="macos27"] .br-crumb { background: var(--mac-m-bg); border-bottom-color: var(--mac-m-border); }
+[data-md-theme="macos27"] .br-crumb-path { color: var(--mac-m-link); }
+[data-md-theme="macos27"] .br-theme select { color: var(--mac-m-select-text); background: var(--mac-m-select-bg); border-color: var(--mac-m-border); }
+
+/* 节包裹层：floor 的 .mdio-std 是 15px/1.65，会把 macOS 27 的正文口径（16px/1.65/-0.005em）压回去。 */
+[data-md-theme="macos27"] .mdio-doc .mdio-std { font-size: 16px; line-height: 1.65; letter-spacing: -0.005em; }
+
+/* ── mdio 扩展元素（macOS 27 皮肤：沿用本皮肤的「系统表面 + 10px 圆角 + 强调色」口径，不另起风格）── */
+[data-md-theme="macos27"] .mdio-doc .md-bullet-key {
+  color: var(--mac-m-text);
+  background: var(--mac-m-surface-2);
+  border: 1px solid var(--mac-m-border);
+  border-radius: var(--mac-m-radius-s);
+  padding: 0 0.4em;
+  font-weight: 600;
+}
+[data-md-theme="macos27"] .mdio-doc .md-claim-badge {
+  color: var(--mac-m-on-accent);
+  background: var(--mac-m-accent-fill);
+  border-radius: var(--mac-m-radius-s);
+  padding: 1px 8px;
+  font-size: 0.78em;
+  font-weight: 600;
+}
+[data-md-theme="macos27"] .mdio-doc .md-col-grip::before { background-color: var(--mac-m-border-strong); }
+[data-md-theme="macos27"] .mdio-doc th:hover .md-col-grip::before { background-color: var(--mac-m-accent-fill); }
+[data-md-theme="macos27"] .mdio-doc .md-math { color: var(--mac-m-text); }
+[data-md-theme="macos27"] .mdio-doc .md-mermaid {
+  background: var(--mac-m-surface);
+  border: 1px solid var(--mac-m-border);
+  border-radius: var(--mac-m-radius-m);
+  padding: 1rem;
+}
+[data-md-theme="macos27"] .mdio-doc .md-html { color: var(--mac-m-text); }
+[data-md-theme="macos27"] .mdio-doc .md-math--raw { color: var(--mac-m-text-2); font-family: var(--mac-m-font-mono); }
+[data-md-theme="macos27"] .mdio-doc .md-admonition-title {
+  color: var(--mac-m-text-2);
+  font-size: 0.82em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+[data-md-theme="macos27"] .mdio-doc .md-image-zoom { border: 1px solid var(--mac-m-border); border-radius: var(--mac-m-radius-m); }
+[data-md-theme="macos27"] .mdio-doc .md-html-raw { color: var(--mac-m-text); }
+[data-md-theme="macos27"] .mdio-doc .md-image { border-radius: var(--mac-m-radius-m); overflow: hidden; }
+[data-md-theme="macos27"] .mdio-doc .md-image-zoom { border: 1px solid var(--mac-m-border); border-radius: var(--mac-m-radius-m); }
+/* 外壳残余件：选区 / 焦点环 / 滚动条 / 加载环（滚动条伪元素里 var() 不解析 ⇒ 字面色）。 */
+[data-md-theme="macos27"] .br-shell ::selection { background: var(--mac-m-select-bg); color: var(--mac-m-text); }
+[data-md-theme="macos27"] .br-item:focus-visible,
+[data-md-theme="macos27"] .br-folder:focus-visible,
+[data-md-theme="macos27"] .br-theme select:focus-visible { outline-color: var(--mac-m-accent-fill); }
+[data-md-theme="macos27"] .br-spin-ring { border-top-color: var(--mac-m-accent-fill); }
+[data-md-theme="macos27"] .br-tree::-webkit-scrollbar-thumb,
+[data-md-theme="macos27"] .br-doc::-webkit-scrollbar-thumb { background-color: #e1e1e6; }
+body.dark [data-md-theme="macos27"] .br-tree::-webkit-scrollbar-thumb,
+body.dark [data-md-theme="macos27"] .br-doc::-webkit-scrollbar-thumb,
+:host(.dark) [data-md-theme="macos27"] .br-tree::-webkit-scrollbar-thumb,
+:host(.dark) [data-md-theme="macos27"] .br-doc::-webkit-scrollbar-thumb { background-color: #424245; }

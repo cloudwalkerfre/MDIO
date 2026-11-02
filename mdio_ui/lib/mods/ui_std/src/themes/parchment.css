@@ -1,0 +1,262 @@
+/* parchment —— 默认皮肤（从 `basic_render.css` 的正文排版段拆出）。
+ *
+ * 为什么拆：`basic_render.css` 是 app 的**外壳**样式表（左树 / 面包屑 / 切档转圈），
+ * 正文排版是**皮肤**；把两者混在一张表里，会让人误以为「皮肤属于库或宿主」。
+ * 拆成独立文件后，皮肤仍由 **app 自己带**：`basic_render.jsx` 静态 import 本文件
+ * （构建期 chunk CSS → manifest → 宿主 <link> → 影子根镜像），挂载本 app 的树
+ * **不需要**在 ui.md 里声明任何东西。（反例：曾把它做成声明级 CSS mod，
+ * 结果每棵装 BASIC_RENDER 的树都要重复声明，且 11/12 棵树漏了。）
+ *
+ * 契约（皮肤 ABI v1）：
+ *   · 作用域 token = `.mdio-doc`（DocPane 的文档体容器，与 `.mdio-std` 同一个元素）；
+ *   · 门控 = 祖先属性 `[data-md-theme="parchment"]`（由 app 写在 .br-shell 上）；
+ *     规则一律以它开头 ⇒ 将来多套皮肤可同时在场、切换只改一个属性；
+ *   · 深色 = `body.dark`（document 面）与 `:host(.dark)`（影子根面）**双写**
+ *     —— 影子树里 `body.dark` 不生效，宿主的主题类打在 `<mdio-appview>` 上；
+ *   · token 自持（`--pt-*`）：不依赖 app 的 `--br-*`，换宿主也不散架；
+ *   · **覆盖范围（v2）**：所有 render 输出的**视觉属性**（字号/间距/配色/
+ *     边框/底色/滚动条/选中高亮），含 floor 自带样式的那些 class（admonition / md-html /
+ *     md-table-wrap / md-codeblock / md-image / md-mermaid / md-math / bullet-key /
+ *     claim-badge / checkbox）。**不接管**结构/交互契约：grip 的定位与显隐、md-image 的
+ *     懒加载显示、mermaid/katex 自绘内容、拖拽与点击行为 —— 那些留在 std 的 floor。
+ */
+[data-md-theme="parchment"] {
+  --pt-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --pt-serif: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --pt-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --pt-ink: #26251e;
+  --pt-bone: #f2f1ed;
+  --pt-line: #e3e2dd;
+  --pt-stone: #cdcdc9;
+  --pt-mist: #a1a19f;
+  --pt-drift: #84847e;
+  --pt-ember: #f54e00;
+  --pt-forest: #34785c;
+  --pt-del: #a1a19f;
+  --pt-ins: #34785c;
+  --pt-mark-bg: #f6e7b4;
+  --pt-code-fg: #7a5636;
+  --pt-selection: #cfe3fb;
+  --pt-scroll: #c3c2bc;
+  --pt-scroll-hover: #a5a49d;
+  --pt-ad-note: #4a6da8;
+  --pt-ad-tip: #34785c;
+  --pt-ad-warning: #b0741c;
+  --pt-ad-danger: #b3402f;
+  --pt-ad-info: #4f7c8f;
+}
+body.dark [data-md-theme="parchment"] {
+  --pt-ink: #e9e6df;
+  --pt-bone: #23211d;
+  --pt-line: #322f29;
+  --pt-stone: #45403a;
+  --pt-mist: #6f6b63;
+  --pt-drift: #a6a29a;
+  --pt-ember: #ff6b3d;
+  --pt-forest: #4f9b7d;
+  --pt-del: #6f6b63;
+  --pt-ins: #4f9b7d;
+  --pt-mark-bg: #4a3d12;
+  --pt-code-fg: #d9c3a5;
+  --pt-selection: #2f5d8a;
+  --pt-scroll: #4e4840;
+  --pt-scroll-hover: #675f52;
+  --pt-ad-note: #7ba3d6;
+  --pt-ad-tip: #4f9b7d;
+  --pt-ad-warning: #d6a75a;
+  --pt-ad-danger: #d98070;
+  --pt-ad-info: #86b3c4;
+}
+:host(.dark) [data-md-theme="parchment"] {
+  --pt-ink: #e9e6df;
+  --pt-bone: #23211d;
+  --pt-line: #322f29;
+  --pt-stone: #45403a;
+  --pt-mist: #6f6b63;
+  --pt-drift: #a6a29a;
+  --pt-ember: #ff6b3d;
+  --pt-forest: #4f9b7d;
+  --pt-del: #6f6b63;
+  --pt-ins: #4f9b7d;
+  --pt-mark-bg: #4a3d12;
+  --pt-code-fg: #d9c3a5;
+  --pt-selection: #2f5d8a;
+  --pt-scroll: #4e4840;
+  --pt-scroll-hover: #675f52;
+  --pt-ad-note: #7ba3d6;
+  --pt-ad-tip: #4f9b7d;
+  --pt-ad-warning: #d6a75a;
+  --pt-ad-danger: #d98070;
+  --pt-ad-info: #86b3c4;
+}
+
+/* ── 正文排版（原 basic_render.css:258-327）──────────────────────── */
+[data-md-theme="parchment"] .mdio-doc {
+  font-family: var(--pt-sans);
+  color: var(--pt-ink);
+  font-size: 15.5px;
+  line-height: 1.75;
+}
+/* 节包裹层：floor 的 .mdio-std 是 15px/1.65，会把皮肤正文口径压回去（核查补）。 */
+[data-md-theme="parchment"] .mdio-doc .mdio-std { font-size: 15.5px; line-height: 1.75; }
+[data-md-theme="parchment"] .mdio-doc h1,
+[data-md-theme="parchment"] .mdio-doc h2,
+[data-md-theme="parchment"] .mdio-doc h3,
+[data-md-theme="parchment"] .mdio-doc h4 { font-weight: 400; line-height: 1.25; letter-spacing: -0.02em; }
+[data-md-theme="parchment"] .mdio-doc h1 { font-size: 28px; letter-spacing: -0.025em; margin: 0 0 22px; }
+[data-md-theme="parchment"] .mdio-doc h2 { font-size: 19px; font-weight: 500; letter-spacing: -0.012em; margin: 44px 0 12px; }
+[data-md-theme="parchment"] .mdio-doc h3 { font-size: 16px; font-weight: 500; margin: 28px 0 8px; }
+[data-md-theme="parchment"] .mdio-doc h4 { font-size: 14px; font-weight: 500; margin: 22px 0 6px; color: var(--pt-drift); }
+/* std 主题的标题分隔线是近黑（zinc-800）——统一改成发丝色，保住暖纸调性 */
+[data-md-theme="parchment"] .mdio-doc h1,
+[data-md-theme="parchment"] .mdio-doc h2,
+[data-md-theme="parchment"] .mdio-doc h3,
+[data-md-theme="parchment"] .mdio-doc h4 { border-color: var(--pt-line); }
+[data-md-theme="parchment"] .mdio-doc p { margin: 0 0 14px; }
+[data-md-theme="parchment"] .mdio-doc ul,
+[data-md-theme="parchment"] .mdio-doc ol { margin: 0 0 14px; padding-left: 22px; }
+[data-md-theme="parchment"] .mdio-doc li { margin: 5px 0; }
+[data-md-theme="parchment"] .mdio-doc li::marker { color: var(--pt-mist); }
+[data-md-theme="parchment"] .mdio-doc strong { font-weight: 500; }
+[data-md-theme="parchment"] .mdio-doc em { font-style: italic; }
+[data-md-theme="parchment"] .mdio-doc a { color: var(--pt-ember); text-decoration: none; }
+[data-md-theme="parchment"] .mdio-doc a:hover { text-decoration: underline; }
+[data-md-theme="parchment"] .mdio-doc code {
+  font-family: var(--pt-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  background: var(--pt-bone);
+  border: 1px solid var(--pt-line);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+[data-md-theme="parchment"] .mdio-doc pre {
+  background: var(--pt-bone);
+  border: 1px solid var(--pt-line);
+  border-radius: 4px;
+  padding: 14px 16px;
+  overflow: auto;
+  margin: 0 0 16px;
+}
+[data-md-theme="parchment"] .mdio-doc pre code { background: none; border: 0; padding: 0; font-size: 12.5px; line-height: 1.65; }
+/* shiki 直出底色的覆盖：代码块统一走暖纸底，别让高亮主题的冷黑破坏调性 */
+[data-md-theme="parchment"] .mdio-doc pre.shiki,
+[data-md-theme="parchment"] .mdio-doc pre[class*="shiki"] { background: var(--pt-bone) !important; border: 1px solid var(--pt-line); }
+[data-md-theme="parchment"] .mdio-doc pre.shiki code { background: none !important; }
+[data-md-theme="parchment"] .mdio-doc blockquote {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  background: var(--pt-bone);
+  border-left: 2px solid var(--pt-stone);
+  border-radius: 4px;
+  color: var(--pt-drift);
+  font-family: var(--pt-serif);
+  font-size: 16px;
+  line-height: 1.6;
+}
+[data-md-theme="parchment"] .mdio-doc blockquote p:last-child { margin-bottom: 0; }
+[data-md-theme="parchment"] .mdio-doc table { width: 100%; border-collapse: collapse; margin: 0 0 16px; font-size: 14px; }
+[data-md-theme="parchment"] .mdio-doc th,
+[data-md-theme="parchment"] .mdio-doc td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--pt-line); vertical-align: top; }
+[data-md-theme="parchment"] .mdio-doc th { font-weight: 500; color: var(--pt-ink); }
+[data-md-theme="parchment"] .mdio-doc td { color: var(--pt-drift); }
+[data-md-theme="parchment"] .mdio-doc hr { border: 0; border-top: 1px solid var(--pt-line); margin: 30px 0; }
+[data-md-theme="parchment"] .mdio-doc img { max-width: 100%; border-radius: 4px; }
+
+/* ── 覆盖补齐（第二版 · 让「所有 render 输出」都随皮肤变）─────────
+ * 第一版只搬了原 basic_render 的排版段 ⇒ h5/h6、del/mark/ins/sub/sup、
+ * md-inline-code 的颜色、admonition / html / table-wrap / codeblock / image /
+ * mermaid / math、bullet-key / claim-badge / checkbox / selection / 滚动条
+ * 都落回 std 的 floor（主题无关）⇒ 切皮肤时这些元素不动。这里按 --pt-* 补齐。
+ * 边界不变：**结构/交互契约**（grip 的定位与显隐、md-image 懒加载显示、mermaid/katex
+ * 自绘内容、拖拽行为）仍由 std 的 floor 负责；本表只改视觉属性。 */
+
+/* 标题 5/6（floor 只到 h4 有皮肤语义） */
+[data-md-theme="parchment"] .mdio-doc h5 { font-size: 13px; font-weight: 600; line-height: 1.3; margin: 18px 0 6px; color: var(--pt-ink); }
+[data-md-theme="parchment"] .mdio-doc h6 { font-size: 12px; font-weight: 600; line-height: 1.3; letter-spacing: 0.06em; text-transform: uppercase; margin: 16px 0 6px; color: var(--pt-drift); }
+
+/* 行内语义件 */
+[data-md-theme="parchment"] .mdio-doc del { color: var(--pt-del); text-decoration: line-through; }
+[data-md-theme="parchment"] .mdio-doc ins { color: var(--pt-ins); text-decoration: underline; }
+[data-md-theme="parchment"] .mdio-doc mark { background: var(--pt-mark-bg); color: var(--pt-ink); border-radius: 2px; padding: 0 2px; }
+[data-md-theme="parchment"] .mdio-doc sub,
+[data-md-theme="parchment"] .mdio-doc sup { font-size: 0.75em; line-height: 0; }
+/* 行内代码：颜色也由皮肤接管（floor 的粉色 token 只在 plain 态出现） */
+[data-md-theme="parchment"] .mdio-doc code.md-inline-code {
+  color: var(--pt-code-fg);
+  background: var(--pt-bone);
+  border: 1px solid var(--pt-line);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--pt-mono);
+  font-size: 0.92em;
+}
+/* 选中高亮 */
+[data-md-theme="parchment"] .mdio-doc ::selection { background: var(--pt-selection); color: var(--pt-ink); }
+
+/* 代码块容器：皮肤管外边距；内层 pre 的边距收到 0，避免双份 */
+[data-md-theme="parchment"] .mdio-doc .md-codeblock { margin: 0 0 16px; }
+[data-md-theme="parchment"] .mdio-doc .md-codeblock pre { margin: 0; }
+/* 代码块 / 表格的横向滚动条跟皮肤走 */
+[data-md-theme="parchment"] .mdio-doc pre, [data-md-theme="parchment"] .mdio-doc .md-table-wrap { scrollbar-width: thin; scrollbar-color: var(--pt-scroll) transparent; }
+[data-md-theme="parchment"] .mdio-doc pre::-webkit-scrollbar,
+[data-md-theme="parchment"] .mdio-doc .md-table-wrap::-webkit-scrollbar { width: 8px; height: 8px; }
+[data-md-theme="parchment"] .mdio-doc pre::-webkit-scrollbar-thumb,
+[data-md-theme="parchment"] .mdio-doc .md-table-wrap::-webkit-scrollbar-thumb { background: var(--pt-scroll); border-radius: 4px; }
+[data-md-theme="parchment"] .mdio-doc pre::-webkit-scrollbar-thumb:hover,
+[data-md-theme="parchment"] .mdio-doc .md-table-wrap::-webkit-scrollbar-thumb:hover { background: var(--pt-scroll-hover); }
+
+/* 表格包裹与列宽手柄 */
+[data-md-theme="parchment"] .mdio-doc .md-table-wrap { margin: 0 0 16px; }
+[data-md-theme="parchment"] .mdio-doc .md-table-wrap .md-table { margin: 0; }
+[data-md-theme="parchment"] .mdio-doc .md-col-grip::before { background: var(--pt-stone); }
+
+/* HTML 块（hb/he 块与单元格行内 HTML 产物） */
+[data-md-theme="parchment"] .mdio-doc .md-html { margin: 0 0 16px; color: var(--pt-ink); }
+[data-md-theme="parchment"] .mdio-doc .md-html-raw {
+  margin: 0 0 16px;
+  padding: 8px 10px;
+  border: 1px dashed var(--pt-line);
+  border-radius: 4px;
+  background: var(--pt-bone);
+  color: var(--pt-mist);
+  font: 0.82em/1.5 var(--pt-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow-x: auto;
+}
+[data-md-theme="parchment"] .mdio-doc .md-html figcaption,
+[data-md-theme="parchment"] .mdio-doc .md-html caption,
+[data-md-theme="parchment"] .mdio-doc .md-html dd { color: var(--pt-drift); }
+[data-md-theme="parchment"] .mdio-doc .md-html summary,
+[data-md-theme="parchment"] .mdio-doc .md-html dt { color: var(--pt-ink); }
+
+/* 提示块（admonition / vmr_container）——五种变体各一色 */
+[data-md-theme="parchment"] .mdio-doc .md-admonition { background: var(--pt-bone); border-radius: 4px; padding: 10px 14px; }
+[data-md-theme="parchment"] .mdio-doc .md-admonition-title { color: var(--pt-ink); font-weight: 500; }
+[data-md-theme="parchment"] .mdio-doc .md-admonition--note { border-color: var(--pt-ad-note); }
+[data-md-theme="parchment"] .mdio-doc .md-admonition--tip { border-color: var(--pt-ad-tip); }
+[data-md-theme="parchment"] .mdio-doc .md-admonition--warning { border-color: var(--pt-ad-warning); }
+[data-md-theme="parchment"] .mdio-doc .md-admonition--danger { border-color: var(--pt-ad-danger); }
+[data-md-theme="parchment"] .mdio-doc .md-admonition--info { border-color: var(--pt-ad-info); }
+[data-md-theme="parchment"] .mdio-doc .md-admonition--note .md-admonition-title { color: var(--pt-ad-note); }
+[data-md-theme="parchment"] .mdio-doc .md-admonition--tip .md-admonition-title { color: var(--pt-ad-tip); }
+[data-md-theme="parchment"] .mdio-doc .md-admonition--warning .md-admonition-title { color: var(--pt-ad-warning); }
+[data-md-theme="parchment"] .mdio-doc .md-admonition--danger .md-admonition-title { color: var(--pt-ad-danger); }
+[data-md-theme="parchment"] .mdio-doc .md-admonition--info .md-admonition-title { color: var(--pt-ad-info); }
+
+/* 公式（KaTeX 自绘字形，皮肤只给颜色/字族） */
+[data-md-theme="parchment"] .mdio-doc .md-math { color: var(--pt-ink); font-family: var(--pt-mono); opacity: 0.92; }
+[data-md-theme="parchment"] .mdio-doc .katex { color: var(--pt-ink); }
+
+/* Mermaid 容器（图内容由 mermaid 自绘，皮肤只管容器留白） */
+[data-md-theme="parchment"] .mdio-doc .md-mermaid { padding: 10px 0 18px; }
+
+/* 图片与放大层 */
+[data-md-theme="parchment"] .mdio-doc .md-image { background: var(--pt-bone); border-radius: 4px; }
+[data-md-theme="parchment"] .mdio-doc .md-image-zoom { background: rgba(27, 26, 23, 0.9); }
+
+/* 列表 key / 认领徽标 / checkbox */
+[data-md-theme="parchment"] .mdio-doc .md-bullet-key { color: var(--pt-drift); font-weight: 500; }
+[data-md-theme="parchment"] .mdio-doc .md-claim-badge { color: var(--pt-mist); font-family: var(--pt-mono); }
+[data-md-theme="parchment"] .mdio-doc input[type="checkbox"] { accent-color: var(--pt-forest); }

@@ -1,0 +1,39 @@
+## HIS
+### main
+- user:
+    > 主线：开题
+- assistant:
+    > 主线：开题回复
+- user:
+    + b1:
+        - type: branch
+        - path: /demo.md::HIS.b1
+    > 主线：分叉点 b1
+- assistant:
+    > 主线：分支后继续
+- user:
+    + be:
+        - type: join
+        - path: /demo.md::HIS.b1
+    > 主线：回到主线 be
+- assistant:
+    > 主线：be 之后
+- user:
+    > 主线：be 后的普通消息
+### b1
+- user:
+    > 分支 b1：入口
+- assistant:
+    > 分支 b1：内容
+- user:
+    + be_b2:
+        - type: branch
+        - path: /demo.md::HIS.b2
+    > 分支 b1：分叉点 b2
+- assistant:
+    > 分支 b1：b2 之后
+### b2
+- user:
+    > 分支 b2：内容
+- assistant:
+    > 分支 b2：回复

@@ -1,0 +1,33 @@
+name: Design question
+description: Ask about how a part of MDIO works, before proposing a change.
+title: "[design] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when the question is about the model, not about a failure. It is also the right place to
+        show that you understand a subsystem well enough to be invited as a collaborator.
+  - type: textarea
+    id: subsystem
+    attributes:
+      label: Which part of the code?
+      description: Name the modules or files you have read, and what you understand their responsibility to be.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: The question
+      description: State the question as a single sentence, then add the context that makes it hard.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options you see
+      description: If there are several answers, list them and say which one you would pick and why.
+    validations:
+      required: true

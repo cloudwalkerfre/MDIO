@@ -1,0 +1,465 @@
+/* github —— GitHub Markdown 皮肤（由 scripts/port-theme-github.mjs 生成，勿手改）。
+ *
+ * 上游：rxliuli/tailwindcss-github-markdown 的 src/github-markdown.css（MIT，© rxliuli），
+ *       该文件为 sindresorhus/github-markdown-css（MIT，© Sindre Sorhus）的拷贝 —— 两份署名随本文件保留。
+ * 变换：@media 亮/暗变量块 → 容器状态；.markdown-body → .mdio-doc；白名单只留内容元素；全部规则带门控。
+ * 已知裁剪：GitHub 网页专属 DOM（.octicon 锚点 / .markdown-alert / .highlight / 表单控件重置）已丢弃。
+ */
+
+/* 亮色 token（上游 prefers-color-scheme: light 块）
+ * 注意：token 挂在**门控元素本身**（.br-shell），不是 .mdio-doc —— 因为画布要给宿主窗格 .br-doc 上色，
+ * 而 .br-doc 是 .mdio-doc 的祖先，拿不到定义在 .mdio-doc 上的 var()。 */
+[data-md-theme="github"] {
+  color-scheme: light;
+  --focus-outlineColor: #0969da;
+  --fgColor-default: #1f2328;
+  --fgColor-muted: #59636e;
+  --fgColor-accent: #0969da;
+  --fgColor-success: #1a7f37;
+  --fgColor-attention: #9a6700;
+  --fgColor-danger: #d1242f;
+  --fgColor-done: #8250df;
+  --bgColor-default: #ffffff;
+  --bgColor-muted: #f6f8fa;
+  --bgColor-neutral-muted: #818b981f;
+  --bgColor-attention-muted: #fff8c5;
+  --borderColor-default: #d1d9e0;
+  --borderColor-muted: #d1d9e0b3;
+  --borderColor-neutral-muted: #d1d9e0b3;
+  --borderColor-accent-emphasis: #0969da;
+  --borderColor-success-emphasis: #1a7f37;
+  --borderColor-attention-emphasis: #9a6700;
+  --borderColor-danger-emphasis: #cf222e;
+  --borderColor-done-emphasis: #8250df;
+  --color-prettylights-syntax-comment: #59636e;
+  --color-prettylights-syntax-constant: #0550ae;
+  --color-prettylights-syntax-constant-other-reference-link: #0a3069;
+  --color-prettylights-syntax-entity: #6639ba;
+  --color-prettylights-syntax-storage-modifier-import: #1f2328;
+  --color-prettylights-syntax-entity-tag: #0550ae;
+  --color-prettylights-syntax-keyword: #cf222e;
+  --color-prettylights-syntax-string: #0a3069;
+  --color-prettylights-syntax-variable: #953800;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #82071e;
+  --color-prettylights-syntax-brackethighlighter-angle: #59636e;
+  --color-prettylights-syntax-invalid-illegal-text: #f6f8fa;
+  --color-prettylights-syntax-invalid-illegal-bg: #82071e;
+  --color-prettylights-syntax-carriage-return-text: #f6f8fa;
+  --color-prettylights-syntax-carriage-return-bg: #cf222e;
+  --color-prettylights-syntax-string-regexp: #116329;
+  --color-prettylights-syntax-markup-list: #3b2300;
+  --color-prettylights-syntax-markup-heading: #0550ae;
+  --color-prettylights-syntax-markup-italic: #1f2328;
+  --color-prettylights-syntax-markup-bold: #1f2328;
+  --color-prettylights-syntax-markup-deleted-text: #82071e;
+  --color-prettylights-syntax-markup-deleted-bg: #ffebe9;
+  --color-prettylights-syntax-markup-inserted-text: #116329;
+  --color-prettylights-syntax-markup-inserted-bg: #dafbe1;
+  --color-prettylights-syntax-markup-changed-text: #953800;
+  --color-prettylights-syntax-markup-changed-bg: #ffd8b5;
+  --color-prettylights-syntax-markup-ignored-text: #d1d9e0;
+  --color-prettylights-syntax-markup-ignored-bg: #0550ae;
+  --color-prettylights-syntax-meta-diff-range: #8250df;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #818b98;
+}
+
+/* 暗色 token：document 面用 body.dark，影子根面用 :host(.dark)（body.dark 不跨界） */
+body.dark [data-md-theme="github"] {
+  color-scheme: dark;
+  --focus-outlineColor: #1f6feb;
+  --fgColor-default: #f0f6fc;
+  --fgColor-muted: #9198a1;
+  --fgColor-accent: #4493f8;
+  --fgColor-success: #3fb950;
+  --fgColor-attention: #d29922;
+  --fgColor-danger: #f85149;
+  --fgColor-done: #ab7df8;
+  --bgColor-default: #0d1117;
+  --bgColor-muted: #151b23;
+  --bgColor-neutral-muted: #656c7633;
+  --bgColor-attention-muted: #bb800926;
+  --borderColor-default: #3d444d;
+  --borderColor-muted: #3d444db3;
+  --borderColor-neutral-muted: #3d444db3;
+  --borderColor-accent-emphasis: #1f6feb;
+  --borderColor-success-emphasis: #238636;
+  --borderColor-attention-emphasis: #9e6a03;
+  --borderColor-danger-emphasis: #da3633;
+  --borderColor-done-emphasis: #8957e5;
+  --color-prettylights-syntax-comment: #9198a1;
+  --color-prettylights-syntax-constant: #79c0ff;
+  --color-prettylights-syntax-constant-other-reference-link: #a5d6ff;
+  --color-prettylights-syntax-entity: #d2a8ff;
+  --color-prettylights-syntax-storage-modifier-import: #f0f6fc;
+  --color-prettylights-syntax-entity-tag: #7ee787;
+  --color-prettylights-syntax-keyword: #ff7b72;
+  --color-prettylights-syntax-string: #a5d6ff;
+  --color-prettylights-syntax-variable: #ffa657;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #f85149;
+  --color-prettylights-syntax-brackethighlighter-angle: #9198a1;
+  --color-prettylights-syntax-invalid-illegal-text: #f0f6fc;
+  --color-prettylights-syntax-invalid-illegal-bg: #8e1519;
+  --color-prettylights-syntax-carriage-return-text: #f0f6fc;
+  --color-prettylights-syntax-carriage-return-bg: #b62324;
+  --color-prettylights-syntax-string-regexp: #7ee787;
+  --color-prettylights-syntax-markup-list: #f2cc60;
+  --color-prettylights-syntax-markup-heading: #1f6feb;
+  --color-prettylights-syntax-markup-italic: #f0f6fc;
+  --color-prettylights-syntax-markup-bold: #f0f6fc;
+  --color-prettylights-syntax-markup-deleted-text: #ffdcd7;
+  --color-prettylights-syntax-markup-deleted-bg: #67060c;
+  --color-prettylights-syntax-markup-inserted-text: #aff5b4;
+  --color-prettylights-syntax-markup-inserted-bg: #033a16;
+  --color-prettylights-syntax-markup-changed-text: #ffdfb6;
+  --color-prettylights-syntax-markup-changed-bg: #5a1e02;
+  --color-prettylights-syntax-markup-ignored-text: #f0f6fc;
+  --color-prettylights-syntax-markup-ignored-bg: #1158c7;
+  --color-prettylights-syntax-meta-diff-range: #d2a8ff;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #3d444d;
+}
+:host(.dark) [data-md-theme="github"] {
+  color-scheme: dark;
+  --focus-outlineColor: #1f6feb;
+  --fgColor-default: #f0f6fc;
+  --fgColor-muted: #9198a1;
+  --fgColor-accent: #4493f8;
+  --fgColor-success: #3fb950;
+  --fgColor-attention: #d29922;
+  --fgColor-danger: #f85149;
+  --fgColor-done: #ab7df8;
+  --bgColor-default: #0d1117;
+  --bgColor-muted: #151b23;
+  --bgColor-neutral-muted: #656c7633;
+  --bgColor-attention-muted: #bb800926;
+  --borderColor-default: #3d444d;
+  --borderColor-muted: #3d444db3;
+  --borderColor-neutral-muted: #3d444db3;
+  --borderColor-accent-emphasis: #1f6feb;
+  --borderColor-success-emphasis: #238636;
+  --borderColor-attention-emphasis: #9e6a03;
+  --borderColor-danger-emphasis: #da3633;
+  --borderColor-done-emphasis: #8957e5;
+  --color-prettylights-syntax-comment: #9198a1;
+  --color-prettylights-syntax-constant: #79c0ff;
+  --color-prettylights-syntax-constant-other-reference-link: #a5d6ff;
+  --color-prettylights-syntax-entity: #d2a8ff;
+  --color-prettylights-syntax-storage-modifier-import: #f0f6fc;
+  --color-prettylights-syntax-entity-tag: #7ee787;
+  --color-prettylights-syntax-keyword: #ff7b72;
+  --color-prettylights-syntax-string: #a5d6ff;
+  --color-prettylights-syntax-variable: #ffa657;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #f85149;
+  --color-prettylights-syntax-brackethighlighter-angle: #9198a1;
+  --color-prettylights-syntax-invalid-illegal-text: #f0f6fc;
+  --color-prettylights-syntax-invalid-illegal-bg: #8e1519;
+  --color-prettylights-syntax-carriage-return-text: #f0f6fc;
+  --color-prettylights-syntax-carriage-return-bg: #b62324;
+  --color-prettylights-syntax-string-regexp: #7ee787;
+  --color-prettylights-syntax-markup-list: #f2cc60;
+  --color-prettylights-syntax-markup-heading: #1f6feb;
+  --color-prettylights-syntax-markup-italic: #f0f6fc;
+  --color-prettylights-syntax-markup-bold: #f0f6fc;
+  --color-prettylights-syntax-markup-deleted-text: #ffdcd7;
+  --color-prettylights-syntax-markup-deleted-bg: #67060c;
+  --color-prettylights-syntax-markup-inserted-text: #aff5b4;
+  --color-prettylights-syntax-markup-inserted-bg: #033a16;
+  --color-prettylights-syntax-markup-changed-text: #ffdfb6;
+  --color-prettylights-syntax-markup-changed-bg: #5a1e02;
+  --color-prettylights-syntax-markup-ignored-text: #f0f6fc;
+  --color-prettylights-syntax-markup-ignored-bg: #1158c7;
+  --color-prettylights-syntax-meta-diff-range: #d2a8ff;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #3d444d;
+}
+
+[data-md-theme="github"] .mdio-doc { --base-size-4: 0.25rem; --base-size-8: 0.5rem; --base-size-16: 1rem; --base-size-24: 1.5rem; --base-size-40: 2.5rem; --base-text-weight-normal: 400; --base-text-weight-medium: 500; --base-text-weight-semibold: 600; --fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace; --fgColor-accent: Highlight; }
+[data-md-theme="github"] .mdio-doc { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; margin: 0; color: var(--fgColor-default); background-color: var(--bgColor-default); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'; font-size: 16px; line-height: 1.5; word-wrap: break-word; }
+[data-md-theme="github"] .mdio-doc h1:hover .anchor .octicon-link:before,
+[data-md-theme="github"] .mdio-doc h2:hover .anchor .octicon-link:before,
+[data-md-theme="github"] .mdio-doc h3:hover .anchor .octicon-link:before,
+[data-md-theme="github"] .mdio-doc h4:hover .anchor .octicon-link:before,
+[data-md-theme="github"] .mdio-doc h5:hover .anchor .octicon-link:before,
+[data-md-theme="github"] .mdio-doc h6:hover .anchor .octicon-link:before { width: 16px; height: 16px; content: ' '; display: inline-block; background-color: currentColor; -webkit-mask-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' version='1.1' aria-hidden='true'><path fill-rule='evenodd' d='M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 010-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25a.75.75 0 00-1.06-1.06l-1.25 1.25a2 2 0 01-2.83 0z'></path></svg>"); mask-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' version='1.1' aria-hidden='true'><path fill-rule='evenodd' d='M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 010-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25a.75.75 0 00-1.06-1.06l-1.25 1.25a2 2 0 01-2.83 0z'></path></svg>"); }
+[data-md-theme="github"] .mdio-doc details,
+[data-md-theme="github"] .mdio-doc figcaption,
+[data-md-theme="github"] .mdio-doc figure { display: block; }
+[data-md-theme="github"] .mdio-doc summary { display: list-item; }
+[data-md-theme="github"] .mdio-doc a { background-color: transparent; color: var(--fgColor-accent); text-decoration: none; }
+[data-md-theme="github"] .mdio-doc strong { font-weight: var(--base-text-weight-semibold, 600); }
+[data-md-theme="github"] .mdio-doc h1 { margin: 0.67em 0; font-weight: var(--base-text-weight-semibold, 600); padding-bottom: 0.3em; font-size: 2em; border-bottom: 1px solid var(--borderColor-muted); }
+[data-md-theme="github"] .mdio-doc mark { background-color: var(--bgColor-attention-muted); color: var(--fgColor-default); }
+[data-md-theme="github"] .mdio-doc sub,
+[data-md-theme="github"] .mdio-doc sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
+[data-md-theme="github"] .mdio-doc sub { bottom: -0.25em; }
+[data-md-theme="github"] .mdio-doc sup { top: -0.5em; }
+[data-md-theme="github"] .mdio-doc img { border-style: none; max-width: 100%; box-sizing: content-box; }
+[data-md-theme="github"] .mdio-doc code,
+[data-md-theme="github"] .mdio-doc kbd,
+[data-md-theme="github"] .mdio-doc pre { font-family: monospace; font-size: 1em; }
+[data-md-theme="github"] .mdio-doc figure { margin: 1em var(--base-size-40); }
+[data-md-theme="github"] .mdio-doc hr { box-sizing: content-box; overflow: hidden; background: transparent; border-bottom: 1px solid var(--borderColor-muted); height: 0.25em; padding: 0; margin: var(--base-size-24) 0; background-color: var(--borderColor-default); border: 0; }
+[data-md-theme="github"] .mdio-doc a:hover { text-decoration: underline; }
+[data-md-theme="github"] .mdio-doc table { border-spacing: 0; border-collapse: collapse; display: block; width: max-content; max-width: 100%; overflow: auto; font-variant: tabular-nums; }
+[data-md-theme="github"] .mdio-doc td,
+[data-md-theme="github"] .mdio-doc th { padding: 0; }
+[data-md-theme="github"] .mdio-doc details summary { cursor: pointer; }
+[data-md-theme="github"] .mdio-doc a:focus { outline: 2px solid var(--focus-outlineColor); outline-offset: -2px; box-shadow: none; }
+[data-md-theme="github"] .mdio-doc a:focus:not(:focus-visible) { outline: solid 1px transparent; }
+[data-md-theme="github"] .mdio-doc a:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: -2px; box-shadow: none; }
+[data-md-theme="github"] .mdio-doc a:not([class]):focus,
+[data-md-theme="github"] .mdio-doc a:not([class]):focus-visible { outline-offset: 0; }
+[data-md-theme="github"] .mdio-doc kbd { display: inline-block; padding: var(--base-size-4); font: 11px var(--fontStack-monospace, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace); line-height: 10px; color: var(--fgColor-default); vertical-align: middle; background-color: var(--bgColor-muted); border: solid 1px var(--borderColor-neutral-muted); border-bottom-color: var(--borderColor-neutral-muted); border-radius: 6px; box-shadow: inset 0 -1px 0 var(--borderColor-neutral-muted); }
+[data-md-theme="github"] .mdio-doc h1,
+[data-md-theme="github"] .mdio-doc h2,
+[data-md-theme="github"] .mdio-doc h3,
+[data-md-theme="github"] .mdio-doc h4,
+[data-md-theme="github"] .mdio-doc h5,
+[data-md-theme="github"] .mdio-doc h6 { margin-top: var(--base-size-24); margin-bottom: var(--base-size-16); font-weight: var(--base-text-weight-semibold, 600); line-height: 1.25; }
+[data-md-theme="github"] .mdio-doc h2 { font-weight: var(--base-text-weight-semibold, 600); padding-bottom: 0.3em; font-size: 1.5em; border-bottom: 1px solid var(--borderColor-muted); }
+[data-md-theme="github"] .mdio-doc h3 { font-weight: var(--base-text-weight-semibold, 600); font-size: 1.25em; }
+[data-md-theme="github"] .mdio-doc h4 { font-weight: var(--base-text-weight-semibold, 600); font-size: 1em; }
+[data-md-theme="github"] .mdio-doc h5 { font-weight: var(--base-text-weight-semibold, 600); font-size: 0.875em; }
+[data-md-theme="github"] .mdio-doc h6 { font-weight: var(--base-text-weight-semibold, 600); font-size: 0.85em; color: var(--fgColor-muted); }
+[data-md-theme="github"] .mdio-doc p { margin-top: 0; margin-bottom: 10px; }
+[data-md-theme="github"] .mdio-doc blockquote { margin: 0; padding: 0 1em; color: var(--fgColor-muted); border-left: 0.25em solid var(--borderColor-default); }
+[data-md-theme="github"] .mdio-doc ul,
+[data-md-theme="github"] .mdio-doc ol { margin-top: 0; margin-bottom: 0; padding-left: 2em; }
+[data-md-theme="github"] .mdio-doc ol ol,
+[data-md-theme="github"] .mdio-doc ul ol { list-style-type: lower-roman; }
+[data-md-theme="github"] .mdio-doc ul ul ol,
+[data-md-theme="github"] .mdio-doc ul ol ol,
+[data-md-theme="github"] .mdio-doc ol ul ol,
+[data-md-theme="github"] .mdio-doc ol ol ol { list-style-type: lower-alpha; }
+[data-md-theme="github"] .mdio-doc dd { margin-left: 0; }
+[data-md-theme="github"] .mdio-doc code { font-family: var( --fontStack-monospace, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace ); font-size: 12px; }
+[data-md-theme="github"] .mdio-doc pre { margin-top: 0; margin-bottom: 0; font-family: var( --fontStack-monospace, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace ); font-size: 12px; word-wrap: normal; }
+[data-md-theme="github"] .mdio-doc > *:first-child { margin-top: 0 !important; }
+[data-md-theme="github"] .mdio-doc > *:last-child { margin-bottom: 0 !important; }
+[data-md-theme="github"] .mdio-doc a:not([href]) { color: inherit; text-decoration: none; }
+[data-md-theme="github"] .mdio-doc p,
+[data-md-theme="github"] .mdio-doc blockquote,
+[data-md-theme="github"] .mdio-doc ul,
+[data-md-theme="github"] .mdio-doc ol,
+[data-md-theme="github"] .mdio-doc dl,
+[data-md-theme="github"] .mdio-doc table,
+[data-md-theme="github"] .mdio-doc pre,
+[data-md-theme="github"] .mdio-doc details { margin-top: 0; margin-bottom: var(--base-size-16); }
+[data-md-theme="github"] .mdio-doc blockquote > :first-child { margin-top: 0; }
+[data-md-theme="github"] .mdio-doc blockquote > :last-child { margin-bottom: 0; }
+[data-md-theme="github"] .mdio-doc h1 .octicon-link,
+[data-md-theme="github"] .mdio-doc h2 .octicon-link,
+[data-md-theme="github"] .mdio-doc h3 .octicon-link,
+[data-md-theme="github"] .mdio-doc h4 .octicon-link,
+[data-md-theme="github"] .mdio-doc h5 .octicon-link,
+[data-md-theme="github"] .mdio-doc h6 .octicon-link { color: var(--fgColor-default); vertical-align: middle; visibility: hidden; }
+[data-md-theme="github"] .mdio-doc h1:hover .anchor,
+[data-md-theme="github"] .mdio-doc h2:hover .anchor,
+[data-md-theme="github"] .mdio-doc h3:hover .anchor,
+[data-md-theme="github"] .mdio-doc h4:hover .anchor,
+[data-md-theme="github"] .mdio-doc h5:hover .anchor,
+[data-md-theme="github"] .mdio-doc h6:hover .anchor { text-decoration: none; }
+[data-md-theme="github"] .mdio-doc h1:hover .anchor .octicon-link,
+[data-md-theme="github"] .mdio-doc h2:hover .anchor .octicon-link,
+[data-md-theme="github"] .mdio-doc h3:hover .anchor .octicon-link,
+[data-md-theme="github"] .mdio-doc h4:hover .anchor .octicon-link,
+[data-md-theme="github"] .mdio-doc h5:hover .anchor .octicon-link,
+[data-md-theme="github"] .mdio-doc h6:hover .anchor .octicon-link { visibility: visible; }
+[data-md-theme="github"] .mdio-doc h1 tt,
+[data-md-theme="github"] .mdio-doc h1 code,
+[data-md-theme="github"] .mdio-doc h2 tt,
+[data-md-theme="github"] .mdio-doc h2 code,
+[data-md-theme="github"] .mdio-doc h3 tt,
+[data-md-theme="github"] .mdio-doc h3 code,
+[data-md-theme="github"] .mdio-doc h4 tt,
+[data-md-theme="github"] .mdio-doc h4 code,
+[data-md-theme="github"] .mdio-doc h5 tt,
+[data-md-theme="github"] .mdio-doc h5 code,
+[data-md-theme="github"] .mdio-doc h6 tt,
+[data-md-theme="github"] .mdio-doc h6 code { padding: 0 0.2em; font-size: inherit; }
+[data-md-theme="github"] .mdio-doc summary h1,
+[data-md-theme="github"] .mdio-doc summary h2,
+[data-md-theme="github"] .mdio-doc summary h3,
+[data-md-theme="github"] .mdio-doc summary h4,
+[data-md-theme="github"] .mdio-doc summary h5,
+[data-md-theme="github"] .mdio-doc summary h6 { display: inline-block; }
+[data-md-theme="github"] .mdio-doc summary h1 .anchor,
+[data-md-theme="github"] .mdio-doc summary h2 .anchor,
+[data-md-theme="github"] .mdio-doc summary h3 .anchor,
+[data-md-theme="github"] .mdio-doc summary h4 .anchor,
+[data-md-theme="github"] .mdio-doc summary h5 .anchor,
+[data-md-theme="github"] .mdio-doc summary h6 .anchor { margin-left: -40px; }
+[data-md-theme="github"] .mdio-doc summary h1,
+[data-md-theme="github"] .mdio-doc summary h2 { padding-bottom: 0; border-bottom: 0; }
+[data-md-theme="github"] .mdio-doc ul.no-list,
+[data-md-theme="github"] .mdio-doc ol.no-list { padding: 0; list-style-type: none; }
+[data-md-theme="github"] .mdio-doc ol[type='a s'] { list-style-type: lower-alpha; }
+[data-md-theme="github"] .mdio-doc ol[type='A s'] { list-style-type: upper-alpha; }
+[data-md-theme="github"] .mdio-doc ol[type='i s'] { list-style-type: lower-roman; }
+[data-md-theme="github"] .mdio-doc ol[type='I s'] { list-style-type: upper-roman; }
+[data-md-theme="github"] .mdio-doc ol[type='1'] { list-style-type: decimal; }
+[data-md-theme="github"] .mdio-doc ul ul,
+[data-md-theme="github"] .mdio-doc ul ol,
+[data-md-theme="github"] .mdio-doc ol ol,
+[data-md-theme="github"] .mdio-doc ol ul { margin-top: 0; margin-bottom: 0; }
+[data-md-theme="github"] .mdio-doc li > p { margin-top: var(--base-size-16); }
+[data-md-theme="github"] .mdio-doc li + li { margin-top: 0.25em; }
+[data-md-theme="github"] .mdio-doc dl { padding: 0; }
+[data-md-theme="github"] .mdio-doc dl dt { padding: 0; margin-top: var(--base-size-16); font-size: 1em; font-style: italic; font-weight: var(--base-text-weight-semibold, 600); }
+[data-md-theme="github"] .mdio-doc dl dd { padding: 0 var(--base-size-16); margin-bottom: var(--base-size-16); }
+[data-md-theme="github"] .mdio-doc table th { font-weight: var(--base-text-weight-semibold, 600); }
+[data-md-theme="github"] .mdio-doc table th,
+[data-md-theme="github"] .mdio-doc table td { padding: 6px 13px; border: 1px solid var(--borderColor-default); }
+[data-md-theme="github"] .mdio-doc table td > :last-child { margin-bottom: 0; }
+[data-md-theme="github"] .mdio-doc table tr { background-color: var(--bgColor-default); border-top: 1px solid var(--borderColor-muted); }
+[data-md-theme="github"] .mdio-doc table tr:nth-child(2n) { background-color: var(--bgColor-muted); }
+[data-md-theme="github"] .mdio-doc table img { background-color: transparent; }
+[data-md-theme="github"] .mdio-doc img[align='right'] { padding-left: 20px; }
+[data-md-theme="github"] .mdio-doc img[align='left'] { padding-right: 20px; }
+[data-md-theme="github"] .mdio-doc code { padding: 0.2em 0.4em; margin: 0; font-size: 85%; white-space: break-spaces; background-color: var(--bgColor-neutral-muted); border-radius: 6px; }
+[data-md-theme="github"] .mdio-doc code br { display: none; }
+[data-md-theme="github"] .mdio-doc del code { text-decoration: inherit; }
+[data-md-theme="github"] .mdio-doc pre code { font-size: 100%; }
+[data-md-theme="github"] .mdio-doc pre > code { padding: 0; margin: 0; word-break: normal; white-space: pre; background: transparent; border: 0; }
+[data-md-theme="github"] .mdio-doc pre { padding: var(--base-size-16); overflow: auto; font-size: 85%; line-height: 1.45; color: var(--fgColor-default); background-color: var(--bgColor-muted); border-radius: 6px; }
+[data-md-theme="github"] .mdio-doc pre code,
+[data-md-theme="github"] .mdio-doc pre tt { display: inline; max-width: auto; padding: 0; margin: 0; overflow: visible; line-height: inherit; word-wrap: normal; background-color: transparent; border: 0; }
+[data-md-theme="github"] .mdio-doc summary:focus:not(:focus-visible),
+[data-md-theme="github"] .mdio-doc a:focus:not(:focus-visible) { outline: none; box-shadow: none; }
+[data-md-theme="github"] .mdio-doc details-dialog:focus:not(:focus-visible) { outline: none; }
+[data-md-theme="github"] .mdio-doc ul:dir(rtl) .task-list-item-checkbox { margin: 0 -1.6em 0.25em 0.2em; }
+[data-md-theme="github"] .mdio-doc ol:dir(rtl) .task-list-item-checkbox { margin: 0 -1.6em 0.25em 0.2em; }
+[data-md-theme="github"] .mdio-doc > *:first-child > .heading-element:first-child { margin-top: 0 !important; }
+
+/* 兜底修正（上游语法在 mdio 里的落地差异）：
+ *   · std 会把每个节再包一层 .mdio-std（appearance floor 里 font-size:15px）⇒ em 级联按 15 缩放而不是 16；
+ *     给包裹层补回 16px，让上游的 em 比例按设计生效。
+ *   · 行内代码的颜色上游是 inherit，而 floor 的 .md-inline-code 有粉色 token ⇒ 这里显式接管。
+ *   · **画布策略**：上游 .markdown-body 自带整页底色，那是"页面画布"的职责。直接给 .mdio-doc 上色会得到
+ *     一块随内容高度截断的矩形（深色下蓝黑 #0d1117 压在暖黑 chrome 上、正文结束后忽然切回宿主底色；
+ *     浅色下则是一块白板）。正确落点是把底色给**宿主文档窗格 .br-doc**（它撑满窗格、没有截断边），
+ *     .mdio-doc 保持透明。这样既保住上游的明暗对比（代码块 #151b23 只在 #0d1117 上才对），又不会出现色块接缝。 */
+[data-md-theme="github"] .br-doc { background-color: var(--bgColor-default); }
+[data-md-theme="github"] .mdio-doc { background-color: transparent; }
+[data-md-theme="github"] .mdio-doc .mdio-std { font-size: 16px; line-height: 1.5; letter-spacing: normal; }
+[data-md-theme="github"] .mdio-doc code.md-inline-code { color: var(--fgColor-default); }
+/* 任务清单勾选框：上游 [type=] 控件重置整批被裁掉了（对 md 正文无用），但 checkbox 的强调色有用 ⇒ 单独补一条。
+ * 这是上一轮实测里唯一「完全不变」的元素组（github 皮肤下仍是 floor 灰勾选框）。 */
+[data-md-theme="github"] .mdio-doc input[type="checkbox"] { accent-color: var(--fgColor-accent); }
+
+/* ── 外壳皮肤（整壳替换）：整 app 换到 GitHub 的配色；结构尺寸与交互仍归 app。 */
+[data-md-theme="github"].br-shell { background: var(--bgColor-default); color: var(--fgColor-default); }
+[data-md-theme="github"] .br-side { background: var(--bgColor-muted); border-right-color: var(--borderColor-default); }
+[data-md-theme="github"] .br-eyebrow,
+[data-md-theme="github"] .br-count,
+[data-md-theme="github"] .br-folder-count,
+[data-md-theme="github"] .br-folder,
+[data-md-theme="github"] .br-item,
+[data-md-theme="github"] .br-side-empty,
+[data-md-theme="github"] .br-crumb-label,
+[data-md-theme="github"] .br-crumb-sep,
+[data-md-theme="github"] .br-theme { color: var(--fgColor-muted); }
+[data-md-theme="github"] .br-folder-name { color: var(--fgColor-default); }
+[data-md-theme="github"] .br-caret { border-left-color: var(--fgColor-muted); }
+[data-md-theme="github"] .br-folder:hover,
+[data-md-theme="github"] .br-item:hover { background: var(--bgColor-neutral-muted); color: var(--fgColor-default); }
+[data-md-theme="github"] .br-item.is-active { background: var(--bgColor-neutral-muted); color: var(--fgColor-default); }
+[data-md-theme="github"] .br-item.is-active::before { background: var(--fgColor-accent); }
+[data-md-theme="github"] .br-file-glyph { border-color: var(--fgColor-muted); }
+[data-md-theme="github"] .br-file-glyph::after { border-color: var(--fgColor-muted); background: var(--bgColor-muted); }
+[data-md-theme="github"] .br-item.is-active .br-file-glyph,
+[data-md-theme="github"] .br-item.is-active .br-file-glyph::after { border-color: var(--fgColor-accent); }
+[data-md-theme="github"] .br-item.is-active .br-file-glyph::after { background: var(--bgColor-neutral-muted); }
+[data-md-theme="github"] .br-crumb { background: var(--bgColor-default); border-bottom-color: var(--borderColor-default); }
+[data-md-theme="github"] .br-crumb-path { color: var(--fgColor-accent); }
+[data-md-theme="github"] .br-theme select { color: var(--fgColor-default); background: var(--bgColor-muted); border-color: var(--borderColor-default); }
+
+/* 外壳残余件：选区 / 焦点环 / 滚动条 / 加载环 —— 皮肤不接管就会露出 app 的暖色。
+ * 注：::-webkit-scrollbar 伪元素里 var() 不解析（floor 注释里实测过）⇒ 滚动条用字面色。 */
+[data-md-theme="github"] .br-shell ::selection { background: rgba(9, 105, 218, 0.2); }
+body.dark [data-md-theme="github"] .br-shell ::selection { background: rgba(68, 147, 248, 0.28); }
+:host(.dark) [data-md-theme="github"] .br-shell ::selection { background: rgba(68, 147, 248, 0.28); }
+[data-md-theme="github"] .br-item:focus-visible,
+[data-md-theme="github"] .br-folder:focus-visible,
+[data-md-theme="github"] .br-theme select:focus-visible { outline-color: var(--fgColor-accent); }
+[data-md-theme="github"] .br-spin-ring { border-top-color: var(--fgColor-accent); }
+[data-md-theme="github"] .br-tree::-webkit-scrollbar-thumb,
+[data-md-theme="github"] .br-doc::-webkit-scrollbar-thumb { background-color: #d1d9e0; }
+body.dark [data-md-theme="github"] .br-tree::-webkit-scrollbar-thumb,
+body.dark [data-md-theme="github"] .br-doc::-webkit-scrollbar-thumb,
+:host(.dark) [data-md-theme="github"] .br-tree::-webkit-scrollbar-thumb,
+:host(.dark) [data-md-theme="github"] .br-doc::-webkit-scrollbar-thumb { background-color: #3d444d; }
+
+/* ── mdio 扩展元素（上游无对应概念：按 GitHub 自己的组件语言推导，不另起风格）──────────
+ * 推导依据全部取自本皮肤已移植的上游值：
+ *   · 圆角 6px —— 本皮肤 pre/code 的 border-radius；
+ *   · 次级底 --bgColor-muted / --bgColor-neutral-muted —— 本皮肤 code/blockquote 底色同源；
+ *   · 边框 1px solid --borderColor-default、分隔线 --borderColor-muted —— 本皮肤 th/td/hr 同源；
+ *   · 次字色 --fgColor-muted（h6/blockquote 用），强调色 --fgColor-accent（链接用），语气色 success/attention/danger/done；
+ *   · 标签/标题字重 600（th、strong、h* 用）。
+ * 约束：只接管颜色/底色/边框/圆角/字重，**不动结构**（grip 定位、md-image 的 min-height、mermaid 的 flex 居中仍归 floor）。 */
+[data-md-theme="github"] .mdio-doc .md-bullet-key {
+  color: var(--fgColor-default);
+  background-color: var(--bgColor-neutral-muted);
+  border-radius: 6px;
+  padding: 0 6px;
+  font-weight: 600;
+}
+[data-md-theme="github"] .mdio-doc .md-claim-badge {
+  color: var(--fgColor-muted);
+  background-color: var(--bgColor-neutral-muted);
+  border: 1px solid var(--borderColor-muted);
+  border-radius: 2em;
+  padding: 0 8px;
+  font-size: 12px;
+}
+[data-md-theme="github"] .mdio-doc .md-col-grip::before { background-color: var(--borderColor-default); }
+[data-md-theme="github"] .mdio-doc th:hover .md-col-grip::before { background-color: var(--fgColor-accent); }
+[data-md-theme="github"] .mdio-doc .md-math { color: var(--fgColor-default); }
+[data-md-theme="github"] .mdio-doc .md-math--raw { color: var(--fgColor-muted); font-family: var(--fontStack-monospace); }
+[data-md-theme="github"] .mdio-doc .md-mermaid {
+  background-color: var(--bgColor-muted);
+  border: 1px solid var(--borderColor-muted);
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+}
+[data-md-theme="github"] .mdio-doc .md-html { color: inherit; }
+[data-md-theme="github"] .mdio-doc .md-html-raw {
+  background-color: var(--bgColor-muted);
+  border: 1px dashed var(--borderColor-default);
+  border-radius: 6px;
+  color: var(--fgColor-muted);
+}
+[data-md-theme="github"] .mdio-doc .md-image { background-color: var(--bgColor-muted); border-radius: 6px; }
+[data-md-theme="github"] .mdio-doc .md-image.is-loaded { background-color: transparent; }
+[data-md-theme="github"] .mdio-doc ins {
+  color: var(--fgColor-default);
+  text-decoration: underline;
+  text-decoration-color: var(--borderColor-default);
+}
+/* Admonition = GitHub Alert 语言：左侧 4px 色条 + 无底色 + 标题用语气色（上游 .markdown-alert 已裁，这里补齐语义） */
+[data-md-theme="github"] .mdio-doc .md-admonition {
+  border: 0;
+  border-left: 4px solid var(--borderColor-default);
+  border-radius: 0;
+  padding: 8px 16px;
+  margin: 0 0 16px;
+  background-color: transparent;
+  color: var(--fgColor-default);
+}
+[data-md-theme="github"] .mdio-doc .md-admonition-title {
+  font-size: 1em;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--fgColor-default);
+}
+[data-md-theme="github"] .mdio-doc .md-admonition--note { border-left-color: var(--fgColor-accent); }
+[data-md-theme="github"] .mdio-doc .md-admonition--tip { border-left-color: var(--fgColor-success); }
+[data-md-theme="github"] .mdio-doc .md-admonition--warning { border-left-color: var(--fgColor-attention); }
+[data-md-theme="github"] .mdio-doc .md-admonition--danger { border-left-color: var(--fgColor-danger); }
+[data-md-theme="github"] .mdio-doc .md-admonition--info { border-left-color: var(--fgColor-done); }
+[data-md-theme="github"] .mdio-doc .md-admonition--note .md-admonition-title { color: var(--fgColor-accent); }
+[data-md-theme="github"] .mdio-doc .md-admonition--tip .md-admonition-title { color: var(--fgColor-success); }
+[data-md-theme="github"] .mdio-doc .md-admonition--warning .md-admonition-title { color: var(--fgColor-attention); }
+[data-md-theme="github"] .mdio-doc .md-admonition--danger .md-admonition-title { color: var(--fgColor-danger); }
+[data-md-theme="github"] .mdio-doc .md-admonition--info .md-admonition-title { color: var(--fgColor-done); }
+

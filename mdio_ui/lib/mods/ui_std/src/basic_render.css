@@ -1,0 +1,326 @@
+/* BASIC_RENDER —— 暖羊皮纸编辑台（外壳样式）
+ * 纪律：4px 唯一圆角 · 标题 400 字重 + 收紧字距 · 发丝边 · mono 路径 · ember 只做文字强调 · forest 选中 · 禁渐变禁纯黑白
+ * 主题：亮 = 暖羊皮纸；暗 = 同家族暖暗纸（:host(.dark) 跟随壳的 ☾） */
+
+:host {
+  container-type: inline-size;   /* 面板宽度自适应：容器查询依据（app 住在可拖拽的 appview 格里）*/
+  --br-parchment: #f7f7f4;
+  --br-bone: #f2f1ed;
+  --br-linen: #e9e7e1;
+  --br-line: #e3e2dd;
+  --br-stone: #cdcdc9;
+  --br-mist: #a1a19f;
+  --br-drift: #84847e;
+  --br-ash: #7a7974;
+  --br-ink: #26251e;
+  --br-ember: #f54e00;
+  --br-forest: #34785c;
+  --br-selection: #8bc4f8;
+  --br-scroll: #c3c2bc;
+  --br-scroll-hover: #a5a49d;
+  --br-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --br-serif: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --br-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --br-content: 920px;
+  color-scheme: light;
+}
+:host(.dark) {
+  --br-parchment: #1b1a17;
+  --br-bone: #23211d;
+  --br-linen: #2a2723;
+  --br-line: #322f29;
+  --br-stone: #45403a;
+  --br-mist: #6f6b63;
+  --br-drift: #a6a29a;
+  --br-ash: #8c8880;
+  --br-ink: #e9e6df;
+  --br-ember: #ff6b3d;
+  --br-forest: #4f9b7d;
+  --br-selection: #2f5d8a;
+  --br-scroll: #4e4840;
+  --br-scroll-hover: #675f52;
+  color-scheme: dark;
+}
+
+.br-shell {
+  display: flex;
+  height: 100%;
+  min-height: 100%;
+  background: var(--br-parchment);
+  color: var(--br-ink);
+  font-family: var(--br-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.br-shell * { box-sizing: border-box; }
+.br-shell ::selection { background: var(--br-selection); }
+
+/* ── 左栏：文件树 ─────────────────────────────── */
+.br-side {
+  width: 248px;
+  flex: 0 0 248px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--br-line);
+  background: var(--br-parchment);
+}
+.br-side-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 18px 18px 12px;
+}
+.br-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--br-ash);
+}
+.br-count {
+  font-family: var(--br-mono);
+  font-size: 11px;
+  color: var(--br-mist);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.br-tree {
+  list-style: none;
+  margin: 0;
+  padding: 2px 10px 20px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+/* 目录行：层级靠 paddingLeft（组件按深度给）· 折叠 caret · 文件计数 */
+.br-folder {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--br-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  color: var(--br-ash);
+  transition: background-color 140ms cubic-bezier(0.4, 0, 0.2, 1), color 140ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.br-folder:hover { background: var(--br-bone); color: var(--br-ink); }
+.br-folder:focus-visible { outline: 1px solid var(--br-forest); outline-offset: -1px; }
+/* 三角用 CSS 画（文字字形在 10px 下会糊成圆点）：收起=朝右，展开=转 90° 朝下 */
+.br-caret {
+  flex: 0 0 12px;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-left: 5px solid var(--br-ash);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform 140ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.br-caret.is-open { transform: rotate(90deg); }
+.br-folder-name { color: var(--br-ink); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.br-folder-count {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--br-mist);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+.br-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--br-mono);
+  font-size: 12.5px;
+  letter-spacing: -0.005em;
+  color: var(--br-drift);
+  transition: background-color 140ms cubic-bezier(0.4, 0, 0.2, 1), color 140ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.br-item:hover { background: var(--br-bone); color: var(--br-ink); }
+.br-item:focus-visible { outline: 1px solid var(--br-forest); outline-offset: -1px; }
+.br-item.is-active { background: var(--br-linen); color: var(--br-ink); }
+.br-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 7px;
+  bottom: 7px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--br-forest);
+}
+/* 文件=小纸页（折角）；与文件夹的三角 caret 形状区分 */
+.br-file-glyph {
+  position: relative;
+  flex: 0 0 auto;
+  width: 9px;
+  height: 11px;
+  box-sizing: border-box;
+  border: 1px solid var(--br-stone);
+  border-radius: 1.5px;
+  background: transparent;
+  transition: border-color 140ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.br-file-glyph::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: -1px;
+  width: 4px;
+  height: 4px;
+  background: var(--br-parchment);
+  border-left: 1px solid var(--br-stone);
+  border-bottom: 1px solid var(--br-stone);
+  border-bottom-left-radius: 1.5px;
+  transition: border-color 140ms cubic-bezier(0.4, 0, 0.2, 1), background-color 140ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.br-item:hover .br-file-glyph::after { background: var(--br-bone); }
+.br-item.is-active .br-file-glyph { border-color: var(--br-forest); }
+.br-item.is-active .br-file-glyph::after { border-color: var(--br-forest); background: var(--br-linen); }
+.br-item-path { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.br-side-empty {
+  padding: 16px 18px;
+  font-family: var(--br-serif);
+  font-style: italic;
+  font-size: 13.5px;
+  color: var(--br-mist);
+}
+
+/* ── 窄面板回退（container query）────────────────
+ *   appview 那一格是可拖的，宽的时候「左栏 + 正文」并排；窄到放不下 248 侧栏时
+ *   改上下堆叠（侧栏限高 38%），保证正文永远可见。*/
+@container (max-width: 460px) {
+  .br-shell { flex-direction: column; }
+  .br-side {
+    width: 100%;
+    flex: 0 0 auto;
+    max-height: 38%;
+    border-right: 0;
+    border-bottom: 1px solid var(--br-line);
+  }
+  .br-main { flex: 1 1 auto; min-height: 0; }
+}
+
+/* ── 主区：同宽内容列（面包屑与正文对齐）──────────── */
+.br-main {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--br-parchment);
+}
+.br-col { width: 100%; max-width: var(--br-content); margin: 0 auto; padding: 0 32px; }
+.br-crumb {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--br-parchment);
+  border-bottom: 1px solid var(--br-line);
+}
+.br-crumb .br-col {
+  /* 面包屑顶到主区左边（不与正文列一起居中）；正文列仍居中 */
+  max-width: none;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  font-family: var(--br-mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
+.br-crumb-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--br-ash);
+}
+.br-crumb-sep { color: var(--br-stone); }
+.br-crumb-path { color: var(--br-ember); }
+.br-doc { flex: 1 1 auto; overflow-y: auto; }
+.br-doc .br-col { padding-top: 44px; padding-bottom: 160px; }
+
+/* 皮肤选择器（chrome 层）：贴 crumb 右侧；只用现有 --br-* token，不引新颜色。
+   皮肤本身（字号/间距/配色）不在这张表里，在 themes/parchment.css。 */
+.br-crumb .br-theme { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--br-mist); }
+.br-crumb .br-theme select {
+  font: inherit; color: var(--br-ink); background: var(--br-bone);
+  border: 1px solid var(--br-line); border-radius: 4px; padding: 2px 6px;
+}
+.br-crumb .br-theme select:focus-visible { outline: 1px solid var(--br-forest); outline-offset: -1px; }
+
+/* 正文排版**不在本表** → `themes/parchment.css`（**本 app 自带**：
+ * `basic_render.jsx` 静态 import 它 ⇒ 构建期 chunk CSS ⇒ 宿主 <link> ⇒ 影子根镜像，零声明）。
+ * 本表只留外壳：左树 / 面包屑 / 切档加载态 / 滚动条。
+ * 为什么拆：正文是**皮肤**（字号/间距/配色/shiki），外壳是**chrome**；混在一张表里会让人
+ * 误以为皮肤属于库或宿主。皮肤规则以 `[data-md-theme="parchment"]` 门控（属性由 app 写在
+ * `.br-shell` 上）。 */
+
+/* ── 切档加载态：正文模糊 + 居中转圈（帧落地即清）── */
+.br-main.is-loading .br-doc .br-col {
+  filter: blur(2.5px);
+  opacity: 0.4;
+  transition: filter 160ms cubic-bezier(0.4, 0, 0.2, 1), opacity 160ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.br-spin {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+.br-spin-ring {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--br-line);
+  border-top-color: var(--br-ember);
+  border-radius: 50%;
+  animation: br-spin 700ms linear infinite;
+}
+.br-spin-label {
+  font-family: var(--br-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--br-mist);
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@keyframes br-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .br-spin-ring { animation: none; } }
+
+/* ── 滚动条（发丝感）────────────────────────────── */
+/* 只走 webkit 自定义：标准属性 scrollbar-width/color 会压掉 ::-webkit-scrollbar 的宽度（实测），故不设 */
+.br-tree::-webkit-scrollbar, .br-doc::-webkit-scrollbar { width: 12px; height: 12px; }
+/* ::-webkit-scrollbar 伪元素里 var() 不解析（实测 computed 为透明）⇒ 这里用字面色，暗主题走 :host(.dark) 变体 */
+.br-tree::-webkit-scrollbar-thumb, .br-doc::-webkit-scrollbar-thumb {
+  background-color: #c3c2bc;
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  min-height: 40px;
+}
+.br-tree::-webkit-scrollbar-thumb:hover, .br-doc::-webkit-scrollbar-thumb:hover { background-color: #a5a49d; }
+:host(.dark) .br-tree::-webkit-scrollbar-thumb, :host(.dark) .br-doc::-webkit-scrollbar-thumb { background-color: #4e4840; }
+:host(.dark) .br-tree::-webkit-scrollbar-thumb:hover, :host(.dark) .br-doc::-webkit-scrollbar-thumb:hover { background-color: #675f52; }
+.br-tree::-webkit-scrollbar-track, .br-doc::-webkit-scrollbar-track { background: transparent; }
+.br-tree::-webkit-scrollbar-corner, .br-doc::-webkit-scrollbar-corner { background: transparent; }

@@ -1,0 +1,124 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      '@esmx/router':
+        specifier: 3.0.0-rc.123
+        version: 3.0.0-rc.123
+      '@esmx/router-react':
+        specifier: 3.0.0-rc.123
+        version: 3.0.0-rc.123(react@19.3.0)
+      mobx:
+        specifier: ^7.0.6
+        version: 7.0.6
+      mobx-react-lite:
+        specifier: ^5.1.0
+        version: 5.1.0(mobx@7.0.6)(react@19.3.0)
+      mobx-state-tree:
+        specifier: ^8.0.0
+        version: 8.0.0(mobx@7.0.6)
+      react:
+        specifier: ^19.0.0
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.3.0
+        version: 19.3.0(react@19.3.0)
+      ui_base:
+        specifier: link:../ui_base
+        version: link:../ui_base
+      ui_core:
+        specifier: link:../ui_core
+        version: link:../ui_core
+
+packages:
+
+  '@esmx/router-react@3.0.0-rc.123':
+    resolution: {integrity: sha512-V3qGIZZD3GNc9eO5ZiPZTfpdbY4Vf+nvi4ZcWD8qQHkAa42F6vQcHwWol2Q55S97fFXJmiTH+CyKwiIQEX1G1Q==}
+    engines: {node: '>=24'}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+
+  '@esmx/router@3.0.0-rc.123':
+    resolution: {integrity: sha512-fYE28xjMfPElOZEw1h5VWwDbLLpOUMBfwFZ/1ineCvDBKKwn1+n1qu6RPlYoF+pJn+6ud13oqaCJeQLzBiW+lA==}
+    engines: {node: '>=24'}
+
+  mobx-react-lite@5.1.0:
+    resolution: {integrity: sha512-++LQTCRr4FJCWuaEvYl5gCtGBwOpOwrnWjm9uhCUDI5nmkzLR8eT1jgMeYfJ8wc88YOYyC/ygjw2KpYPBYGsww==}
+    peerDependencies:
+      mobx: ^7.0.0
+      react: ^18 || ^19
+
+  mobx-state-tree@8.0.0:
+    resolution: {integrity: sha512-3ekhwG9KkPtrzzsp9vJu8JEpctoXeCADk1O1G4s+36JDqLug/AVsdW2JXT+rrAfWtPXopaoCER/sJs6qPK5oTg==}
+    peerDependencies:
+      mobx: ^7.0.0
+
+  mobx@7.0.6:
+    resolution: {integrity: sha512-VJwjVS5K/rojqPSOoDYlXaYl38Lj+gDfLOFeJ/3Pbdh5ITbAO4ks9RgL0TeRI0bydRZ7b/7WrtPPb9Onuj/pcA==}
+
+  path-to-regexp@6.3.0:
+    resolution: {integrity: sha512-Yhpw4T9C6hPpgPeA28us07OJeqZ5EzQTkbfwuhsUg0c237RomFoETJgmp2sa3F/41gfLE6G5cqcYwznmeEeOlQ==}
+
+  react-dom@19.3.0:
+    resolution: {integrity: sha512-JDk8dgif51OjFoDE70+OT9ICyYr+69HlmihNwp1+Nsfbna3t5sIiCa9ZJktDmQ4/1b/rn26hIAR2uYXDMr5r0Q==}
+    peerDependencies:
+      react: ^19.3.0
+
+  react@19.3.0:
+    resolution: {integrity: sha512-E8LUcbtBWt20bbl2YoHfx4ZDBdxVTfOKtCZn9cDSJ4l6/nuoApcpIBcj47t2wZoVX8g2ZHuMHbiShgCR1T5Sog==}
+    engines: {node: '>=0.10.0'}
+
+  scheduler@0.28.0:
+    resolution: {integrity: sha512-juorfCmIkIw8tT+p5BXSm6PJjQF/ycEYmKyzURCIt/RaZIhL+PulbQ9Yu2z1HdOJDdqDTlxA1+xKBmHXJsczAw==}
+
+  ts-essentials@9.4.2:
+    resolution: {integrity: sha512-mB/cDhOvD7pg3YCLk2rOtejHjjdSi9in/IBYE13S+8WA5FBSraYf4V/ws55uvs0IvQ/l0wBOlXy5yBNZ9Bl8ZQ==}
+    peerDependencies:
+      typescript: '>=4.1.0'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
+snapshots:
+
+  '@esmx/router-react@3.0.0-rc.123(react@19.3.0)':
+    dependencies:
+      '@esmx/router': 3.0.0-rc.123
+      react: 19.3.0
+
+  '@esmx/router@3.0.0-rc.123':
+    dependencies:
+      path-to-regexp: 6.3.0
+
+  mobx-react-lite@5.1.0(mobx@7.0.6)(react@19.3.0):
+    dependencies:
+      mobx: 7.0.6
+      react: 19.3.0
+
+  mobx-state-tree@8.0.0(mobx@7.0.6):
+    dependencies:
+      mobx: 7.0.6
+      ts-essentials: 9.4.2
+    transitivePeerDependencies:
+      - typescript
+
+  mobx@7.0.6: {}
+
+  path-to-regexp@6.3.0: {}
+
+  react-dom@19.3.0(react@19.3.0):
+    dependencies:
+      react: 19.3.0
+      scheduler: 0.28.0
+
+  react@19.3.0: {}
+
+  scheduler@0.28.0: {}
+
+  ts-essentials@9.4.2: {}

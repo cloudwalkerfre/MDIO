@@ -1,0 +1,118 @@
+[grid]
+name = "mdio"
+includes = ["mdio_ui/build_grid.toml"]
+
+[targets.doctor]
+description = "Check pinned toolchains and local prerequisites"
+run = "python3 tools/build_grid/doctor.py"
+
+[targets."rust:test"]
+description = "Rust workspace unit tests"
+run = "MDIO_PROJ_MODE=hs MDIO_PATCH_GRANULARITY=block cargo test --workspace --lib"
+
+[targets."py:sync"]
+description = "Sync Python development environment"
+run = "uv sync --python 3.14"
+
+[targets."py:test"]
+description = "Python test suite (stable subset)"
+depends = ["py:sync", "py:arrow", "py:fts"]
+run = "MDIO_PROJ_MODE=cf MDIO_PATCH_GRANULARITY=block uv run --python 3.14 python -m pytest mdio_py/tests -q -m 'not slow and not perf' -n 4 --dist loadgroup --timeout=300"
+
+[targets."py:test-slow"]
+description = "Python slow test suite"
+depends = ["py:sync", "py:arrow", "py:fts"]
+run = "MDIO_PROJ_MODE=cf MDIO_PATCH_GRANULARITY=block uv run --python 3.14 python -m pytest mdio_py/tests -q -m slow"
+
+[targets."py:test-perf"]
+description = "Timing-sensitive tests (local only; not run in CI)"
+depends = ["py:sync", "py:arrow", "py:fts"]
+run = "MDIO_PROJ_MODE=cf MDIO_PATCH_GRANULARITY=block uv run --python 3.14 python -m pytest mdio_py/tests -q -m perf"
+
+[targets."test:omp"]
+description = "OMP dual-mode regression"
+run = """
+MDIO_PROJ_MODE=cf MDIO_PATCH_GRANULARITY=block cargo test --release --lib
+MDIO_PROJ_MODE=hs MDIO_PATCH_GRANULARITY=block cargo test --release --lib -- --test-threads=1
+"""
+
+[targets."test:trinity"]
+description = "Trinity judge suite"
+run = """
+cargo test -p mdio_core --lib trinity
+cargo test -p mdio_core --lib --features trinity-obs
+cargo build -p mdio_core --bin mdio-roundtrip --features trinity-obs
+"""
+
+[targets.test]
+description = "All default tests"
+depends = ["rust:test", "py:test"]
+
+[targets."test:full"]
+description = "Default plus optional heavy test legs"
+depends = ["test", "py:test-slow", "test:omp", "test:trinity"]
+
+[targets."check:layers"]
+description = "UI layering and relative-import gate"
+run = "node mdio_ui/demo/scripts/check-layers.mjs"
+
+[targets."check:core-layers"]
+description = "Rust import direction gate"
+run = "cargo build -q -p mdio-dircheck && ./target/debug/mdio-dircheck check mdio_core/src --baseline tools/dircheck/baseline.txt"
+
+[targets.check]
+description = "Layer/direction gates"
+depends = ["check:layers", "check:core-layers"]
+
+[targets."py:arrow"]
+description = "Build the DuckDB extension"
+run = "python3 tools/build_arrow_extension.py"
+
+[targets."py:fts"]
+description = "Install the DuckDB fts extension the arrow search tests need"
+run = "uv run --python 3.14 python -c 'import duckdb; duckdb.connect().execute(\"INSTALL fts\")'"
+
+[targets."py:env"]
+description = "Seed packaged env.example"
+run = "python3 tools/build_grid/env_seed.py"
+
+[targets."py:wheel"]
+description = "Build the platform wheel (UI must be bundled first)"
+depends = ["ui:bundle", "py:arrow", "py:env"]
+run = "python3 tools/build_grid/build_wheel.py"
+
+[targets.build]
+description = "Build core extension and packaged UI"
+depends = ["py:arrow", "ui:bundle"]
+
+[targets.wheel]
+description = "Build the platform wheel with UI assets"
+depends = ["py:wheel"]
+
+[targets.verify]
+description = "Install wheel and boot a virtual genesis"
+depends = ["py:wheel"]
+run = "python3 tools/build_grid/verify_wheel.py"
+
+[targets.release]
+description = "Local release dry-run"
+depends = ["verify", "test"]
+
+[targets."dev:serve"]
+description = "Start the Litestar gateway"
+run = "uv run --python 3.14 mdio serve"
+
+[targets."dev:demo"]
+description = "Start the Vite demo"
+run = """
+node mdio_ui/demo/scripts/sync-wt-uses.mjs
+cd mdio_ui/demo && pnpm exec vite
+"""
+
+[targets."kit:build"]
+description = "Rebuild the Observable notebook kit"
+run = "cd mdio_py/src/mdio_py/notebook && node node_modules/@observablehq/notebook-kit/dist/bin/notebooks.js build index.html"
+
+[targets.clean]
+description = "Remove generated build artifacts"
+run = "python3 tools/build_grid/clean.py"

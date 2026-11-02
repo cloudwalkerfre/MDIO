@@ -1,0 +1,33 @@
+{
+  "name": "ui_router",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./router": "./src/router.jsx",
+    "./routerStore": "./src/routerStore.js"
+  },
+  "dependencies": {
+    "ui_base": "link:../ui_base",
+    "ui_core": "link:../ui_core",
+    "@esmx/router": "3.0.0-rc.123",
+    "@esmx/router-react": "3.0.0-rc.123"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.3.0",
+    "mobx": "^7.0.6",
+    "mobx-react-lite": "^5.1.0",
+    "mobx-state-tree": "^8.0.0"
+  },
+  "esmx": {
+    "uses": [
+      "ui_base",
+      "ui_core"
+    ],
+    "exports": {
+      "./router": "./src/router.jsx",
+      "./routerStore": "./src/routerStore.js"
+    }
+  }
+}

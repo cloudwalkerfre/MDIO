@@ -1,0 +1,18 @@
+[package]
+name = "mdio_arrow"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "mdio_frame"
+crate-type = ["cdylib"]
+
+[features]
+calibration = ["mdio_core/trinity-obs"]
+
+[dependencies]
+mdio_core = { path = "../..", default-features = false }
+duckdb-neo = { version = "0.20000.0", features = ["build-extension"] }
+duckdb-loadable-macros = { version = "1.20000.0", features = ["neo"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

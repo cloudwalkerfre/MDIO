@@ -1,0 +1,106 @@
+## HIS
+### main
+- user:
+    + ed-1:
+        - type: branch
+        - path: /wl.md::HIS.b_ed
+    > 原问题
+- assistant:
+    > 原回答
+- thinking:
+    > 先想一下
+- assistant:
+    > 带思考的回答
+- tool_call:
+    - name: execute_mdio
+    - id: call_01
+    - tool: pipeline
+    > ls /
+- tool_result:
+    - name: execute_mdio
+    - id: call_01
+    > mdio_success: ok
+- user:
+    + go:
+        - type: branch
+        - path: /wl.md::HIS.b1
+    > 换线
+- assistant:
+    > 主线尾部
+- user:
+    * ts1:
+        - type: compact
+        - next: 3
+        > 前三轮摘要
+    > 继续任务
+- assistant:
+    > 最终回答
+- user:
+    * pr1:
+        - type: prune
+    > 剪枝记录
+- assistant:
+    > 剪枝后的回答
+- user:
+    + a:
+        - type: branch
+        - path: /wl.md::HIS.b_a
+    > 进入 a 线
+- assistant:
+    > a 线尾部
+- user:
+    + jn:
+        - type: join
+        - path: /wl.md::HIS.b_join
+    > 拉入 join
+- assistant:
+    > join 后主线继续
+- user:
+    + jn:
+        - type: join
+        - path: /wl.md::HIS.b_join
+    > 再拉一次
+- assistant:
+    > 最后
+### b_ed
+- user:
+    > 原问题
+- assistant:
+    > 原回答
+- user:
+    > 编辑后的消息
+- assistant:
+    > 新回答
+### b1
+- assistant:
+    > B1 内容
+- user:
+    > B1 内部
+- assistant:
+    > B1 尾部
+### b_a
+- assistant:
+    > A 内容
+- user:
+    + a_b:
+        - type: branch
+        - path: /wl.md::HIS.b_ab
+    > A 切到 ab
+- assistant:
+    > A 尾部
+### b_ab
+- assistant:
+    > AB 内容
+- user:
+    + a_b_c:
+        - type: branch
+        - path: /wl.md::HIS.b_abc
+    > AB 切到 abc
+- assistant:
+    > AB 尾部
+### b_abc
+- assistant:
+    > ABC 内容
+### b_join
+- assistant:
+    > JOIN 内容

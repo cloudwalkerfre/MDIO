@@ -1,0 +1,16 @@
+/* 平台提供的样式层：tailwind 本体在这里 —— 各应用**不要**再自己 import "tailwindcss/*"。
+ * 只引 theme + utilities，**不引 preflight**（preflight 会重置标题/边距等基础样式，把设计系统打乱）。
+ * utilities 落在 layer 里 ⇒ 无层（unlayered）的既有规则天然优先，互不打架。
+ * 依赖（tailwindcss / @tailwindcss/vite）声明在 mdio_ui 的 dependencies 里。
+ */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+/* 类名扫描面（相对本文件解析）：加/删 wt 目录不需要改这里。 */
+@source "../../../../*/ui/**/*.{js,jsx,ts,tsx,md}";
+@source "../../../../*/wt/**/*.{js,jsx,ts,tsx,md}";
+@source "../../../../worktrees/*/ui/**/*.{js,jsx,ts,tsx,md}";
+@source "../../../../worktrees/*/wt/**/*.{js,jsx,ts,tsx,md}";
+@source "../../../../mdio_ui/lib/mods/*/src/**/*.{js,jsx,ts,tsx,md}";
+@source "../../../../mdio_ui/demo/src/**/*.{js,jsx,ts,tsx,css,md}";
+/* 平台只扫本仓：外部项目（MDIO_WTS 等）是运行时 load 的发布物，CSS 由它们自己携带
+ * 并走 css@app → 影子根采纳（见 MDIO_WTS/tools/gen-app-css.mjs）；host 构建不读外部源码。 */

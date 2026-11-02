@@ -1,0 +1,7 @@
+node_modules/
+dist/
+public/wasm/
+
+.tmp/
+.pnpm-store/
+.npm-cache/

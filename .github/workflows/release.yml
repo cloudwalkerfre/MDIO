@@ -1,0 +1,22 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.98.0"
+          targets: wasm32-unknown-unknown
+      - name: bootstrap wasm tools
+        run: bash mdio_ui/lib/wasm/scripts/bootstrap-wasm-tools.sh
+      - name: verify full chain
+        run: python3 tools/build_grid/runner.py verify

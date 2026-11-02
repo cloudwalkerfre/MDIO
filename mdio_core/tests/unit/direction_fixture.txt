@@ -1,0 +1,14 @@
+# v0 扫描产物（2026-10-12 实测）：向上边 + 伪名；处置列 = 裁决结果（与门禁同构）
+# violation = 真债挂账（2 生产 + 2 test-tier，见 tools/dircheck/baseline.txt）；root_item = crate 根符号豁免
+cache,session,violation
+incr,session,violation
+match,hook,violation
+projection,domain,open_decl
+projection,engine,violation
+block,infer,covered
+block,projection,covered
+effect,infer,covered
+infer,projection,covered
+_,r,root_item
+_,telemetry_guard,root_item
+_,telemetry_span,root_item

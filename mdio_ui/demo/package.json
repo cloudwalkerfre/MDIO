@@ -1,0 +1,76 @@
+{
+  "name": "demo",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@11.28.5",
+  "engines": {
+    "node": "24.21.0",
+    "pnpm": "11.28.5"
+  },
+  "type": "module",
+  "esmx": {
+    "entry": {
+      "client": "./src/entry.client.ts",
+      "server": "./src/entry.server.ts"
+    },
+    "uses": [
+      "ui_base",
+      "ui_core",
+      "ui_appview",
+      "ui_devview",
+      "ui_std",
+      "ui_router",
+      "ui_wasm"
+    ],
+    "exports": {}
+  },
+  "scripts": {
+    "dev": "node_modules/.bin/esmx dev",
+    "build": "node_modules/.bin/esmx build",
+    "preview": "node_modules/.bin/esmx preview",
+    "start": "node_modules/.bin/esmx start",
+    "judge": "node scripts/judge.mjs",
+    "wasm": "bash ../lib/mods/ui_wasm/scripts/build-wasm-web.sh",
+    "e2e": "node test/e2e.mjs",
+    "ui:build": "node scripts/vp-build.mjs"
+  },
+  "dependencies": {
+    "@esmap/guard": "^0.1.0",
+    "@esmx/router": "3.0.0-rc.123",
+    "@esmx/router-react": "3.0.0-rc.123",
+    "@monaco-editor/react": "^4.7.0",
+    "ui_std": "link:../lib/mods/ui_std",
+    "ui_router": "link:../lib/mods/ui_router",
+    "ui_appview": "link:../lib/mods/ui_appview",
+    "ui_base": "link:../lib/mods/ui_base",
+    "ui_devview": "link:../lib/mods/ui_devview",
+    "ui_core": "link:../lib/mods/ui_core",
+    "ui_wasm": "link:../lib/mods/ui_wasm",
+    "mobx": "^7.0.6",
+    "mobx-react-lite": "^5.1.0",
+    "mobx-state-tree": "^8.0.0",
+    "monaco-editor": "^0.52.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@esmx/vite": "3.0.0-rc.123",
+    "@vitejs/plugin-react": "^5.0.0",
+    "esbuild": "^0.28.2",
+    "vite": "^8.3.0",
+    "tailwindcss": "0.0.0-insiders.fa81d69",
+    "@tailwindcss/vite": "0.0.0-insiders.fa81d69",
+    "vite-plus": "1.0.0"
+  },
+  "optionalDependencies": {
+    "@esmx/core": "3.0.0-rc.123"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "//ui:build": "【Vite+ 缓存构建单个 ui 包】用法（在仓库根）：pnpm --dir mdio_ui/demo ui:build <目标，相对 mdio_ui/demo，如 ../lib/mods/ui_base>。走 scripts/vp-build.mjs 包装（自己 cd 仓库根 + **拒绝静默成功**：vpr 对「包名写错 / demo 未列进根 workspace」是 exit 0 零输出，task-51 实测）⇒ 必须从仓库根调 vp（站在 demo 里会把 workspace 认成 demo ⇒ 改源报假命中）。名字**不能**叫 build:ui —— 与 vite.config.ts 的同名任务冲突。参数别用 -- 分隔（vpr 会把 -- 原样喂给脚本）。",
+  "//tailwind": "【版本注记 2026-10-01】宿主 demo 自己声明 tailwind（此前靠仓库根误装的 node_modules 解析 —— 那份已删）。现钉预发布 0.0.0-insiders.fa81d69，只因官方修复 #20414（不再对 @source 扫描到的文件硬发 full-reload）尚未发正式版。**正式版发布后改回正式版**，并复跑：① 改一个树内 MD 的标题 ⇒ 页面不得导航（应见 [vite] hot updated: /src/app/ui.css）；② 同新增一个 utility class ⇒ 生效。不要自己给插件打补丁。",
+  "peerDependencies": {}
+}

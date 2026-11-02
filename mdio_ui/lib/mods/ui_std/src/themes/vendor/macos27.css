@@ -1,0 +1,1190 @@
+/*!
+ * macOS 27 — a Typora theme in the macOS 27 design language
+ * Follows the system appearance: Light by day, Dark when macOS switches.
+ *
+ * Install: Typora › Settings › Appearance › Open Theme Folder, drop this file in,
+ * restart Typora, then pick “Macos27” from the Themes menu.
+ * Fonts: SF Pro / SF Mono via the system font stack (no files to install on a Mac).
+ * Contrast: every text pair ≥ 4.5:1 and every control/focus indicator ≥ 3:1 (WCAG 2.2 AA).
+ */
+
+:root {
+  --mermaid-theme: macos27;
+  --mermaid-font-family: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --node-fill: rgb(232, 241, 255);
+  --cluster-fill: var(--m-surface-2);
+  --node-text-color: var(--m-text);
+  --mermaid-background: var(--m-bg);
+  --bg-color: #FFFFFF;
+  --text-color: #1D1D1F;
+  --side-bar-bg-color: #F3F3F5;
+  --control-text-color: #5E5E63;
+  --control-text-hover-bg-color: #E6E6EB;
+  --item-hover-bg-color: #E6E6EB;
+  --item-hover-text-color: #1D1D1F;
+  --active-file-bg-color: #0064D2;
+  --active-file-text-color: #FFFFFF;
+  --active-file-border-color: #0064D2;
+  --window-border: 1px solid #E1E1E6;
+  --primary-color: #0064D2;
+  --primary-btn-border-color: #0064D2;
+  --primary-btn-text-color: #FFFFFF;
+  --select-text-bg-color: #B3D7FF;
+  --select-text-font-color: #1D1D1F;
+  --md-char-color: #6A6A6F;
+  --meta-content-color: #5E5E63;
+  --heading-char-color: #6A6A6F;
+  --search-select-bg-color: #FF9F0A;
+  --search-select-text-color: #1D1D1F;
+  --rawblock-edit-panel-bd: #F5F5F7;
+  --blur-text-color: #5E5E63;
+  --code-block-bg-color: #F5F5F7;
+  --drag-placeholder-color: #5E5E63;
+  --m-bg: #FFFFFF;
+  --m-surface: #F3F3F5;
+  --m-surface-2: #F5F5F7;
+  --m-zebra: #FAFAFB;
+  --m-hover-bg: #E6E6EB;
+  --m-active-bg: #0064D2;
+  --m-on-accent: #FFFFFF;
+  --m-accent-fill: #0064D2;
+  --m-accent-fill-hover: #0057B7;
+  --m-text: #1D1D1F;
+  --m-text-2: #5E5E63;
+  --m-heading: #111113;
+  --m-md-char: #6A6A6F;
+  --m-link: #0060C7;
+  --m-link-hover: #004A9E;
+  --m-link-underline: rgba(0, 96, 199, 0.45);
+  --m-code-text: #B1221B;
+  --m-border: #E1E1E6;
+  --m-border-strong: #C7C7CC;
+  --m-control-border: #86868B;
+  --m-quote-bar: #86868B;
+  --m-focus: #007AFF;
+  --m-focus-halo: rgba(0, 122, 255, 0.28);
+  --m-caret: #0064D2;
+  --m-select-bg: #B3D7FF;
+  --m-select-text: #1D1D1F;
+  --m-match-bg: #DCEBFF;
+  --m-mark-bg: #FFE27A;
+  --m-mark-text: #1D1D1F;
+  --m-search-bg: #FFE27A;
+  --m-search-text: #1D1D1F;
+  --m-search-current-bg: #FF9F0A;
+  --m-search-current-text: #1D1D1F;
+  --m-scroll-thumb: rgba(0, 0, 0, 0.22);
+  --m-shadow-pop: 0 0 0 0.5px rgba(0,0,0,0.08), 0 10px 32px rgba(0,0,0,0.14);
+  --m-alert-note: #0060C7;
+  --m-alert-tip: #1A7F37;
+  --m-alert-important: #7B3FC4;
+  --m-alert-warning: #9A5B00;
+  --m-alert-caution: #C4261D;
+  --m-chart-1: #0088FF;
+  --m-chart-2: #CB30E0;
+  --m-chart-3: #34C759;
+  --m-chart-4: #FF8D28;
+  --m-chart-5: #FF2D55;
+  --m-chart-6: #00C3D0;
+  --m-diagram-node: var(--m-bg);
+  --s-keyword: #9B2393;
+  --s-number: #1C00CF;
+  --s-def: #0F5F91;
+  --s-variable: #2E6870;
+  --s-type: #6A36A6;
+  --s-comment: #5D6C79;
+  --s-string: #B1221B;
+  --s-meta: #7A4A1E;
+  --s-builtin: #3900A0;
+  --s-attribute: #7A5A00;
+  --s-error: #C4261D;
+  --s-positive: #1A7F37;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mermaid-theme: macos27;
+    --mermaid-font-family: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+    --node-fill: rgb(36, 52, 76);
+    --cluster-fill: var(--m-surface-2);
+    --node-text-color: var(--m-text);
+    --mermaid-background: var(--m-bg);
+    --bg-color: #1C1C1E;
+    --text-color: #F2F2F7;
+    --side-bar-bg-color: #252527;
+    --control-text-color: #B4B4BA;
+    --control-text-hover-bg-color: #3A3A3C;
+    --item-hover-bg-color: #3A3A3C;
+    --item-hover-text-color: #F2F2F7;
+    --active-file-bg-color: #0059C7;
+    --active-file-text-color: #FFFFFF;
+    --active-file-border-color: #0059C7;
+    --window-border: 1px solid #424245;
+    --primary-color: #0A6CE0;
+    --primary-btn-border-color: #0A6CE0;
+    --primary-btn-text-color: #FFFFFF;
+    --select-text-bg-color: #3F638B;
+    --select-text-font-color: #FFFFFF;
+    --md-char-color: #A0A0A6;
+    --meta-content-color: #B4B4BA;
+    --heading-char-color: #A0A0A6;
+    --search-select-bg-color: #FF9F0A;
+    --search-select-text-color: #1D1D1F;
+    --rawblock-edit-panel-bd: #2C2C2E;
+    --blur-text-color: #B4B4BA;
+    --code-block-bg-color: #2C2C2E;
+    --drag-placeholder-color: #B4B4BA;
+    --m-bg: #1C1C1E;
+    --m-surface: #252527;
+    --m-surface-2: #2C2C2E;
+    --m-zebra: #28282A;
+    --m-hover-bg: #3A3A3C;
+    --m-active-bg: #0059C7;
+    --m-on-accent: #FFFFFF;
+    --m-accent-fill: #0A6CE0;
+    --m-accent-fill-hover: #0A5FC6;
+    --m-text: #F2F2F7;
+    --m-text-2: #B4B4BA;
+    --m-heading: #FFFFFF;
+    --m-md-char: #A0A0A6;
+    --m-link: #5EAEFF;
+    --m-link-hover: #8EC5FF;
+    --m-link-underline: rgba(94, 174, 255, 0.5);
+    --m-code-text: #FF8A80;
+    --m-border: #424245;
+    --m-border-strong: #5E5E63;
+    --m-control-border: #8A8A90;
+    --m-quote-bar: #8A8A90;
+    --m-focus: #4DA3FF;
+    --m-focus-halo: rgba(77, 163, 255, 0.35);
+    --m-caret: #4DA3FF;
+    --m-select-bg: #3F638B;
+    --m-select-text: #FFFFFF;
+    --m-match-bg: #21456E;
+    --m-mark-bg: #FFD60A;
+    --m-mark-text: #1D1D1F;
+    --m-search-bg: #6B5A00;
+    --m-search-text: #FFFFFF;
+    --m-search-current-bg: #FF9F0A;
+    --m-search-current-text: #1D1D1F;
+    --m-scroll-thumb: rgba(255, 255, 255, 0.24);
+    --m-shadow-pop: 0 0 0 0.5px rgba(255,255,255,0.12), 0 10px 32px rgba(0,0,0,0.45);
+    --m-alert-note: #5EAEFF;
+    --m-alert-tip: #4CD964;
+    --m-alert-important: #C59BFF;
+    --m-alert-warning: #FFB340;
+    --m-alert-caution: #FF7A70;
+    --m-chart-1: #0091FF;
+    --m-chart-2: #DB34F2;
+    --m-chart-3: #30D158;
+    --m-chart-4: #FF9230;
+    --m-chart-5: #FF375F;
+    --m-chart-6: #00D2E0;
+    --m-diagram-node: color-mix(in srgb, var(--m-surface-2) 90%, var(--m-text));
+    --s-keyword: #FC5FA3;
+    --s-number: #D9C97C;
+    --s-def: #5DC4E0;
+    --s-variable: #78C2B3;
+    --s-type: #D0A8FF;
+    --s-comment: #8F9BA6;
+    --s-string: #FC8A7D;
+    --s-meta: #FD9F5B;
+    --s-builtin: #B48CF2;
+    --s-attribute: #E0B070;
+    --s-error: #FF7A70;
+    --s-positive: #4CD964;
+  }
+}
+
+/* ==========================================================================
+   Typora variable map — every Typora UI hook points at the palette above.
+   ========================================================================== */
+:root {
+  --monospace: "SF Mono", ui-monospace, Menlo, Monaco, monospace;
+  --m-font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --m-font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+  --m-font-serif: "New York", ui-serif, Georgia, serif;
+
+  --m-radius-s: 6px;   /* controls, inline code, kbd   */
+  --m-radius-m: 10px;  /* code blocks, cards, tables   */
+  --m-radius-l: 12px;  /* menus, popovers, dialogs     */
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  font-family: var(--m-font-text);
+  color: var(--m-text);
+  background: var(--m-bg);
+  line-height: 1.65;
+  letter-spacing: -0.005em;
+  font-feature-settings: "kern", "liga", "calt";
+}
+content { background: var(--m-bg); }
+
+#write {
+  max-width: 880px;           /* text column width */
+  margin: 0 auto;
+  padding: 3.5rem 3rem 8rem;
+  color: var(--m-text);
+}
+@media only screen and (max-width: 640px)  { #write { padding: 2rem 1.25rem 6rem; } }
+#write > ul:first-child, #write > ol:first-child { margin-top: 2rem; }
+
+::selection { background: var(--m-select-bg); color: var(--m-select-text); }
+#write ::selection, #typora-source ::selection { background: var(--m-select-bg); color: var(--m-select-text); }
+
+/* ==========================================================================
+   Headings — SF Pro Display, tight tracking, clear rhythm
+   ========================================================================== */
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6 {
+  position: relative;
+  font-family: var(--m-font-display);
+  color: var(--m-heading);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 2em 0 0.6em;
+}
+#write h1 { font-size: 2.125rem; letter-spacing: -0.022em; margin-top: 0.5em; }
+#write h2 { font-size: 1.625rem; letter-spacing: -0.019em; padding-bottom: 0.35em; border-bottom: 1px solid var(--m-border); }
+#write h3 { font-size: 1.3125rem; letter-spacing: -0.014em; font-weight: 650; }
+#write h4 { font-size: 1.0625rem; letter-spacing: -0.008em; font-weight: 650; }
+#write h5 { font-size: 1rem; font-weight: 650; }
+#write h6 { font-size: 0.875rem; font-weight: 650; color: var(--m-text-2); text-transform: uppercase; letter-spacing: 0.04em; }
+#write h1 + h2, #write h2 + h3, #write h3 + h4 { margin-top: 0.8em; }
+
+/* Heading markers ("##") while editing */
+#write .md-heading .md-meta, #write .md-header-anchor { color: var(--m-md-char); }
+#write .md-focus .md-heading-content::before { color: var(--m-md-char); }
+
+/* ==========================================================================
+   Text
+   ========================================================================== */
+#write p, #write blockquote, #write ul, #write ol, #write dl, #write table, #write pre:not(.CodeMirror-line) { margin: 0 0 1.1em; }
+#write p { line-height: 1.65; }
+#write strong { font-weight: 650; color: var(--m-heading); }
+#write em { font-style: italic; }
+#write del, #write s { color: var(--m-text-2); }
+#write sup, #write sub { font-size: 0.75em; }
+
+/* Links: color + underline, so meaning never depends on color alone (WCAG 1.4.1) */
+#write a, #typora-source .cm-url, .md-toc-inner {
+  color: var(--m-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  text-decoration-skip-ink: none;
+  -webkit-text-decoration-skip: none;
+  text-decoration-color: var(--m-link-underline);
+}
+#write a:hover { color: var(--m-link-hover); text-decoration-color: currentColor; text-decoration-thickness: 2px; }
+#write a:focus-visible { outline: 2px solid var(--m-focus); outline-offset: 2px; border-radius: 2px; }
+
+mark, #write mark {
+  background: var(--m-mark-bg);
+  color: var(--m-mark-text);
+  padding: 0.05em 0.25em;
+  border-radius: 3px;
+}
+
+kbd {
+  display: inline-block;
+  font-family: var(--m-font-text);
+  font-size: 0.8125em;
+  font-weight: 500;
+  line-height: 1.35;
+  padding: 0.1em 0.45em;
+  color: var(--m-text);
+  background: var(--m-surface-2);
+  border: 1px solid var(--m-border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--m-radius-s);
+  vertical-align: 0.05em;
+}
+
+/* ==========================================================================
+   Lists & tasks
+   ========================================================================== */
+#write ul, #write ol { padding-left: 1.6em; }
+#write li { margin: 0.25em 0; }
+#write li > p { margin: 0.25em 0; }
+#write li::marker { color: var(--m-text-2); }
+#write ol > li::marker { font-variant-numeric: tabular-nums; }
+#write ul ul, #write ul ol, #write ol ul, #write ol ol { margin: 0.25em 0; }
+
+#write .task-list-item { list-style: none; }
+#write .md-task-list-item > input,
+#write .task-list-item input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  margin: 0.32em 0 0 -1.5em;
+  border: 1.5px solid var(--m-control-border);
+  border-radius: 4px;
+  background: var(--m-bg);
+  cursor: pointer;
+  position: absolute;
+}
+#write .md-task-list-item > input:checked,
+#write .task-list-item input[type="checkbox"]:checked {
+  background-color: var(--m-accent-fill);
+  border-color: var(--m-accent-fill);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.3l2.6 2.6L12 5.4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 100% 100%;
+}
+#write .md-task-list-item > input:focus-visible { outline: 2px solid var(--m-focus); outline-offset: 2px; }
+#write .md-task-list-item.task-list-done > p,
+#write .task-list-done > p { color: var(--m-text-2); text-decoration: line-through; text-decoration-color: var(--m-text-2); }
+
+/* ==========================================================================
+   Blockquote & callouts
+   ========================================================================== */
+#write blockquote {
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0.6em 1.1em;
+  color: var(--m-text-2);
+  background: var(--m-surface-2);
+  border-left: 3px solid var(--m-quote-bar);
+  border-radius: 0 var(--m-radius-m) var(--m-radius-m) 0;
+}
+#write blockquote > :last-child { margin-bottom: 0; }
+#write blockquote blockquote { background: transparent; padding-right: 0; }
+
+/* GitHub-style alerts (Typora 1.8+) */
+#write .md-alert {
+  color: var(--m-text);
+  background: var(--m-surface-2);
+  border-left-width: 3px;
+  border-radius: 0 var(--m-radius-m) var(--m-radius-m) 0;
+  padding: 0.6em 1.1em;
+}
+#write .md-alert > :last-child { margin-bottom: 0; }
+#write .md-alert-text { font-weight: 650; }
+#write .md-alert-note      { border-left-color: var(--m-alert-note); }
+#write .md-alert-tip       { border-left-color: var(--m-alert-tip); }
+#write .md-alert-important { border-left-color: var(--m-alert-important); }
+#write .md-alert-warning   { border-left-color: var(--m-alert-warning); }
+#write .md-alert-caution   { border-left-color: var(--m-alert-caution); }
+#write .md-alert-note .md-alert-text-container      { color: var(--m-alert-note); }
+#write .md-alert-tip .md-alert-text-container       { color: var(--m-alert-tip); }
+#write .md-alert-important .md-alert-text-container { color: var(--m-alert-important); }
+#write .md-alert-warning .md-alert-text-container   { color: var(--m-alert-warning); }
+#write .md-alert-caution .md-alert-text-container   { color: var(--m-alert-caution); }
+#write .md-alert-text-container svg { fill: currentColor; }
+
+/* ==========================================================================
+   Rules
+   ========================================================================== */
+#write hr {
+  height: 1px;
+  margin: 2.5em 0;
+  padding: 0;
+  border: 0;
+  background: var(--m-border);
+}
+
+/* ==========================================================================
+   Code
+   ========================================================================== */
+#write code, #write tt, #write .md-fences, #write .CodeMirror, #typora-source .CodeMirror {
+  font-family: var(--monospace);
+}
+#write code {
+  font-size: 0.875em;
+  padding: 0.12em 0.38em;
+  color: var(--m-code-text);
+  background: var(--m-surface-2);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-s);
+}
+#write a code { color: inherit; }
+
+#write .md-fences, #write pre.md-fences {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  padding: 0.9rem 1.1rem;
+  margin: 0 0 1.25em;
+  color: var(--m-text);
+  background: var(--m-surface-2);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-m);
+}
+#write .md-fences .CodeMirror-lines { padding: 0; }
+#write .md-fences.md-focus { border-color: var(--m-control-border); }
+
+/* Language picker on code blocks */
+#write .md-fences .code-tooltip {
+  color: var(--m-text-2);
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-s);
+  box-shadow: var(--m-shadow-pop);
+}
+#write .md-fences .code-tooltip input {
+  color: var(--m-text);
+  background: var(--m-bg);
+  border: 1px solid var(--m-control-border);
+  border-radius: 4px;
+}
+
+/* Line numbers, cursor, selection — all visible in every mode */
+.CodeMirror-gutters, #write .cm-s-typora-default .CodeMirror-gutters { background: var(--m-surface-2); border-right: 1px solid var(--m-border); }
+.CodeMirror-linenumber { color: var(--m-text-2); padding-right: 0.75em; }
+.CodeMirror-cursor { border-left: 2px solid var(--m-caret) !important; }
+.CodeMirror div.CodeMirror-cursor { border-left-color: var(--m-caret); }
+.CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected,
+.cm-s-inner .CodeMirror-selected, .cm-s-inner.CodeMirror-focused .CodeMirror-selected,
+.CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection {
+  background: var(--m-select-bg) !important;
+}
+.CodeMirror-matchingbracket { color: var(--m-text) !important; background: var(--m-match-bg); outline: 1px solid var(--m-control-border); }
+
+/* Syntax — Xcode-derived, retuned for contrast */
+.cm-s-inner { color: var(--m-text); }
+.cm-s-inner .cm-keyword   { color: var(--s-keyword); font-weight: 600; }
+.cm-s-inner .cm-atom      { color: var(--s-keyword); }
+.cm-s-inner .cm-number    { color: var(--s-number); }
+.cm-s-inner .cm-def       { color: var(--s-def); }
+.cm-s-inner .cm-variable  { color: var(--m-text); }
+.cm-s-inner .cm-variable-2{ color: var(--s-variable); }
+.cm-s-inner .cm-variable-3, .cm-s-inner .cm-type { color: var(--s-type); }
+.cm-s-inner .cm-property  { color: var(--s-variable); }
+.cm-s-inner .cm-operator  { color: var(--m-text); }
+.cm-s-inner .cm-comment   { color: var(--s-comment); font-style: italic; }
+.cm-s-inner .cm-string, .cm-s-inner .cm-string-2 { color: var(--s-string); }
+.cm-s-inner .cm-meta      { color: var(--s-meta); }
+.cm-s-inner .cm-qualifier { color: var(--s-meta); }
+.cm-s-inner .cm-builtin   { color: var(--s-builtin); }
+.cm-s-inner .cm-bracket   { color: var(--m-text-2); }
+.cm-s-inner .cm-tag       { color: var(--s-keyword); }
+.cm-s-inner .cm-attribute { color: var(--s-attribute); }
+.cm-s-inner .cm-hr        { color: var(--m-text-2); }
+.cm-s-inner .cm-link      { color: var(--m-link); }
+.cm-s-inner .cm-error     { color: var(--s-error); text-decoration: underline wavy; }
+.cm-s-inner .cm-header    { color: var(--m-heading); font-weight: 700; }
+.cm-s-inner .cm-quote     { color: var(--m-text-2); }
+.cm-s-inner .cm-positive  { color: var(--s-positive); }
+.cm-s-inner .cm-negative  { color: var(--s-error); }
+.cm-s-inner .cm-strong    { font-weight: 700; }
+.cm-s-inner .cm-em        { font-style: italic; }
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+#write table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-m);
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+}
+#write table th, #write table td {
+  padding: 0.55em 0.9em;
+  border: 0;
+  border-bottom: 1px solid var(--m-border);
+  text-align: left;
+  vertical-align: top;
+}
+#write table th + th, #write table td + td { border-left: 1px solid var(--m-border); }
+#write table tr:last-child td { border-bottom: 0; }
+#write table thead th {
+  font-weight: 650;
+  color: var(--m-heading);
+  background: var(--m-surface-2);
+  border-bottom: 1px solid var(--m-border-strong);
+}
+#write table tbody tr:nth-child(even) td { background: var(--m-zebra); }
+
+/* Rounded corners: WebKit won't clip table cells with overflow:hidden, so the
+   header/zebra fills used to paint over the curve and thin the border. Round
+   the four corner cells themselves, 1px inside the table's border radius. */
+#write table > :first-child > tr:first-child > :first-child { border-top-left-radius: calc(var(--m-radius-m) - 1px); }
+#write table > :first-child > tr:first-child > :last-child  { border-top-right-radius: calc(var(--m-radius-m) - 1px); }
+#write table tbody tr:last-child > :first-child,
+#write table thead:last-child tr:last-child > :first-child { border-bottom-left-radius: calc(var(--m-radius-m) - 1px); }
+#write table tbody tr:last-child > :last-child,
+#write table thead:last-child tr:last-child > :last-child { border-bottom-right-radius: calc(var(--m-radius-m) - 1px); }
+#write table td.md-focus, #write table th.md-focus { box-shadow: inset 0 0 0 2px var(--m-focus); }
+
+/* Table editing toolbar */
+/* Table toolbar: fit-to-content floating capsule, like the block toolbars */
+#write .ty-table-edit.md-table-edit {
+  display: flex; align-items: center; gap: 2px;
+  width: auto; height: 28px; box-sizing: border-box;
+  margin-left: 0; margin-top: -6px; padding: 0 3px;
+  color: var(--m-text-2);
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-s);
+  box-shadow: var(--m-shadow-pop);
+}
+#write .ty-table-edit .md-th-button, #write .ty-table-edit .right-th-button { float: none; display: inline-flex; align-items: center; }
+#write .ty-table-edit .right-th-button:first-of-type { margin-left: 6px; padding-left: 6px; border-left: 1px solid var(--m-border); }
+#write .ty-table-edit button { display: inline-flex; align-items: center; justify-content: center; height: 22px; min-width: 22px; padding: 0 5px; line-height: 1; border: 0; border-radius: var(--m-radius-s); color: var(--m-text-2); background: transparent; }
+#write .ty-table-edit button:hover, #write .ty-table-edit button.active { color: var(--m-text); background: var(--m-hover-bg); }
+/* Image size buttons (overlay on images): keep the dark overlay, theme radius */
+#write .md-image-btn { border-radius: var(--m-radius-s); padding: 0 8px; background: rgba(0, 0, 0, 0.5); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+#write .md-image-btn.selected, #write .md-image-btn:hover { background: rgba(0, 0, 0, 0.72); }
+.md-table-edit .md-table-btn, #md-table-edit-toolbar button { color: var(--m-text-2); }
+.md-table-edit .md-table-btn:hover { color: var(--m-text); background: var(--m-hover-bg); }
+
+/* ==========================================================================
+   Images, figures, footnotes, TOC, math, diagrams, front matter
+   ========================================================================== */
+#write img { max-width: 100%; border-radius: var(--m-radius-s); }
+#write p > .md-image:only-child { display: block; text-align: center; }
+#write .md-image > .md-meta { color: var(--m-md-char); }
+#write figcaption, #write .md-image + em { display: block; text-align: center; color: var(--m-text-2); font-size: 0.875rem; }
+
+#write .md-footnote, #write sup.md-footnote {
+  color: var(--m-link);
+  background: transparent;
+  font-weight: 600;
+}
+#write .footnotes-area { color: var(--m-text-2); font-size: 0.9375rem; border-top: 1px solid var(--m-border); margin-top: 3em; padding-top: 1em; }
+#write .footnotes-area hr { display: none; }
+#write .footnote-line { color: var(--m-text-2); }
+.md-hover-tip .md-arrow::after { background: var(--m-surface); border-color: var(--m-border); }
+.md-tooltip-hint, .md-hover-tip, .code-tooltip.md-hover-tip {
+  color: var(--m-text);
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-s);
+  box-shadow: var(--m-shadow-pop);
+}
+
+#write .md-toc {
+  margin-left: 0;
+  margin-right: 0;
+  min-height: 0; /* Typora sets 3.58rem, which pads a short TOC at the bottom */
+  padding: 0.625rem 1rem; /* line-height adds ~6px above/below the text, so this reads as an even 16px */
+  background: var(--m-surface-2);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-m);
+  font-size: 0.9375rem;
+}
+#write .md-toc-content, #write .md-toc:focus .md-toc-content { margin: 0; padding: 0; border: 0; }
+#write .md-toc-item { color: var(--m-link); }
+#write .md-toc-h1 .md-toc-inner { font-weight: 650; }
+/* TOC toolbar (shown while the TOC is focused): small floating capsule, like the zoom popup */
+#write div.md-toc-tooltip {
+  top: -34px; left: auto; right: 0; width: auto;
+  height: 28px; box-sizing: border-box;
+  padding: 0 3px 0 10px;
+  line-height: 1; font-size: 12px; font-weight: 600;
+  color: var(--m-text-2);
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-s);
+  box-shadow: var(--m-shadow-pop);
+}
+#write .md-toc.md-focus div.md-toc-tooltip, #write .md-toc:focus div.md-toc-tooltip { display: flex !important; align-items: center; }
+#write .md-toc-tooltip .btn-default { display: inline-flex; align-items: center; justify-content: center; height: 22px; color: var(--m-text-2); border: 0; border-radius: var(--m-radius-s); padding: 0 6px; line-height: 1; margin: 0 0 0 6px; }
+#write .md-toc-tooltip .btn-default:hover { color: var(--m-text); background: var(--m-hover-bg); }
+
+/* HTML / math block toolbar: same floating capsule as the TOC toolbar */
+#write .md-rawblock-tooltip {
+  top: -34px; right: 0; height: 28px; box-sizing: border-box;
+  padding: 0 3px 0 10px; line-height: 22px; font-size: 12px; font-weight: 600;
+  color: var(--m-text-2);
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-s);
+  box-shadow: var(--m-shadow-pop);
+}
+#write .md-rawblock:hover > .md-rawblock-tooltip, #write .md-rawblock.ty-hover > .md-rawblock-tooltip,
+#write .md-rawblock-on-edit > .md-rawblock-tooltip { display: flex !important; align-items: center; animation: none; }
+#write .md-rawblock-tooltip-name { padding-left: 0; opacity: 1; margin-right: 4px; }
+#write .md-rawblock-tooltip-btn { width: auto; min-width: 22px; height: 22px; line-height: 22px; padding: 0 6px; text-align: center; color: var(--m-text-2); border-radius: var(--m-radius-s); }
+#write .md-rawblock-tooltip-btn:hover { color: var(--m-text); background: var(--m-hover-bg); }
+
+/* Every other floating Typora control: same surface, hairline, radius and shadow as menus */
+body .popover, body .md-table-resize-popover, body #toc-dropmenu, body #user-context-menu,
+body .CodeMirror-hints, body .CodeMirror-lint-tooltip, body .md-f-tooltip, body .ty-tooltip,
+body #md-notification, body #common-dialog .modal-content, body #table-insert-dialog .modal-content, body .modal-dialog .modal-content {
+  color: var(--m-text);
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-l);
+  box-shadow: var(--m-shadow-pop);
+  -webkit-filter: none; filter: none;
+}
+body .ty-tooltip, body .CodeMirror-lint-tooltip, body .md-f-tooltip { border-radius: var(--m-radius-s); font-family: var(--m-font-text); font-size: 12px; }
+body .popover.bottom > .arrow:after { border-bottom-color: var(--m-surface); }
+body .popover.top > .arrow:after { border-top-color: var(--m-surface); }
+body .popover > .arrow { border-color: transparent; }
+body .popover-title { color: var(--m-text); font-weight: 600; background: transparent; border-bottom: 1px solid var(--m-border); }
+body .md-grid-board-wrap .popover-title { border-top: 1px solid var(--m-border); }
+body #md-notification { width: auto; max-width: 560px; margin: 8px auto 0; }
+body .md-notification-detail { color: var(--m-text-2); }
+/* Notification: clear of the title bar, text never runs under the Close button, bell centred on the text */
+.mac-seamless-mode #md-notification { padding-top: 0; }
+.mac-seamless-mode .md-notification-container, .unibody-window .md-notification-container { padding-top: calc(var(--title-bar-height, 28px) + 8px); }
+body #md-notification { position: relative; top: 0; left: auto; right: auto; width: 100%; min-height: 40px; }
+body #md-notification:before, .mac-seamless-mode #md-notification:before { padding-top: 0; position: absolute; top: 0; bottom: 0; height: auto; display: flex; align-items: center; left: 16px; margin: 0; transform: none; color: var(--m-text-2); }
+body #md-notification p { margin: 10px 0; padding: 0 64px 0 40px; }
+body #md-notification .typora-export-spinner { margin-top: 0; top: 50%; height: 14px; transform: translateY(50%); }
+/* Focus/Typewriter notice: second row centred, no inline padding */
+#md-notification .ty-enter-mode-warning-header + div { align-items: center !important; justify-content: normal !important; margin-bottom: 0 !important; padding: 0 12px 10px 40px !important; }
+#md-notification .ty-enter-mode-warning-header + div input[type="checkbox"] { margin: 0 4px 0 0; }
+body #md-notification .close-btn { width: auto; height: 24px; top: calc(50% - 12px); right: 12px; margin: 0; padding: 0 10px; font-size: 12px; line-height: 22px; color: var(--m-text-2); background: transparent; border: 1px solid var(--m-border-strong); border-radius: var(--m-radius-s); }
+body #md-notification .close-btn:hover { color: var(--m-text); background: var(--m-hover-bg); }
+
+/* Rows inside those surfaces: rounded, accent selection like menu items */
+body .CodeMirror-hints { padding: 4px; }
+body .CodeMirror-hint { color: var(--m-text); padding: 2px 8px; border-radius: var(--m-radius-s); }
+body li.CodeMirror-hint-active { color: var(--m-on-accent); background: var(--m-active-bg); }
+body .menuitem-group-label, body .ty-menu-shortcut, body .menuitem-no-history { color: var(--m-text-2); }
+body #sidebar-files-menu > .show + .menuitem-group-label.show { border-top: 1px solid var(--m-border); }
+body .folder-menu-item, body .selected-folder-menu-item { border-radius: var(--m-radius-s); }
+
+/* Small icon buttons: grey hover, rounded */
+body #searchpanel-case-option-btn, body #searchpanel-word-option-btn, body #sidebar-menu-btn, body #close-sidebar-menu-btn,
+body #md-notification-more-btn, body .searchpanel-msg-btn { color: var(--m-text-2); border-radius: var(--m-radius-s); }
+body #searchpanel-case-option-btn:hover, body #searchpanel-word-option-btn:hover, body #sidebar-menu-btn:hover,
+body #close-sidebar-menu-btn:hover, body #md-notification-more-btn:hover, body .searchpanel-msg-btn:hover { color: var(--m-text); background: var(--m-hover-bg); }
+
+/* Backdrops, banners and hint text */
+body .modal-backdrop.in { background: rgba(0, 0, 0, 0.25); }
+body #ty-preview-banner { color: var(--m-text); background: var(--m-surface-2); border-bottom: 1px solid var(--m-border); }
+body #bottom-hint, body .ty-block-hint, body .md-show-hint, body #searchpanel-msg, body #search-panel-status { color: var(--m-text-2); }
+body pre.md-fences-advanced.md-focus .md-fences-adv-panel { border-color: var(--m-border); border-radius: 0 0 var(--m-radius-m) var(--m-radius-m); background: var(--m-surface-2); }
+
+#write .md-math-block, #write .mathjax-block { color: var(--m-text); }
+#write .md-math-block .code-tooltip, #write .md-rawblock .code-tooltip {
+  color: var(--m-text);
+  background: var(--m-surface-2);
+  border-radius: var(--m-radius-m);
+}
+/* HTML blocks: no card at rest, card only on hover / while editing (Typora's default) */
+#write .md-rawblock-container { color: var(--m-text); background: transparent; border-radius: var(--m-radius-m); }
+#write .md-math-block > .md-rawblock-container { background: var(--m-surface-2); }
+/* HTML blocks: hover/edit card gets even padding; negative margin keeps content in place */
+#write .md-htmlblock > .md-rawblock-container { padding: 0.75rem; margin: -0.75rem; }
+#write .md-htmlblock-container > :first-child { margin-top: 0; }
+#write .md-htmlblock-container > :last-child, #write .md-htmlblock-container details > :last-child, #write .md-htmlblock-container details:not([open]) > summary { margin-bottom: 0; }
+#write .md-rawblock:hover > .md-rawblock-container, #write .md-rawblock-on-edit > .md-rawblock-container {
+  background: var(--m-surface-2);
+}
+#write .md-rawblock-control { color: var(--m-text-2); background: var(--m-surface); }
+/* Collapsible sections: macOS disclosure chevron */
+#write details { margin: 0 0 1.1em; }
+#write summary { cursor: pointer; font-weight: 600; list-style: none; }
+#write summary::-webkit-details-marker { display: none; }
+#write summary::before {
+  content: ""; display: inline-block; width: 0.42em; height: 0.42em;
+  margin: 0 0.6em 0.14em 0.1em;
+  border-right: 1.5px solid var(--m-text-2); border-bottom: 1.5px solid var(--m-text-2);
+  transform: rotate(-45deg); transition: transform 0.15s ease;
+}
+#write details[open] > summary::before { transform: rotate(45deg); margin-bottom: 0.24em; }
+#write details > :not(summary) { margin-left: 1.15em; }
+#write details[open] > summary { margin-bottom: 0.5em; }
+/* Media in HTML blocks keeps its own shape */
+#write .md-htmlblock iframe, #write .md-htmlblock video, #write > iframe, #write > video { display: block; margin: 0 auto; max-width: 100%; border-radius: var(--m-radius-m); }
+#write .md-htmlblock audio, #write > audio { display: block; width: 100%; }
+#write mjx-container, #write .MathJax_SVG { color: var(--m-text); }
+
+/* Mermaid / flowchart / sequence: Typora picks the matching mermaid theme */
+#write .md-diagram-panel { color: var(--m-text); }
+#write .md-diagram-panel-error { color: var(--s-error); }
+/* Diagrams: macOS surfaces, hairlines and system colours */
+#write .md-diagram-panel .node rect, #write .md-diagram-panel .node polygon, #write .md-diagram-panel .node circle:not(.state-start), #write .md-diagram-panel .node ellipse, #write .md-diagram-panel .node path,
+#write .md-diagram-panel .classGroup rect, #write .md-diagram-panel .stateGroup rect, #write .md-diagram-panel rect.actor, #write .md-diagram-panel .actor-box, #write .md-diagram-panel .cluster rect { fill: var(--m-diagram-node) !important; stroke: var(--m-border-strong) !important; stroke-width: 1px !important; }
+#write .md-diagram-panel .classGroup line, #write .md-diagram-panel .divider path { stroke: var(--m-border-strong) !important; }
+#write .md-diagram-panel .nodeLabel, #write .md-diagram-panel .label, #write .md-diagram-panel .label text, #write .md-diagram-panel .classLabel .label, #write .md-diagram-panel text.actor, #write .md-diagram-panel text.actor tspan, #write .md-diagram-panel .messageText, #write .md-diagram-panel .noteText, #write .md-diagram-panel .noteText tspan, #write .md-diagram-panel .stateLabel text, #write .md-diagram-panel .cluster-label { color: var(--m-text) !important; fill: var(--m-text) !important; }
+#write .md-diagram-panel .flowchart-link, #write .md-diagram-panel .edgePath .path, #write .md-diagram-panel .relation, #write .md-diagram-panel .transition, #write .md-diagram-panel .messageLine0, #write .md-diagram-panel .messageLine1 { stroke: var(--m-text-2) !important; }
+#write .md-diagram-panel .actor-line { stroke: var(--m-border-strong) !important; }
+#write .md-diagram-panel marker path, #write .md-diagram-panel .arrowheadPath, #write .md-diagram-panel .arrowMarkerPath, #write .md-diagram-panel #arrowhead path, #write .md-diagram-panel #crosshead path { fill: var(--m-text-2) !important; stroke: var(--m-text-2) !important; }
+#write .md-diagram-panel .state-start, #write .md-diagram-panel circle.state-start, #write .md-diagram-panel .end-state-inner, #write .md-diagram-panel .node circle.end-state-inner:not(.state-start) { fill: var(--m-text) !important; stroke: var(--m-text) !important; }
+#write .md-diagram-panel .state-end, #write .md-diagram-panel .end-state-outer, #write .md-diagram-panel .node circle.end-state-outer:not(.state-start) { fill: var(--m-diagram-node) !important; stroke: var(--m-text) !important; stroke-width: 1.5px !important; }
+#write .md-diagram-panel g.node[id*="_end"] > g > path { fill: var(--m-diagram-node) !important; stroke: var(--m-text) !important; stroke-width: 1.5px !important; }
+#write .md-diagram-panel g.node[id*="_end"] > g > g path { fill: var(--m-text) !important; stroke: var(--m-text) !important; }
+#write .md-diagram-panel rect.note, #write .md-diagram-panel .note { fill: color-mix(in srgb, var(--m-chart-1) 14%, var(--m-surface)) !important; stroke: color-mix(in srgb, var(--m-chart-1) 45%, transparent) !important; }
+#write .md-diagram-panel .edgeLabel, #write .md-diagram-panel .edgeLabel p, #write .md-diagram-panel .labelBkg { background-color: var(--m-surface-2) !important; color: var(--m-text) !important; }
+#write .md-diagram-panel .edgeLabel rect { fill: var(--m-surface-2) !important; opacity: 1 !important; }
+#write .md-diagram-panel foreignObject p, #write .md-diagram-panel foreignObject span { white-space: inherit !important; }
+#write .md-diagram-panel foreignObject p { color: inherit !important; }
+#write .md-diagram-panel text.actor, #write .md-diagram-panel text.actor tspan { dominant-baseline: central; }
+/* Pie */
+#write .md-diagram-panel .pieCircle:nth-of-type(6n+1), #write .md-diagram-panel .legend:nth-of-type(6n+1) rect { fill: var(--m-chart-1) !important; stroke: var(--m-chart-1) !important; }
+#write .md-diagram-panel .pieCircle:nth-of-type(6n+2), #write .md-diagram-panel .legend:nth-of-type(6n+2) rect { fill: var(--m-chart-2) !important; stroke: var(--m-chart-2) !important; }
+#write .md-diagram-panel .pieCircle:nth-of-type(6n+3), #write .md-diagram-panel .legend:nth-of-type(6n+3) rect { fill: var(--m-chart-3) !important; stroke: var(--m-chart-3) !important; }
+#write .md-diagram-panel .pieCircle:nth-of-type(6n+4), #write .md-diagram-panel .legend:nth-of-type(6n+4) rect { fill: var(--m-chart-4) !important; stroke: var(--m-chart-4) !important; }
+#write .md-diagram-panel .pieCircle:nth-of-type(6n+5), #write .md-diagram-panel .legend:nth-of-type(6n+5) rect { fill: var(--m-chart-5) !important; stroke: var(--m-chart-5) !important; }
+#write .md-diagram-panel .pieCircle:nth-of-type(6n), #write .md-diagram-panel .legend:nth-of-type(6n) rect { fill: var(--m-chart-6) !important; stroke: var(--m-chart-6) !important; }
+#write .md-diagram-panel .pieCircle { stroke: var(--m-surface-2) !important; stroke-width: 2px !important; opacity: 1 !important; }
+#write .md-diagram-panel .pieOuterCircle { stroke: none !important; }
+#write .md-diagram-panel .slice { fill: #FFFFFF !important; font-weight: 600; paint-order: stroke; stroke: rgba(0,0,0,0.35); stroke-width: 3px; }
+#write .md-diagram-panel .pieTitleText, #write .md-diagram-panel .legend text { fill: var(--m-text) !important; }
+/* Gantt */
+#write .md-diagram-panel .task0, #write .md-diagram-panel .active0, #write .md-diagram-panel .done0, #write .md-diagram-panel .crit0 { fill: var(--m-chart-1) !important; stroke: var(--m-chart-1) !important; }
+#write .md-diagram-panel .task1, #write .md-diagram-panel .active1, #write .md-diagram-panel .done1, #write .md-diagram-panel .crit1 { fill: var(--m-chart-2) !important; stroke: var(--m-chart-2) !important; }
+#write .md-diagram-panel .task2, #write .md-diagram-panel .active2, #write .md-diagram-panel .done2, #write .md-diagram-panel .crit2 { fill: var(--m-chart-3) !important; stroke: var(--m-chart-3) !important; }
+#write .md-diagram-panel .task3, #write .md-diagram-panel .active3, #write .md-diagram-panel .done3, #write .md-diagram-panel .crit3 { fill: var(--m-chart-4) !important; stroke: var(--m-chart-4) !important; }
+#write .md-diagram-panel .section0, #write .md-diagram-panel .section2 { fill: color-mix(in srgb, var(--m-chart-1) 7%, transparent) !important; opacity: 1 !important; }
+#write .md-diagram-panel .section1, #write .md-diagram-panel .section3 { fill: transparent !important; }
+#write .md-diagram-panel .taskText, #write .md-diagram-panel .taskTextOutsideRight, #write .md-diagram-panel .taskTextOutsideLeft { fill: var(--m-text) !important; }
+#write .md-diagram-panel .taskText { fill: #FFFFFF !important; font-weight: 600; }
+#write .md-diagram-panel .sectionTitle, #write .md-diagram-panel .titleText, #write .md-diagram-panel .grid .tick text { fill: var(--m-text-2) !important; }
+#write .md-diagram-panel .titleText { fill: var(--m-text) !important; }
+#write .md-diagram-panel .grid .tick line { stroke: var(--m-border) !important; }
+#write .md-diagram-panel .grid path { stroke: none !important; }
+#write .md-diagram-panel .today { stroke: var(--m-chart-5) !important; }
+/* flowchart.js and js-sequence (Raphael SVG), matched by fence language */
+#write :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg rect, #write :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg rect,
+#write :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg path:not([fill="none"]) { fill: var(--m-diagram-node) !important; stroke: var(--m-border-strong) !important; stroke-width: 1px !important; }
+#write :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg path, #write :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg line,
+#write :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg path[fill="none"] { stroke: var(--m-text-2) !important; }
+#write :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg text, #write :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg tspan,
+#write :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg text, #write :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg tspan { fill: var(--m-text) !important; stroke: none !important; font-family: var(--m-font-text) !important; }
+#write :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg marker path, #write :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg marker path { fill: var(--m-text-2) !important; }
+#write :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg rect[stroke="none"] { fill: var(--m-surface-2) !important; stroke: none !important; }
+#write :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg path[fill="none"], #write :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg path { stroke-width: 1.25px !important; }
+#write :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg defs path, #write :is([lang="flow"] .md-diagram-panel, .md-diagram-panel[lang="flow"]) svg marker *, #write :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg defs path { fill: var(--m-text-2) !important; stroke: var(--m-text-2) !important; }
+
+/* YAML front matter */
+#write pre.md-meta-block:empty::before { color: var(--m-text-2); }
+#write pre.md-meta-block {
+  font-size: 0.8125rem;
+  color: var(--m-text-2);
+  background: var(--m-surface-2);
+  border: 1px dashed var(--m-border-strong);
+  border-radius: var(--m-radius-m);
+  padding: 0.75em 1em;
+  margin-bottom: 2em;
+}
+
+/* HTML comments / raw html */
+#write .md-comment, #write .md-html-inline .md-comment { color: var(--s-comment); }
+#write .md-html-inline { color: var(--m-text-2); }
+
+/* Emoji autocomplete, inline-math preview */
+.md-inline-math-container, .md-inline-math-preview {
+  color: var(--m-text);
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-s);
+}
+#write .md-emoji { font-family: "Apple Color Emoji", sans-serif; }
+
+/* ==========================================================================
+   Find & replace highlights
+   ========================================================================== */
+.md-search-hit, #write .md-search-hit, .cm-search-hit {
+  background: var(--m-search-bg) !important;
+  color: var(--m-search-text) !important;
+  border-radius: 2px;
+}
+.md-search-hit.md-search-select, #write .md-search-select, .md-search-select .md-search-hit, .cm-search-hit.md-search-select {
+  background: var(--m-search-current-bg) !important;
+  color: var(--m-search-current-text) !important;
+  box-shadow: 0 0 0 1px var(--m-search-current-text);
+}
+
+/* ==========================================================================
+   Focus & typewriter modes — blurred text stays readable (AA)
+   ========================================================================== */
+.on-focus-mode .md-end-block:not(.md-focus):not(.md-tasklist),
+.on-focus-mode .md-fences:not(.md-focus),
+.on-focus-mode .md-toc:not(.md-focus),
+.on-focus-mode li[cid]:not(.md-focus-container),
+.on-focus-mode #typora-source .CodeMirror-code > *:not(.CodeMirror-activeline) {
+  color: var(--m-text-2) !important;
+  opacity: 0.4;
+}
+.on-focus-mode .md-end-block:not(.md-focus) img,
+.on-focus-mode .md-task-list-item:not(.md-focus-container) > input { opacity: 0.5; }
+
+/* ==========================================================================
+   Source mode
+   ========================================================================== */
+#typora-source { background: var(--m-bg); }
+#typora-source .CodeMirror {
+  color: var(--m-text);
+  background: var(--m-bg);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+#typora-source .CodeMirror-gutters { background: var(--m-bg); border-right: 1px solid var(--m-border); }
+#typora-source .cm-header { color: var(--m-heading); font-weight: 700; }
+#typora-source .cm-formatting, #typora-source .cm-formatting-header,
+#typora-source .cm-formatting-list, #typora-source .cm-formatting-quote { color: var(--m-md-char); }
+#typora-source .cm-quote { color: var(--m-text-2); }
+#typora-source .cm-link { color: var(--m-link); }
+#typora-source .cm-string.cm-url { color: var(--m-link); }
+#typora-source .cm-comment { color: var(--s-comment); }
+#typora-source .cm-variable-2 { color: var(--m-text); }
+#typora-source .cm-variable-3 { color: var(--m-text); }
+#typora-source .cm-keyword { color: var(--s-keyword); }
+#typora-source .cm-strong { font-weight: 700; }
+#typora-source .cm-em { font-style: italic; }
+#typora-source .CodeMirror-activeline-background { background: var(--m-zebra); }
+
+/* ==========================================================================
+   Sidebar — files & outline (macOS source-list style)
+   ========================================================================== */
+#typora-sidebar {
+  font-family: var(--m-font-text);
+  color: var(--m-text);
+  background: var(--m-surface);
+  border-right: 1px solid var(--m-border);
+}
+#typora-sidebar .sidebar-tabs { border-bottom: 1px solid var(--m-border); }
+#typora-sidebar .sidebar-tab { color: var(--m-text-2); font-size: 0.8125rem; font-weight: 500; }
+#typora-sidebar .sidebar-tab.active { color: var(--m-text); border-bottom: 2px solid var(--m-accent-fill); }
+.sidebar-content-content, .file-list-item, .file-node-content, .outline-item { color: var(--m-text); }
+
+.file-list-item { border-bottom: 1px solid var(--m-border); padding: 0.6em 1em; }
+.file-list-item-summary, .file-list-item-time, .file-list-item-parent-loc { color: var(--m-text-2); }
+.file-list-item.active { background: var(--m-active-bg); }
+.file-list-item.active, .file-list-item.active .file-list-item-file-name,
+.file-list-item.active .file-list-item-summary, .file-list-item.active .file-list-item-time,
+.file-list-item.active .file-list-item-parent-loc { color: var(--m-on-accent); }
+
+.file-tree-node .file-node-content { border-radius: var(--m-radius-s); margin: 0 6px; }
+.file-tree-node .file-node-background { border-radius: var(--m-radius-s); margin: 0; left: 6px; right: 6px; width: auto; }
+.file-tree-node.active > .file-node-background { background: var(--m-active-bg); border: 0; }
+.file-tree-node.active > .file-node-content,
+.file-tree-node.active > .file-node-content .file-node-title,
+.file-tree-node.active > .file-node-content .file-node-icon { color: var(--m-on-accent); }
+.file-node-icon, .file-node-open-state { color: var(--m-text-2); }
+
+.outline-item, .outline-item:hover { border: 0; border-radius: var(--m-radius-s); margin: 0 6px; padding: 3px 8px; }
+.no-collapse-outline .outline-item, .no-collapse-outline .outline-item:hover { margin: 1px 6px 2px; }
+.outline-h1 > .outline-item { padding-left: 8px; }
+.outline-h2 > .outline-item { padding-left: calc(8px + 1em); }
+.outline-h3 > .outline-item { padding-left: calc(8px + 2em); }
+.outline-h4 > .outline-item { padding-left: calc(8px + 3em); }
+.outline-h5 > .outline-item { padding-left: calc(8px + 4em); }
+.outline-h6 > .outline-item { padding-left: calc(8px + 5em); }
+#outline-content, #file-library-tree { padding-top: 10px; }
+.outline-item:hover { background: var(--m-hover-bg); color: var(--m-text); }
+.outline-item-active, .outline-item.outline-item-active { color: var(--m-text); font-weight: 650; background: var(--m-hover-bg); }
+.outline-expander::before { color: var(--m-text-2); }
+.outline-h1 > .outline-item { font-weight: 600; }
+/* No hover underline or arrow swap in the outline (both shifted the label) */
+.outline-label:hover { text-decoration: none; }
+.outline-expander:before { width: 8px; text-align: center; }
+.outline-expander:hover:before { content: "\f125"; }
+.outline-item-open > .outline-item > .outline-expander:before, .outline-item-open > .outline-item > .outline-expander:hover:before { content: "\f123"; }
+
+/* Sidebar search & generic inputs */
+#file-library-search-input, .ty-sidebar-search-panel input, #sidebar-files-menu input,
+.form-control, input[type="text"], input[type="search"], textarea, select {
+  color: var(--m-text);
+  background: var(--m-bg);
+  border: 1px solid var(--m-control-border);
+  border-radius: var(--m-radius-s);
+  box-shadow: none;
+}
+#file-library-search-input::placeholder, .form-control::placeholder,
+input::placeholder, textarea::placeholder { color: var(--m-text-2); opacity: 1; }
+.form-control:focus, input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--m-focus);
+  box-shadow: 0 0 0 3px var(--m-focus-halo);
+}
+.ty-search-item, .file-library-node, .ty-search-item-line { color: var(--m-text); }
+.ty-search-item-line .highlight, .file-list-item .highlight { background: var(--m-search-bg); color: var(--m-search-text); }
+
+/* ==========================================================================
+   Footer / status bar
+   ========================================================================== */
+footer.ty-footer, #footer-word-count, .footer-item {
+  color: var(--m-text-2);
+  background: var(--m-surface);
+  font-size: 0.75rem;
+}
+footer.ty-footer { border-top: 1px solid var(--m-border); }
+.footer-item:hover, .footer-item.active { color: var(--m-text); background: var(--m-hover-bg); }
+#footer-word-count-info { color: var(--m-text); background: var(--m-surface); border: 1px solid var(--m-border); border-radius: var(--m-radius-s); }
+
+/* ==========================================================================
+   Popovers, menus, dialogs, find panel
+   ========================================================================== */
+.context-menu, .dropdown-menu, .modal-content, #md-searchpanel, .auto-suggest-container, #typora-quick-open, .ty-quick-open-panel {
+  color: var(--m-text);
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-l);
+  box-shadow: var(--m-shadow-pop);
+}
+.dropdown-menu > li > a, .context-menu .menuitem, .auto-suggest-container li, .typora-quick-open-item {
+  color: var(--m-text);
+  border-radius: var(--m-radius-s);
+}
+.dropdown-menu > li > a:hover, .dropdown-menu > li > a:focus,
+.context-menu .menuitem:hover, .auto-suggest-container li.active,
+.auto-suggest-container li:hover, .typora-quick-open-item.active {
+  color: var(--m-on-accent);
+  background: var(--m-active-bg);
+}
+.dropdown-menu .divider { background: var(--m-border); }
+
+/* Zoom hint (View › Zoom) */
+#zoom-hint {
+  display: flex; align-items: center; gap: 2px; right: 20px;
+  padding: 4px 4px 4px 12px;
+  color: var(--m-text);
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-l);
+  box-shadow: var(--m-shadow-pop);
+  font-family: var(--m-font-text); font-size: 13px;
+}
+#zoom-hint-current { font-variant-numeric: tabular-nums; color: var(--m-text-2); }
+#zoom-hint .zoom-hint-button { margin: 0; padding: 3px 0; border-radius: var(--m-radius-s); }
+#zoom-hint .zoom-hint-button:hover { background: var(--m-hover-bg); color: var(--m-text); }
+#zoom-hint #zoom-hint-reset { margin: 0 0 0 4px; padding: 3px 8px; font-size: 12px; color: var(--m-link); border-left: 0; border-radius: var(--m-radius-s); }
+.typora-quick-open-item-path, .typora-quick-open-item .typora-quick-open-item-path { color: var(--m-text-2); }
+.typora-quick-open-item.active .typora-quick-open-item-path { color: var(--m-on-accent); }
+.modal-header, .modal-footer { border-color: var(--m-border); }
+.modal-title { color: var(--m-heading); font-weight: 650; }
+
+#md-searchpanel { border-radius: 0 0 var(--m-radius-l) var(--m-radius-l); }
+#md-searchpanel input { color: var(--m-text); background: var(--m-bg); }
+#md-searchpanel .btn, .searchpanel-search-option-btn { color: var(--m-text-2); }
+.searchpanel-search-option-btn.active { color: var(--m-on-accent); background: var(--m-active-bg); }
+/* Find bar: rounded field like Safari's, borderless option toggles */
+#md-searchpanel input { height: 26px; padding: 0 10px; background: var(--m-surface-2); border: 1px solid var(--m-control-border); border-radius: 7px; box-shadow: none; outline: none; }
+#md-searchpanel input:focus { border-color: var(--m-focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-focus) 35%, transparent); }
+#md-searchpanel input::placeholder { color: var(--m-text-2); }
+#md-searchpanel .searchpanel-search-option-btn { border: 0; border-radius: 5px; opacity: 0.8; }
+#md-searchpanel .searchpanel-search-option-btn:hover { opacity: 1; background: var(--m-hover-bg); }
+#md-searchpanel .searchpanel-search-option-btn.active { opacity: 1; }
+
+/* Buttons */
+.btn, button {
+  font-family: var(--m-font-text);
+  border-radius: var(--m-radius-s);
+}
+.btn-default {
+  color: var(--m-text);
+  background: var(--m-bg);
+  border: 1px solid var(--m-control-border);
+}
+.btn-default:hover { background: var(--m-hover-bg); color: var(--m-text); }
+.btn-primary {
+  color: var(--m-on-accent);
+  background: var(--m-accent-fill);
+  border: 1px solid var(--m-accent-fill);
+}
+.btn-primary:hover { background: var(--m-accent-fill-hover); border-color: var(--m-accent-fill-hover); color: var(--m-on-accent); }
+.btn:focus-visible, button:focus-visible { outline: 2px solid var(--m-focus); outline-offset: 2px; }
+
+/* Scrollbars — thin overlay style */
+::-webkit-scrollbar { width: 10px; height: 10px; background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--m-scroll-thumb); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--m-control-border); background-clip: content-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* ==========================================================================
+   Print / PDF export — always the light palette, black text
+   ========================================================================== */
+@media print {
+  /* One over-wide equation made the print shrink every page to fit it; clip it to the column instead */
+  #write mjx-container[display="true"], #write mjx-container[display="true"] > svg { min-width: 0 !important; max-width: 100%; }
+  #write .md-math-block, #write mjx-container[display="true"] { overflow: hidden !important; }
+  /* Print uses the macOS 27 Light palette, so every block keeps its on-screen Light styling */
+  :root {
+    --m-bg: #FFFFFF;
+    --m-surface: #F3F3F5;
+    --m-surface-2: #F5F5F7;
+    --m-zebra: #FAFAFB;
+    --m-hover-bg: #E6E6EB;
+    --m-active-bg: #0064D2;
+    --m-on-accent: #FFFFFF;
+    --m-accent-fill: #0064D2;
+    --m-accent-fill-hover: #0057B7;
+    --m-text: #1D1D1F;
+    --m-text-2: #5E5E63;
+    --m-heading: #111113;
+    --m-md-char: #6A6A6F;
+    --m-link: #0060C7;
+    --m-link-hover: #004A9E;
+    --m-link-underline: rgba(0, 96, 199, 0.45);
+    --m-code-text: #B1221B;
+    --m-border: #E1E1E6;
+    --m-border-strong: #C7C7CC;
+    --m-control-border: #86868B;
+    --m-quote-bar: #86868B;
+    --m-focus: #007AFF;
+    --m-focus-halo: rgba(0, 122, 255, 0.28);
+    --m-caret: #0064D2;
+    --m-select-bg: #B3D7FF;
+    --m-select-text: #1D1D1F;
+    --m-match-bg: #DCEBFF;
+    --m-mark-bg: #FFE27A;
+    --m-mark-text: #1D1D1F;
+    --m-search-bg: #FFE27A;
+    --m-search-text: #1D1D1F;
+    --m-search-current-bg: #FF9F0A;
+    --m-search-current-text: #1D1D1F;
+    --m-scroll-thumb: rgba(0, 0, 0, 0.22);
+    --m-shadow-pop: 0 0 0 0.5px rgba(0,0,0,0.08), 0 10px 32px rgba(0,0,0,0.14);
+    --m-alert-note: #0060C7;
+    --m-alert-tip: #1A7F37;
+    --m-alert-important: #7B3FC4;
+    --m-alert-warning: #9A5B00;
+    --m-alert-caution: #C4261D;
+    --m-chart-1: #0088FF;
+    --m-chart-2: #CB30E0;
+    --m-chart-3: #34C759;
+    --m-chart-4: #FF8D28;
+    --m-chart-5: #FF2D55;
+    --m-chart-6: #00C3D0;
+    --m-diagram-node: var(--m-bg);
+  }
+  #write .md-diagram-panel svg text:not(.slice):not(.row), #write .md-diagram-panel .nodeLabel, #write .md-diagram-panel .label, #write .md-diagram-panel span.edgeLabel { fill: #1d1d1f !important; color: #1d1d1f !important; }
+  html { font-size: 11pt; }
+  html, body, #write { background: var(--m-bg) !important; color: var(--m-text) !important; }
+  /* Sides come from the theme; Typora's Mac export forces top/bottom page margins to 0 */
+  #write { max-width: none; padding: 0 44pt !important; }
+  #write h2, #write h3, #write h4 { page-break-after: avoid; break-after: avoid; }
+  #write pre, #write table, #write img, #write blockquote { page-break-inside: avoid; break-inside: avoid; }
+  #write h5, #write h6 { page-break-after: avoid; break-after: avoid; }
+  #write .md-diagram-panel, #write .md-alert, #write .mathjax-block { page-break-inside: avoid; break-inside: avoid; }
+  /* Headings stay with their text; no lone lines */
+  #write h1 { page-break-after: avoid; break-after: avoid; }
+  #write p, #write li { orphans: 3; widows: 3; }
+}
+
+/* ==========================================================================
+   Long content — inline code wraps instead of overflowing the column
+   ========================================================================== */
+#write code { overflow-wrap: anywhere; }
+
+/* Inline HTML tags without browser-default styling that fits the theme */
+#write abbr[title] { text-decoration: underline dotted var(--m-text-2); text-underline-offset: 0.2em; cursor: help; }
+#write ins { text-decoration: underline; text-decoration-color: var(--m-alert-tip); text-underline-offset: 0.2em; }
+#write samp { font-family: var(--m-font-mono); font-size: 0.875em; }
+#write var { font-style: italic; color: var(--m-text); }
+#write q { quotes: "\201C" "\201D" "\2018" "\2019"; }
+#write small { font-size: 0.8125em; color: var(--m-text-2); }
+
+/* Right-to-left paragraphs: quote bar, callout bar and list indent follow the text */
+#write [dir="rtl"] blockquote, #write blockquote[dir="rtl"] { border-left: 0; border-right: 3px solid var(--m-quote-bar); }
+#write [dir="rtl"] ul, #write [dir="rtl"] ol, #write ul[dir="rtl"], #write ol[dir="rtl"] { padding-left: 0; padding-right: 1.6em; }
+
+/* Mindmap and timeline branches cycle through the six chart colours */
+#write .md-diagram-panel .section--1 > rect, #write .md-diagram-panel .section--1 > path, #write .md-diagram-panel .section--1 > circle, #write .md-diagram-panel .section--1 > polygon, #write .md-diagram-panel .section--1 rect, #write .md-diagram-panel .section--1 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-1) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-1) !important; }
+#write .md-diagram-panel .section-edge--1 { stroke: var(--m-chart-1) !important; }
+#write .md-diagram-panel .section-0 > rect, #write .md-diagram-panel .section-0 > path, #write .md-diagram-panel .section-0 > circle, #write .md-diagram-panel .section-0 > polygon, #write .md-diagram-panel .section-0 rect, #write .md-diagram-panel .section-0 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-2) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-2) !important; }
+#write .md-diagram-panel .section-edge-0 { stroke: var(--m-chart-2) !important; }
+#write .md-diagram-panel .section-1 > rect, #write .md-diagram-panel .section-1 > path, #write .md-diagram-panel .section-1 > circle, #write .md-diagram-panel .section-1 > polygon, #write .md-diagram-panel .section-1 rect, #write .md-diagram-panel .section-1 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-3) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-3) !important; }
+#write .md-diagram-panel .section-edge-1 { stroke: var(--m-chart-3) !important; }
+#write .md-diagram-panel .section-2 > rect, #write .md-diagram-panel .section-2 > path, #write .md-diagram-panel .section-2 > circle, #write .md-diagram-panel .section-2 > polygon, #write .md-diagram-panel .section-2 rect, #write .md-diagram-panel .section-2 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-4) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-4) !important; }
+#write .md-diagram-panel .section-edge-2 { stroke: var(--m-chart-4) !important; }
+#write .md-diagram-panel .section-3 > rect, #write .md-diagram-panel .section-3 > path, #write .md-diagram-panel .section-3 > circle, #write .md-diagram-panel .section-3 > polygon, #write .md-diagram-panel .section-3 rect, #write .md-diagram-panel .section-3 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-5) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-5) !important; }
+#write .md-diagram-panel .section-edge-3 { stroke: var(--m-chart-5) !important; }
+#write .md-diagram-panel .section-4 > rect, #write .md-diagram-panel .section-4 > path, #write .md-diagram-panel .section-4 > circle, #write .md-diagram-panel .section-4 > polygon, #write .md-diagram-panel .section-4 rect, #write .md-diagram-panel .section-4 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-6) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-6) !important; }
+#write .md-diagram-panel .section-edge-4 { stroke: var(--m-chart-6) !important; }
+#write .md-diagram-panel .section-5 > rect, #write .md-diagram-panel .section-5 > path, #write .md-diagram-panel .section-5 > circle, #write .md-diagram-panel .section-5 > polygon, #write .md-diagram-panel .section-5 rect, #write .md-diagram-panel .section-5 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-1) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-1) !important; }
+#write .md-diagram-panel .section-edge-5 { stroke: var(--m-chart-1) !important; }
+#write .md-diagram-panel .section-6 > rect, #write .md-diagram-panel .section-6 > path, #write .md-diagram-panel .section-6 > circle, #write .md-diagram-panel .section-6 > polygon, #write .md-diagram-panel .section-6 rect, #write .md-diagram-panel .section-6 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-2) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-2) !important; }
+#write .md-diagram-panel .section-edge-6 { stroke: var(--m-chart-2) !important; }
+#write .md-diagram-panel .section-7 > rect, #write .md-diagram-panel .section-7 > path, #write .md-diagram-panel .section-7 > circle, #write .md-diagram-panel .section-7 > polygon, #write .md-diagram-panel .section-7 rect, #write .md-diagram-panel .section-7 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-3) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-3) !important; }
+#write .md-diagram-panel .section-edge-7 { stroke: var(--m-chart-3) !important; }
+#write .md-diagram-panel .section-8 > rect, #write .md-diagram-panel .section-8 > path, #write .md-diagram-panel .section-8 > circle, #write .md-diagram-panel .section-8 > polygon, #write .md-diagram-panel .section-8 rect, #write .md-diagram-panel .section-8 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-4) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-4) !important; }
+#write .md-diagram-panel .section-edge-8 { stroke: var(--m-chart-4) !important; }
+#write .md-diagram-panel .section-9 > rect, #write .md-diagram-panel .section-9 > path, #write .md-diagram-panel .section-9 > circle, #write .md-diagram-panel .section-9 > polygon, #write .md-diagram-panel .section-9 rect, #write .md-diagram-panel .section-9 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-5) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-5) !important; }
+#write .md-diagram-panel .section-edge-9 { stroke: var(--m-chart-5) !important; }
+#write .md-diagram-panel .section-10 > rect, #write .md-diagram-panel .section-10 > path, #write .md-diagram-panel .section-10 > circle, #write .md-diagram-panel .section-10 > polygon, #write .md-diagram-panel .section-10 rect, #write .md-diagram-panel .section-10 path.node-bkg { fill: color-mix(in srgb, var(--m-chart-6) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-6) !important; }
+#write .md-diagram-panel .section-edge-10 { stroke: var(--m-chart-6) !important; }
+#write .md-diagram-panel [class*="section-"] text, #write .md-diagram-panel [class*="section-"] .nodeLabel, #write .md-diagram-panel .timeline-node text { fill: var(--m-text) !important; color: var(--m-text) !important; }
+#write .md-diagram-panel .lineWrapper line { stroke: var(--m-text-2) !important; }
+#write .md-diagram-panel .lineWrapper marker path, #write .md-diagram-panel marker#arrowhead path { fill: var(--m-text-2) !important; }
+#write .md-diagram-panel .section--1 line { stroke: var(--m-chart-1) !important; } #write .md-diagram-panel .section-0 line { stroke: var(--m-chart-2) !important; } #write .md-diagram-panel .section-1 line { stroke: var(--m-chart-3) !important; } #write .md-diagram-panel .section-2 line { stroke: var(--m-chart-4) !important; } #write .md-diagram-panel .section-3 line { stroke: var(--m-chart-5) !important; } #write .md-diagram-panel .section-4 line { stroke: var(--m-chart-6) !important; } #write .md-diagram-panel .section-5 line { stroke: var(--m-chart-1) !important; } #write .md-diagram-panel .section-6 line { stroke: var(--m-chart-2) !important; } #write .md-diagram-panel .section-7 line { stroke: var(--m-chart-3) !important; } #write .md-diagram-panel .section-8 line { stroke: var(--m-chart-4) !important; } #write .md-diagram-panel .section-9 line { stroke: var(--m-chart-5) !important; } #write .md-diagram-panel .section-10 line { stroke: var(--m-chart-6) !important; }
+/* gitGraph: branches and commits use the chart colours */
+#write .md-diagram-panel .branch { stroke: var(--m-border-strong) !important; }
+#write .md-diagram-panel .commit-label-bkg { fill: var(--m-surface-2) !important; opacity: 1 !important; stroke: var(--m-border) !important; }
+#write .md-diagram-panel .commit-label { fill: var(--m-text-2) !important; }
+#write .md-diagram-panel .commit-merge, #write .md-diagram-panel .commit-reverse { fill: var(--m-bg) !important; }
+#write .md-diagram-panel .arrow0 { stroke: var(--m-chart-1) !important; } #write .md-diagram-panel .commit0 { fill: var(--m-chart-1) !important; stroke: var(--m-chart-1) !important; } #write .md-diagram-panel .branchLabelBkg.label0 { fill: var(--m-chart-1) !important; stroke: none !important; } #write .md-diagram-panel .branch-label0 text, #write .md-diagram-panel .branch-label0 tspan { fill: #FFFFFF !important; }
+#write .md-diagram-panel .arrow1 { stroke: var(--m-chart-2) !important; } #write .md-diagram-panel .commit1 { fill: var(--m-chart-2) !important; stroke: var(--m-chart-2) !important; } #write .md-diagram-panel .branchLabelBkg.label1 { fill: var(--m-chart-2) !important; stroke: none !important; } #write .md-diagram-panel .branch-label1 text, #write .md-diagram-panel .branch-label1 tspan { fill: #FFFFFF !important; }
+#write .md-diagram-panel .arrow2 { stroke: var(--m-chart-3) !important; } #write .md-diagram-panel .commit2 { fill: var(--m-chart-3) !important; stroke: var(--m-chart-3) !important; } #write .md-diagram-panel .branchLabelBkg.label2 { fill: var(--m-chart-3) !important; stroke: none !important; } #write .md-diagram-panel .branch-label2 text, #write .md-diagram-panel .branch-label2 tspan { fill: #FFFFFF !important; }
+#write .md-diagram-panel .arrow3 { stroke: var(--m-chart-4) !important; } #write .md-diagram-panel .commit3 { fill: var(--m-chart-4) !important; stroke: var(--m-chart-4) !important; } #write .md-diagram-panel .branchLabelBkg.label3 { fill: var(--m-chart-4) !important; stroke: none !important; } #write .md-diagram-panel .branch-label3 text, #write .md-diagram-panel .branch-label3 tspan { fill: #FFFFFF !important; }
+#write .md-diagram-panel .arrow4 { stroke: var(--m-chart-5) !important; } #write .md-diagram-panel .commit4 { fill: var(--m-chart-5) !important; stroke: var(--m-chart-5) !important; } #write .md-diagram-panel .branchLabelBkg.label4 { fill: var(--m-chart-5) !important; stroke: none !important; } #write .md-diagram-panel .branch-label4 text, #write .md-diagram-panel .branch-label4 tspan { fill: #FFFFFF !important; }
+#write .md-diagram-panel .arrow5 { stroke: var(--m-chart-6) !important; } #write .md-diagram-panel .commit5 { fill: var(--m-chart-6) !important; stroke: var(--m-chart-6) !important; } #write .md-diagram-panel .branchLabelBkg.label5 { fill: var(--m-chart-6) !important; stroke: none !important; } #write .md-diagram-panel .branch-label5 text, #write .md-diagram-panel .branch-label5 tspan { fill: #FFFFFF !important; }
+#write .md-diagram-panel .arrow6 { stroke: var(--m-chart-1) !important; } #write .md-diagram-panel .commit6 { fill: var(--m-chart-1) !important; stroke: var(--m-chart-1) !important; } #write .md-diagram-panel .branchLabelBkg.label6 { fill: var(--m-chart-1) !important; stroke: none !important; } #write .md-diagram-panel .branch-label6 text, #write .md-diagram-panel .branch-label6 tspan { fill: #FFFFFF !important; }
+#write .md-diagram-panel .arrow7 { stroke: var(--m-chart-2) !important; } #write .md-diagram-panel .commit7 { fill: var(--m-chart-2) !important; stroke: var(--m-chart-2) !important; } #write .md-diagram-panel .branchLabelBkg.label7 { fill: var(--m-chart-2) !important; stroke: none !important; } #write .md-diagram-panel .branch-label7 text, #write .md-diagram-panel .branch-label7 tspan { fill: #FFFFFF !important; }
+/* Sankey: no multiply blend (it vanishes on dark), theme node colours and labels */
+#write .md-diagram-panel svg[aria-roledescription="sankey"] .link { mix-blend-mode: normal !important; }
+#write .md-diagram-panel svg[aria-roledescription="sankey"] .links { stroke-opacity: 0.4; }
+#write .md-diagram-panel svg[aria-roledescription="sankey"] .node-labels text { fill: var(--m-text) !important; }
+#write .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+1) rect { fill: var(--m-chart-1) !important; }
+#write .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+2) rect { fill: var(--m-chart-2) !important; }
+#write .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+3) rect { fill: var(--m-chart-3) !important; }
+#write .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+4) rect { fill: var(--m-chart-4) !important; }
+#write .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+5) rect { fill: var(--m-chart-5) !important; }
+#write .md-diagram-panel svg[aria-roledescription="sankey"] .nodes > g:nth-child(6n+6) rect { fill: var(--m-chart-6) !important; }
+/* C4: boxes like the other diagram nodes, tinted with the accent */
+#write .md-diagram-panel svg[aria-roledescription="c4"] rect:not([fill="none"]) { fill: color-mix(in srgb, var(--m-chart-1) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-1) !important; }
+#write .md-diagram-panel svg[aria-roledescription="c4"] text { fill: var(--m-text) !important; }
+#write .md-diagram-panel svg[aria-roledescription="c4"] text[font-style="italic"] { font-size: 9px !important; font-style: normal !important; font-weight: 500; fill: var(--m-text) !important; }
+#write .md-diagram-panel svg[aria-roledescription="c4"] line, #write .md-diagram-panel svg[aria-roledescription="c4"] path { stroke: var(--m-text-2) !important; }
+/* Journey, architecture, timeline title: theme colours, so exported HTML follows Light/Dark (Mermaid bakes the export-time mode into the SVG) */
+#write .md-diagram-panel svg[aria-roledescription="journey"] text, #write .md-diagram-panel svg[aria-roledescription="architecture"] text, #write .md-diagram-panel svg[aria-roledescription="timeline"] > text { fill: var(--m-text) !important; }
+#write .md-diagram-panel svg[aria-roledescription="journey"] rect.task, #write .md-diagram-panel svg[aria-roledescription="journey"] rect.journey-section { fill: color-mix(in srgb, var(--m-chart-1) 22%, var(--m-surface-2)) !important; stroke: var(--m-chart-1) !important; }
+#write .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-0 { fill: var(--m-chart-1) !important; }
+#write .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-1 { fill: var(--m-chart-2) !important; }
+#write .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-2 { fill: var(--m-chart-3) !important; }
+#write .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-3 { fill: var(--m-chart-4) !important; }
+#write .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-4 { fill: var(--m-chart-5) !important; }
+#write .md-diagram-panel svg[aria-roledescription="journey"] circle.actor-5 { fill: var(--m-chart-6) !important; }
+#write .md-diagram-panel svg[aria-roledescription="journey"] text { font-family: var(--mermaid-font-family) !important; }
+#write .md-diagram-panel svg[aria-roledescription="journey"] line { stroke: var(--m-text-2) !important; }
+#write .md-diagram-panel svg[aria-roledescription="journey"] marker path { fill: var(--m-text-2) !important; stroke: var(--m-text-2) !important; }
+/* Quadrant chart: Mermaid ignores the base theme here (default lavender, broken point colour) */
+#write .md-diagram-panel svg[aria-roledescription="quadrantChart"] text { fill: var(--m-text) !important; }
+#write .md-diagram-panel svg[aria-roledescription="quadrantChart"] .quadrant:nth-child(1) rect { fill: color-mix(in srgb, var(--m-chart-1) 18%, var(--m-surface-2)) !important; }
+#write .md-diagram-panel svg[aria-roledescription="quadrantChart"] .quadrant:nth-child(2) rect { fill: color-mix(in srgb, var(--m-chart-2) 18%, var(--m-surface-2)) !important; }
+#write .md-diagram-panel svg[aria-roledescription="quadrantChart"] .quadrant:nth-child(3) rect { fill: color-mix(in srgb, var(--m-chart-3) 18%, var(--m-surface-2)) !important; }
+#write .md-diagram-panel svg[aria-roledescription="quadrantChart"] .quadrant:nth-child(4) rect { fill: color-mix(in srgb, var(--m-chart-4) 18%, var(--m-surface-2)) !important; }
+#write .md-diagram-panel svg[aria-roledescription="quadrantChart"] .border line { stroke: var(--m-border-strong) !important; }
+#write .md-diagram-panel svg[aria-roledescription="quadrantChart"] .data-point circle { fill: var(--m-chart-1) !important; stroke: var(--m-bg) !important; }
+/* js-sequence: no dark backing box behind actor names */
+#write :is([lang="sequence"] .md-diagram-panel, .md-diagram-panel[lang="sequence"]) svg rect[stroke="none"] { fill: transparent !important; stroke: none !important; }
+/* XY chart: no white card, theme text and series colours */
+#write .md-diagram-panel g.main > rect.background { fill: transparent !important; }
+#write .md-diagram-panel g.chart-title text, #write .md-diagram-panel g.left-axis text, #write .md-diagram-panel g.bottom-axis text, #write .md-diagram-panel g.top-axis text, #write .md-diagram-panel g.right-axis text { fill: var(--m-text-2) !important; }
+#write .md-diagram-panel g.chart-title text { fill: var(--m-text) !important; }
+#write .md-diagram-panel g.left-axis path, #write .md-diagram-panel g.bottom-axis path, #write .md-diagram-panel g.top-axis path, #write .md-diagram-panel g.right-axis path { stroke: var(--m-border-strong) !important; }
+#write .md-diagram-panel g.bar-plot-0 rect { fill: var(--m-chart-1) !important; } #write .md-diagram-panel g.line-plot-0 path { stroke: var(--m-chart-1) !important; stroke-width: 2px; }
+#write .md-diagram-panel g.bar-plot-1 rect { fill: var(--m-chart-2) !important; } #write .md-diagram-panel g.line-plot-1 path { stroke: var(--m-chart-2) !important; stroke-width: 2px; }
+#write .md-diagram-panel g.bar-plot-2 rect { fill: var(--m-chart-3) !important; } #write .md-diagram-panel g.line-plot-2 path { stroke: var(--m-chart-3) !important; stroke-width: 2px; }
+#write .md-diagram-panel g.bar-plot-3 rect { fill: var(--m-chart-4) !important; } #write .md-diagram-panel g.line-plot-3 path { stroke: var(--m-chart-4) !important; stroke-width: 2px; }
+#write .md-diagram-panel g.bar-plot-4 rect { fill: var(--m-chart-5) !important; } #write .md-diagram-panel g.line-plot-4 path { stroke: var(--m-chart-5) !important; stroke-width: 2px; }
+#write .md-diagram-panel g.bar-plot-5 rect { fill: var(--m-chart-6) !important; } #write .md-diagram-panel g.line-plot-5 path { stroke: var(--m-chart-6) !important; stroke-width: 2px; }
+
+/* ==========================================================================
+   macOS accessibility display settings
+   ========================================================================== */
+/* Increase Contrast: lines and secondary text step up to the strong values */
+@media (prefers-contrast: more) {
+  :root {
+    --m-border: var(--m-border-strong);
+    --m-text-2: var(--m-text);
+    --m-link-underline: currentColor;
+  }
+  #write a { text-decoration-thickness: 2px; }
+}
+/* Reduce Motion: no rotating chevrons or fades */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; }
+}
+/* Reduce Transparency: solid fills instead of blur */
+@media (prefers-reduced-transparency: reduce) {
+  #write .md-image-btn { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(0, 0, 0, 0.85); }
+}

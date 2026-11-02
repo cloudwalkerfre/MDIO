@@ -1,0 +1,193 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Rust
+target/
+
+# Virtual env
+.venv/
+.conda/
+
+# Runtime data
+workspace/
+downloads/
+
+# Backups
+.backups/
+research/
+.ref/
+
+# Generated / large data
+code2md.py
+project_files.md
+test.md
+*.bin
+*.db
+
+# IDE
+.history/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# Claude internal
+.claude/
+
+# Env: 本机配置永不入库；`.env.example` 是唯一被跟踪的样板
+.env
+stepper?copy*
+stepper?copy?2*
+xbt?copy*
+xbt?copy?2*
+TMP.md
+UI_R.md
+L.md
+MORE_TYPE.md
+
+# Generated test data (large)
+mdio_core/tests/test_data/test*.md
+batch_results/
+
+# 实验/测试探针区（2026-08-28 起忽略；此前已跟踪文件已 untrack，磁盘保留）
+testbed/
+
+# 构建产物（2026-08-28 起忽略）
+**/dist/*
+
+# 分层构建产物：原子发布的代际目录 / 暂存区 / 构建戳 / vite 预构建缓存（2026-10-01）
+# 与上行同一意图：产物不进库；代际目录 `dist.gen<ts>` 与 `dist` 并存，必须逐条点名 `**/dist/*` 才盖得住。
+**/dist.gen*/
+**/dist
+**/.staging/
+**/.esmx-build.json
+**/.vite-cache/
+
+# wasm 构建产物 / profile 数据 / 运行时目录（2026-08-28 起）
+*.wasm
+**/profile.json.gz
+**/.mdio_telemetry/
+.cargo/
+
+# 禁用/备份/临时探针（2026-08-28 起忽略）
+**/_disabled_bins/*
+*.bak
+*_bq_fl_probe*
+mdio_core/tests/testbed/*
+mdio_py/scripts/*
+
+# 根级 scripts（分析/探针/验证脚本区——2026-08-28 起整体忽略，磁盘保留）
+scripts/*
+# 例外（2026-10-10）：桥是 mcp-mdio 的 transport 入口，DSH 靠它连上 mdio 并自启网关；
+# 改坏了没有 git 记录可回退，故纳入版本控制。其余 scripts/ 仍整体忽略。
+!scripts/mdio-mcp-bridge.mjs
+# 公仓发布脚本（DEV 本地工具；进版本控制以便可追溯）
+!scripts/public_release/
+scripts/public_release/lineage.tsv
+
+# 探针 / 笔记 / wasm 产物（2026-09-16 起整体忽略；此前已跟踪的已从索引移除，磁盘保留）
+probes/
+dsh-notes/
+wasm/
+
+# build_grid 生成的打包 UI 资产（发布时生成，不提交）
+mdio_py/src/mdio_py/web/
+
+# wasm crate 源码必须可复现（clean clone 要被 root Cargo workspace 加载）；
+# pkg/ 是构建产物，继续忽略。
+!mdio_ui/lib/wasm/
+!mdio_ui/lib/wasm/Cargo.toml
+!mdio_ui/lib/wasm/Cargo.lock
+!mdio_ui/lib/wasm/build.rs
+!mdio_ui/lib/wasm/src/
+!mdio_ui/lib/wasm/src/**
+!mdio_ui/lib/wasm/PLAN.md
+!mdio_ui/lib/wasm/USAGE.md
+mdio_ui/lib/wasm/pkg/
+
+# TODO files
+todo.md
+TODO.md
+
+# All .md except explicitly tracked
+*.md
+!mdio_py/src/mdio_py/plugins/llm/mdio_tool_docs.md
+!README.md
+!README.zh.md
+!docs/
+!docs/*.md
+# 开源发布必备文档（不属于"过程笔记"，需进版本库）
+!CONTRIBUTING.md
+!CODE_OF_CONDUCT.md
+!CHANGELOG.md
+!THIRD_PARTY_NOTICES.md
+!SECURITY.md
+# GitHub 协作模板（同样不属于过程笔记）
+!.github/*.md
+
+.reasonix/
+research/
+workspace/
+
+# BM25 search index
+.bm25_cache/
+
+# pytest
+.pytest_cache/
+.collaborator
+
+# Playwright MCP
+.playwright-mcp/
+
+# zvec index
+.zvec-grep/
+
+# Misc root-level (accidental npm install, etc.)
+package.json
+!mdio_py/src/mdio_py/notebook/package.json
+# 官方 mod 的清单必须进版本库（否则 `ui_std/package.json` 里 `std/comps`、`std/basic_render` 两个出口只在盘上 ⇒ 不可复现）。
+# ⚠️ 路径**限定**：只放行 `mdio_ui/lib/mods/<mod>/package.json` 这一层；其它任何位置的 package.json 仍一律忽略。
+!mdio_ui/lib/mods/*/package.json
+package-lock.json
+!mdio_py/src/mdio_py/notebook/package-lock.json
+mdio_py/src/mdio_core/
+mdio_py/src/mdio_py/mdio_core.*.so
+
+*.log
+
+# Telemetry output
+.telemetry/
+mdio_py/src/mdio_py/notebook/node_modules/
+mdio_py/src/mdio_py/notebook/.observable/
+
+# arrow ext: 显式放行 README；构建产物不入库
+!mdio_core/ext/README.md
+mdio_core/ext/arrow/*.duckdb_extension
+mdio_py/src/mdio_py/ext/
+mdio_py/src/mdio_py/notebook/data/session.json
+mdio_py/src/mdio_py/notebook/data/history.json
+.telemetry/node_modules/
+.telemetry/src/.observablehq/
+# exp_monaco / exp_log / exp_console：临时入库（wt 整体计划另置独立项目，2026-10-31 业主先这样）
+!exp_monaco/**/*.md
+!exp_log/**/*.md
+!exp_console/**/*.md
+# 上面例外之后，再把三个 wt 的运行时状态重新排除（gateway 生成的 .mds/* 与 /var）
+exp_monaco/wt/.mds/*
+exp_log/wt/.mds/*
+exp_console/wt/.mds/*
+!exp_monaco/wt/.mds/ui.md
+!exp_log/wt/.mds/ui.md
+!exp_console/wt/.mds/ui.md
+exp_monaco/wt/var/
+exp_log/wt/var/
+exp_console/wt/var/

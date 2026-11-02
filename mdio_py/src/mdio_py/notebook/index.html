@@ -1,0 +1,226 @@
+<!doctype html>
+<notebook theme="air">
+  <title>MDIO Telemetry Report</title>
+  <style type="text/css">
+    .chart-wrap { background: var(--theme-background-alt); border: 1px solid var(--theme-foreground-faintest); border-radius: 8px; padding: 12px; margin: 16px 0; }
+    .chart-wrap h3 { margin: 0 0 8px 12px; font-size: 13px; color: var(--theme-foreground-muted); font-weight: 500; }
+  </style>
+  <!-- data -->
+  <script id="c1" type="module" pinned>
+    const data = await FileAttachment("data/session.json").json();
+    const rows = data.rows;
+    const session = data.session || "no data";
+    const wall_ms = data.wall_ms || 0;
+    const total_ms = data.total_ms || rows.reduce((s, r) => s + r.total_ms, 0);
+    const arch = data.arch || "?";
+    const cpu = data.cpu || 0;
+    const top20 = rows.slice(0, 20);
+    const summary = [
+      {metric: "Session", value: session},
+      {metric: "Total CPU", value: `${total_ms.toFixed(0)} ms`},
+      {metric: "Wall Clock", value: `${wall_ms.toFixed(0)} ms`},
+      {metric: "Phases", value: rows.length},
+      {metric: "Platform", value: `${arch} · ${cpu} cores`},
+      {metric: "Top Phase", value: rows[0].name},
+    ];
+  </script>
+  <script id="c2" type="text/markdown"># ${session}</script>
+  <!-- stats -->
+  <script id="c3" type="module">
+    display(Inputs.table(summary, {columns: ["metric", "value"], width: {metric: 120}, maxHeight: 240}));
+  </script>
+  <!-- data table -->
+  <script id="c4" type="module" pinned>
+    const n = view(Inputs.range([10, rows.length], {step: 1, value: 20, label: "rows"}));
+  </script>
+  <script id="c5" type="module">
+    display(Inputs.table(rows.slice(0, n), {maxHeight: 380, sort: "total_ms", reverse: true, columns: ["name", "cnt", "total_ms", "avg_us"]}));
+  </script>
+  <!-- bar chart -->
+  <script id="c6" type="module" pinned>
+    display(html`<div class="chart-wrap"><h3>Top 20 by Duration</h3></div>`);
+    display(Plot.plot({
+      marginLeft: 180, height: 500, style: { fontSize: "12px" },
+      marks: [
+        Plot.barX(top20, { x: "total_ms", y: "name", sort: { y: "x", reverse: true }, fill: "var(--theme-blue)", tip: {format: {x: ".1f"}} }),
+        Plot.text(top20, { x: "total_ms", y: "name", text: d => `${d.total_ms.toFixed(1)} ms`, dx: 4, textAnchor: "start", fill: "var(--theme-foreground-muted)", fontSize: 10 }),
+      ],
+    }));
+  </script>
+  <!-- history -->
+  <script id="c7" type="module" pinned>
+    const histRaw = await FileAttachment("data/history.json").json().catch(() => null);
+    const keys = histRaw
+      ? histRaw.sessions.filter(s => s.phases > 20).map(s => s.ts.slice(0,8))
+      : [session.slice(0,8)];
+    const series = histRaw
+      ? histRaw.series.filter(d => d.values.some(v => v > 0)).map(d => ({
+          name: d.name, category: d.category,
+          values: histRaw.sessions.reduce((arr, s, i) => s.phases > 20 ? [...arr, d.values[i]] : arr, [])
+        }))
+      : rows.map(r => ({name: r.name, category: r.name.split("/")[0], values: [r.total_ms]}));
+    const group = d3.group(series, d => d.category);
+  </script>
+  <!-- animated treemap -->
+  <script id="c8" type="module" pinned>
+    const frame = view(Inputs.range([0, keys.length - 1], {step: 1, value: keys.length - 1, label: "session"}));
+
+    const tw = 928, th = 928;
+    const colorT = d3.scaleOrdinal()
+        .domain(group.keys())
+        .range(d3.schemeCategory10.map(d => d3.interpolateRgb(d, "white")(0.5)));
+    const formatNum = d3.format(".1f");
+    const max = d3.max(keys, (_, i) => d3.hierarchy(group).sum(d => d.values[i]).value);
+
+    const treemap = d3.treemap()
+        .tile(d3.treemapResquarify).size([tw, th])
+        .padding(d => d.height === 1 ? 1 : 0).round(true);
+
+    const root = treemap(d3.hierarchy(group)
+        .sum(d => Array.isArray(d.values) ? d3.sum(d.values) : 0)
+        .sort((a, b) => b.value - a.value));
+
+    const layout = idx => {
+      const k = Math.sqrt(root.sum(d => d.values[idx]).value / max);
+      const tx = (1 - k) / 2 * tw, ty = (1 - k) / 2 * th;
+      return treemap.size([tw * k, th * k])(root)
+        .each(d => (d.x0 += tx, d.x1 += tx, d.y0 += ty, d.y1 += ty)).leaves();
+    };
+
+    const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svgEl.setAttribute("viewBox", `0 -20 ${tw} ${th + 20}`);
+    svgEl.style.maxWidth = "100%"; svgEl.style.height = "auto"; svgEl.style.font = "10px sans-serif"; svgEl.style.overflow = "visible";
+    const svg = d3.select(svgEl);
+
+    const box = svg.append("g").selectAll("g")
+      .data(keys.map((key, i) => {
+        const value = root.sum(d => d.values[i]).value;
+        return {key, value, i, k: Math.sqrt(value / max)};
+      }).reverse())
+      .join("g")
+        .attr("transform", ({k}) => `translate(${(1 - k) / 2 * tw},${(1 - k) / 2 * th})`)
+        .attr("opacity", 0)
+        .call(g => g.append("text").attr("y", -6).attr("fill", "#777")
+          .selectAll("tspan").data(({key, value}) => [key, ` ${d3.format(",d")(value)}`]).join("tspan")
+            .attr("font-weight", (d, i) => i === 0 ? "bold" : null).text(d => d))
+        .call(g => g.append("rect").attr("fill", "none").attr("stroke", "#ccc")
+            .attr("width", ({k}) => k * tw).attr("height", ({k}) => k * th));
+
+    const leaf = svg.append("g").selectAll("g").data(layout(keys.length - 1)).join("g")
+        .attr("transform", d => `translate(${d.x0},${d.y0})`);
+    leaf.append("rect")
+        .attr("id", (d, i) => (d.leafUid = `leaf-${i}`))
+        .attr("fill", d => { while (d.depth > 1) d = d.parent; return colorT(d.data[0]); })
+        .attr("width", d => d.x1 - d.x0).attr("height", d => d.y1 - d.y0);
+    leaf.append("clipPath").attr("id", (d, i) => (d.clipUid = `clip-${i}`))
+      .append("use").attr("href", d => `#${d.leafUid}`);
+    const text = leaf.append("text").attr("clip-path", d => `url(#${d.clipUid})`);
+    text.append("tspan").text("\xa0");
+    text.append("tspan").attr("x", 3).attr("y", "1.1em").text(d => d.data.name.split("/").pop());
+    text.append("tspan").attr("x", 3).attr("y", `${1.1 + 1.2}em`).attr("fill-opacity", 0.7)
+        .text(d => formatNum(d.value) + " ms");
+    leaf.append("title").text(d => `${d.data.name}\n${d.value.toFixed(1)} ms`);
+
+    display(html`<div class="chart-wrap"><h3>Animated Treemap</h3></div>`);
+    display(svgEl);
+
+    const update = function(idx, duration) {
+      box.transition().duration(duration).attr("opacity", ({i}) => i >= idx ? 1 : 0);
+      leaf.data(layout(idx)).transition().duration(duration).ease(d3.easeLinear)
+          .attr("transform", d => `translate(${d.x0},${d.y0})`)
+          .call(lf => lf.select("rect").attr("width", d => d.x1 - d.x0).attr("height", d => d.y1 - d.y0))
+          .call(lf => lf.select("text tspan:last-child")
+              .tween("text", function(d) { const prev = parseFloat(this.textContent) || 0; return t => { this.textContent = formatNum(d3.interpolate(prev, d.value)(t)) + " ms"; }; }));
+    };
+    update(keys.length - 1, 0);
+  </script>
+  <script id="c9" type="module" pinned>
+    update(Math.round(frame), 800);
+  </script>
+  <!-- sunburst -->
+  <script id="c10" type="module" pinned>
+    function buildHierarchy(rows) {
+      const root = {name: session, children: []};
+      const lookup = new Map();
+      for (const r of rows) {
+        const parts = r.name.split("/");
+        let node = root;
+        for (let i = 0; i < parts.length; i++) {
+          const key = parts.slice(0, i + 1).join("/");
+          if (!lookup.has(key)) { const child = {name: parts[i], children: []}; node.children.push(child); lookup.set(key, child); }
+          node = lookup.get(key);
+        }
+        node.value = r.total_ms;
+      }
+      (function collapse(n) { if (n.children) { n.children.forEach(collapse); if (n.children.length === 1 && n.children[0].value !== undefined && !n.children[0].children) { n.name = n.name + "/" + n.children[0].name; n.value = n.children[0].value; n.children = null; } } })(root);
+      return root;
+    }
+    const tree = buildHierarchy(rows);
+  </script>
+  <script id="c11" type="module" pinned>
+    const w = 560, h = 560, r = w / 6;
+    const colorS = d3.scaleOrdinal(d3.quantize(d3.interpolateTurbo, tree.children.length + 1));
+    const hierarchy = d3.hierarchy(tree).sum(d => d.value || 0).sort((a, b) => b.value - a.value);
+    const root = d3.partition().size([2 * Math.PI, hierarchy.height + 1])(hierarchy);
+    root.each(d => d.current = d);
+    const arc = d3.arc().startAngle(d => d.x0).endAngle(d => d.x1)
+        .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005)).padRadius(r * 1.5)
+        .innerRadius(d => d.y0 * r).outerRadius(d => Math.max(d.y0 * r, d.y1 * r - 1));
+
+    const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svgEl.setAttribute("viewBox", `${-w/2} ${-h/2} ${w} ${w}`);
+    svgEl.style.font = "10px sans-serif"; svgEl.style.maxWidth = "100%";
+    const svg = d3.select(svgEl);
+
+    const path = svg.append("g").selectAll("path").data(root.descendants().slice(1)).join("path")
+        .attr("fill", d => { while (d.depth > 1) d = d.parent; return colorS(d.data.name); })
+        .attr("fill-opacity", d => arcV(d.current) ? (d.children ? 0.6 : 0.4) : 0)
+        .attr("pointer-events", d => arcV(d.current) ? "auto" : "none")
+        .attr("d", d => arc(d.current));
+    path.filter(d => d.children).style("cursor", "pointer").on("click", clicked);
+    path.append("title").text(d => `${d.ancestors().map(d => d.data.name).reverse().join(" / ")}\n${d3.format(".1f")(d.value)} ms`);
+    const label = svg.append("g").attr("pointer-events", "none").attr("text-anchor", "middle").style("user-select", "none")
+      .selectAll("text").data(root.descendants().slice(1)).join("text")
+        .attr("dy", "0.35em").attr("fill-opacity", d => +labelV(d.current))
+        .attr("transform", d => labelT(d.current)).style("fill", "var(--theme-foreground)")
+        .text(d => d.data.name.length > 16 ? d.data.name.slice(0,15)+"…" : d.data.name);
+    const parentS = svg.append("circle").datum(root).attr("r", r).attr("fill", "none").attr("pointer-events", "all").on("click", clicked);
+
+    display(html`<div class="chart-wrap"><h3>Phase Hierarchy</h3></div>`);
+    display(svgEl);
+
+    function clicked(event, p) {
+      parentS.datum(p.parent || root);
+      root.each(d => d.target = { x0: Math.max(0, Math.min(1, (d.x0 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI, x1: Math.max(0, Math.min(1, (d.x1 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI, y0: Math.max(0, d.y0 - p.depth), y1: Math.max(0, d.y1 - p.depth) });
+      const t = svg.transition().duration(750);
+      path.transition(t).tween("data", d => { const i = d3.interpolate(d.current, d.target); return t => d.current = i(t); })
+        .filter(function(d) { return +this.getAttribute("fill-opacity") || arcV(d.target); })
+        .attr("fill-opacity", d => arcV(d.target) ? (d.children ? 0.6 : 0.4) : 0).attr("pointer-events", d => arcV(d.target) ? "auto" : "none").attrTween("d", d => () => arc(d.current));
+      label.filter(function(d) { return +this.getAttribute("fill-opacity") || labelV(d.target); }).transition(t)
+        .attr("fill-opacity", d => +labelV(d.target)).attrTween("transform", d => () => labelT(d.current));
+    }
+    function arcV(d) { return d.y1 <= 3 && d.y0 >= 1 && d.x1 > d.x0; }
+    function labelV(d) { return d.y1 <= 3 && d.y0 >= 1 && (d.y1 - d.y0) * (d.x1 - d.x0) > 0.03; }
+    function labelT(d) { const x = (d.x0 + d.x1) / 2 * 180 / Math.PI; const y = (d.y0 + d.y1) / 2 * r; return `rotate(${x - 90}) translate(${y},0) rotate(${x < 180 ? 0 : 180})`; }
+  </script>
+  <!-- pipeline latency (layers) — 跨栈延迟视图, 数据来自 session.json layers -->
+  <script id="c13" type="module" pinned>
+    const layers = data.layers || [];
+    display(html`<div class="chart-wrap"><h3>Pipeline Latency (layers)</h3></div>`);
+    if (layers.length) {
+      display(Plot.plot({
+        marginLeft: 170, height: Math.max(140, layers.length * 30), style: { fontSize: "12px" },
+        marks: [
+          Plot.barX(layers, { x: "avg_us", y: "layer_name", sort: { y: "x", reverse: true }, fill: "var(--theme-blue)", tip: { format: { x: ".1f" } } }),
+          Plot.text(layers, { x: "avg_us", y: "layer_name", text: d => `${d.avg_us.toFixed(1)}µs · p50 ${d.p50_us.toFixed(1)} · p99 ${d.p99_us.toFixed(1)}`, dx: 4, textAnchor: "start", fill: "var(--theme-foreground-muted)", fontSize: 10 }),
+        ],
+      }));
+    } else {
+      display(html`<p style="color:var(--theme-foreground-muted);font-size:12px">No layer samples — 浏览器/网关流量采集后刷新本页</p>`);
+    }
+  </script>
+  <!-- footer -->
+  <script id="c12" type="text/markdown">
+    <small>${rows.length} phases &middot; wall ${wall_ms.toFixed(1)}ms &middot; ${arch} &middot; ${cpu} cores &middot; release</small>
+  </script>
+</notebook>

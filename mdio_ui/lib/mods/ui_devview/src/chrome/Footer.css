@@ -1,0 +1,6 @@
+/* Footer.css —— footer 槽 chrome：高度/拖拽/挂载点/占位（console 业务在 exp_console app 内）。 */
+.dv-footer { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; flex-shrink: 0; border-top: 1px solid var(--color-app-border); background: var(--color-app-surface-alt); color: var(--color-app-fg-muted); font-size: 11px; font-family: ui-monospace, Menlo, monospace; overflow: hidden; min-height: 30px; }
+.dv-grip { height: 4px; flex-shrink: 0; cursor: ns-resize; background: transparent; }
+.dv-grip:hover { background: #1677ff; }
+.dv-foot-app { flex: 1 1 auto; min-height: 0; width: 100%; display: block; }
+.dv-foot-empty { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; padding: 0 12px; color: var(--color-app-fg-muted, #8b93a7); font-size: 11px; font-family: ui-monospace, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

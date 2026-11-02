@@ -1,0 +1,32 @@
+{
+  "name": "ui_wasm",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./glue": "./src/glue.js",
+    "./worker": "./src/workerFactory.js",
+    "./version": "./src/version.js"
+  },
+  "esmx": {
+    "uses": [
+      "ui_base"
+    ],
+    "exports": {
+      "./glue": "./src/glue.js",
+      "./worker": "./src/workerFactory.js",
+      "./version": "./src/version.js"
+    }
+  },
+  "//": "wasm web 适配器（薄包装）：引擎 crate 在 ../../wasm，产物快照进 src/wasm/（scripts/sync-pkg.sh 维护）；只出 ./glue ./worker ./version 三面；运行时代码零 react/mobx。uses 承重与 ui_std 同口径；peerDependencies 只是声明「经 ui_base 收到的共享依赖的兼容范围」（esmx W_NO_RANGE 要求），不是本包 import 它们。",
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.3.0",
+    "mobx": "^7.0.6",
+    "mobx-react-lite": "^5.1.0",
+    "mobx-state-tree": "^8.0.0"
+  },
+  "dependencies": {
+    "ui_base": "link:../ui_base"
+  }
+}

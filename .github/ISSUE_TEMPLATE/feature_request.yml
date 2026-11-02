@@ -1,0 +1,41 @@
+name: Feature request
+description: Propose a capability change, with the problem it solves.
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature work happens upstream of this repository, so this issue is the argument for the feature, not the patch.
+
+        A good request describes the problem first and the solution second.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and where does MDIO get in the way today?
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What should MDIO do instead? If you have a design in mind, say how it fits the existing model.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you tried, or other designs you rejected and why.
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: This is not a bug report (use the bug form for those).
+          required: true

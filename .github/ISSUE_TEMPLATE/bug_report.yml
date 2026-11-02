@@ -1,0 +1,59 @@
+name: Bug report
+description: Report a reproducible problem with MDIO.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Keep it to **one problem** and include the smallest reproduction you can find.
+
+        Security problems must not be reported here — see `SECURITY.md`.
+  - type: input
+    id: version
+    attributes:
+      label: MDIO version
+      description: Output of `mdio --version`
+      placeholder: "0.8.5"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: Windows is supported through WSL2 only.
+      options:
+        - Linux x86_64
+        - Linux arm64
+        - macOS arm64
+        - Windows (WSL2)
+    validations:
+      required: true
+  - type: input
+    id: install
+    attributes:
+      label: How it was installed
+      placeholder: "uv tool install mdio-py / from wheel / from source"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest markdown file or command sequence that shows the problem.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include the full error output or a screenshot.
+    validations:
+      required: true

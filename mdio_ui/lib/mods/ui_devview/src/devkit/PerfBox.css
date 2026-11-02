@@ -1,0 +1,12 @@
+/* PerfBox.css —— 只服务 devkit/PerfBox.jsx（Perf 卡片：fps / 帧计数 / 分段耗时）。 */
+.dv-perf { flex: 0 0 auto; border-bottom: 1px solid var(--color-app-border); background: var(--color-app-bg); padding: 5px 8px; font-family: ui-monospace, Menlo, monospace; font-size: 10px; line-height: 1.5; cursor: pointer; user-select: none; }
+.dv-perf:hover { background: var(--color-app-surface); }
+.dv-perf-row { display: flex; align-items: baseline; gap: 6px; }
+.dv-perf .ttl { color: var(--color-app-fg-muted); font-weight: 600; letter-spacing: .04em; }
+.dv-perf .fps { font-weight: 600; }
+.dv-perf .total { color: var(--color-app-fg); margin-left: auto; }
+.dv-perf-row.sub { color: var(--color-app-fg-muted); }
+.dv-perf .seg { white-space: nowrap; }
+.dv-perf .sep { opacity: .5; }
+.dv-perf .muted { margin-left: auto; opacity: .6; }
+.dv-perf.is-collapsed .dv-perf-row.sub { display: none; }

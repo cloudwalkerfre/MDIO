@@ -1,0 +1,29 @@
+{
+  "name": "ui_appview",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./appView": "./src/appView.js"
+  },
+  "dependencies": {
+    "ui_base": "link:../ui_base",
+    "ui_core": "link:../ui_core"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "mobx": "^7.0.6",
+    "mobx-react-lite": "^5.1.0",
+    "mobx-state-tree": "^8.0.0",
+    "react-dom": "^19.3.0"
+  },
+  "esmx": {
+    "uses": [
+      "ui_base",
+      "ui_core"
+    ],
+    "exports": {
+      "./appView": "./src/appView.js"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+[grid]
+name = "mdio_ui"
+prefix = "ui"
+
+[targets.doctor]
+description = "Check UI toolchain prerequisites"
+run = "python3 tools/build_grid/doctor.py --ui"
+
+[targets.wasm]
+description = "Build the wasm engine snapshot"
+env = { MDIO_WASM_SKIP_UI_BUILD = "1" }
+run = "bash mdio_ui/lib/mods/ui_wasm/scripts/build-wasm-web.sh"
+outputs = ["mdio_ui/lib/wasm/pkg", "mdio_ui/lib/mods/ui_wasm/src/wasm"]
+
+[targets.bundle]
+description = "Build esmx modules/demo and assemble packaged web assets"
+depends = ["wasm"]
+run = "bash mdio_ui/scripts/grid_bundle_ui.sh"
+outputs = ["mdio_py/src/mdio_py/web/client"]

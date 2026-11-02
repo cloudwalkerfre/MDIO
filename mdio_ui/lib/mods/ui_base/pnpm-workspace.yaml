@@ -1,0 +1,6 @@
+# 平台包自带依赖：把自己认作 workspace 根（packages 为空 = 没有子包）。
+# 为什么需要它：仓库根也有 package.json/node_modules，pnpm 默认会把本目录当成**根 workspace 的成员**，
+# 于是 install 装的是**根项目**的依赖，而平台解析到的 react-dom 会变成根版本（实测 19.2.7），
+# 与自身声明的 ^19.3.0 冲突（表现为 esmx 的 [E_VERSION]，与路径无关、很难查）。
+# 有了这份文件，裸 `pnpm install` 就等同于 `pnpm install --ignore-workspace`。
+packages: []

@@ -1,0 +1,36 @@
+{
+  "name": "ui_base",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "esmx": {
+    "entry": {
+      "client": "./src/entry.client.ts",
+      "server": "./src/entry.server.ts"
+    },
+    "exports": {
+      "./monaco": "./src/monaco.ts"
+    },
+    "provides": [
+      "react",
+      "react/jsx-runtime",
+      "react/jsx-dev-runtime",
+      "react-dom",
+      "react-dom/client",
+      "mobx",
+      "mobx-react-lite",
+      "mobx-state-tree"
+    ]
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "0.0.0-insiders.fa81d69",
+    "mobx": "^7.0.6",
+    "mobx-react-lite": "^5.1.0",
+    "mobx-state-tree": "^8.0.0",
+    "monaco-editor": "^0.57.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.3.0",
+    "tailwindcss": "0.0.0-insiders.fa81d69"
+  },
+  "//tailwind": "【版本注记 2026-10-01】tailwindcss / @tailwindcss/vite 现钉在预发布 0.0.0-insiders.fa81d69 —— 只因官方修复 #20414（不再对 @source 扫描到的文件硬发 full-reload＝改文档就整页刷新）还没发正式版（CHANGELOG 里仍在 Unreleased）。**正式版发布后请改回正式版**（把下面两个版本号换成当时最新稳定版，例如 ^4.4.0），并复跑两条验收：① 改一个树内 MD 的标题 ⇒ 页面**不得发生导航**（应见 [vite] hot updated: /src/app/ui.css）；② 同一次编辑里新增一个全新 utility class ⇒ 工具类应生效。**不要自己给插件打补丁/hack**：官方路径已修，hack 只会在升级后变成双份或静默失效。"
+}

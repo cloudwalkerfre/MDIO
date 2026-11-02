@@ -1,0 +1,11 @@
+# 方向闸基线（DEV/check_core_layers_plan 复盘研究结论 F）：挂账只减不增。
+# 债分类（2026-10-12 实测翻案）：生产债 2 条 + test-tier 债 3 条。
+#   生产：incr->session（reaper 协议 ReleasedMem/reaper_take_if_last 应下沉 cache/types 层）、
+#         match->hook（compute_scope_range 归属：hook.rs 实现 vs match.rs 头注声称）。
+#   test-tier：cache->session（cache 测试借用 session 类型）、match->hook（测试侧同因）、
+#         projection->engine（cfg(test) 引用）。test-tier 只降处置优先级，不降挂账原则。
+cache->session: [test] 向上引用未登记（L3→L4），请登记 domain outlet 或下移实现
+incr->session: 向上引用未登记（L3→L4），请登记 domain outlet 或下移实现
+match->hook: [test] 向上引用未登记（L3→L4），请登记 domain outlet 或下移实现
+match->hook: 向上引用未登记（L3→L4），请登记 domain outlet 或下移实现
+projection->engine: [test] 向上引用未登记（L3→L4），请登记 domain outlet 或下移实现

@@ -1,0 +1,10 @@
+/* ErrorBoundary.css —— 只服务 core/src/render/ErrorBoundary.jsx（降级卡 + 重试按钮）。
+ * 为什么在 core 而不是壳包：边界是**框架**件（NodeView 用它包每个区域），壳包只是它的使用者；
+ * `.dv-mini`（小按钮）也是这里先用的，LogPanel 的「清空/底部」复用同一类 ⇒ 低层定义、上层继承。 */
+/* base/ErrorBoundary 降级卡（旧壳内联样式 → token 化；按区域隔离，其余区域照常可用） */
+.dv-eb { margin: 8px; padding: 10px 14px; border: 1px solid rgba(255,107,107,0.4); border-radius: 6px; background: rgba(255,107,107,0.08); color: #ff7b72; font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+.dv-eb-ttl { font-weight: 600; margin-bottom: 4px; }
+.dv-eb-msg { opacity: 0.8; margin-bottom: 8px; word-break: break-all; }
+.dv-mini { border: 1px solid var(--color-app-border); background: var(--color-app-surface); color: var(--color-app-fg-muted); font-size: 10px; padding: 0 5px; border-radius: 3px; cursor: pointer; }
+.dv-mini:hover { color: var(--color-app-fg); border-color: var(--color-app-border-hover); }
+.dv-mini.hot { color: #e3b341; border-color: #e3b341; }   /* 不在底部：跳转按钮高亮（旧壳的新日志提示） */
