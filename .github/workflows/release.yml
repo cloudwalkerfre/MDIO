@@ -20,20 +20,18 @@ jobs:
         run: bash mdio_ui/lib/wasm/scripts/bootstrap-wasm-tools.sh
       - name: verify full chain
         run: python3 tools/build_grid/runner.py verify
-      # Build the wheel inside the manylinux image: maturin then emits a single
-      # manylinux_2_28 tag. Repairing a host-built linux_x86_64 wheel instead
-      # produces a compressed tag (manylinux_2_34.manylinux_2_39) that pip
+      # PyPI rejects plain linux_x86_64 wheels. auditwheel with its automatic
+      # platform picks the lowest manylinux policy the wheel actually needs and
+      # emits a single tag (manylinux_2_34_x86_64). Passing --plat explicitly
+      # produced a compressed tag (manylinux_2_34.manylinux_2_39) that pip
       # refuses to install.
-      - name: build manylinux wheel
+      - name: retag wheel for PyPI
         run: |
-          docker run --rm -v "$PWD:/w" -w /w quay.io/pypa/manylinux_2_28_x86_64 bash -lc '
-            set -euo pipefail
-            curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain 1.98.0
-            curl -LsSf https://astral.sh/uv/install.sh | sh
-            export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
-            rm -f dist/*.whl
-            python3 tools/build_grid/build_wheel.py
-          '
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq patchelf
+          uv tool install auditwheel
+          uv tool run auditwheel repair -w dist dist/*.whl
+          rm -f dist/*-linux_x86_64.whl
           ls -l dist/
       - uses: actions/upload-artifact@v4
         with:
