@@ -38,9 +38,21 @@ $ /demo.md:: -pj raw | arrow -duckdb "
 " -rows
 ```
 
-## 演示
+<details>
+<summary><strong>DEMO</strong></summary>
 
-[![演示](./docs/assets/genesis-demo-2026-11-02-1920.webp)](./docs/assets/genesis-demo-2026-11-02-1920.webp)
+<p align="center">
+  <a href="https://md-io.org/">
+    <img src="./docs/assets/hs-writes-en.webp" width="100%"
+         alt="MDIO Read / Writer / Hook 演示">
+  </a>
+</p>
+
+<p align="center">
+  <sub>动态预览 · <a href="https://md-io.org/">打开交互演示</a></sub>
+</p>
+
+</details>
 
 ---
 
