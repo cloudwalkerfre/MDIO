@@ -51,11 +51,16 @@ def _marker_expr(args: list[str]) -> str | None:
 def _collect_tests(marker: str | None = None) -> list[str]:
     """Node ids of the tests pytest collects under mdio_py/tests.
 
-    The marker filter is applied here too: a file whose tests are all
-    deselected (slow/perf) would otherwise form a chunk that runs no tests and
-    exits with pytest's "no tests ran" status 5.
+    The marker filter is applied here too, and warnings are disabled during
+    collection: a warning line can contain "::" and would otherwise be parsed
+    as a test id, ink a bogus target into a chunk and make that chunk exit with
+    "no tests ran" (status 5).
+
+    Only lines that start with the tests directory and end at a test id are
+    accepted; node ids printed by `--collect-only -q` are repository-relative.
     """
-    collect_args = ["--collect-only", "-q"]
+    prefix = f"{TESTS.relative_to(ROOT)}/"
+    collect_args = ["--collect-only", "-q", "-p", "no:warnings"]
     if marker:
         collect_args += ["-m", marker]
     out = subprocess.run(
@@ -68,11 +73,18 @@ def _collect_tests(marker: str | None = None) -> list[str]:
         sys.stderr.write(out.stdout)
         sys.stderr.write(out.stderr)
         raise SystemExit(out.returncode)
-    return [
-        line.strip()
-        for line in out.stdout.splitlines()
-        if "::" in line and not line.strip().startswith(("=", "no tests"))
-    ]
+
+    nodes: list[str] = []
+    for raw in out.stdout.splitlines():
+        line = raw.strip()
+        if not line.startswith(prefix) or "::" not in line:
+            continue
+        path = line.split("::", 1)[0]
+        if not path.endswith(".py"):
+            print(f"[pytest-chunks] ignoring malformed id: {line!r}", file=sys.stderr)
+            continue
+        nodes.append(line)
+    return nodes
 
 
 def _file_bins(nodes: list[str], chunks: int) -> list[list[str]]:
