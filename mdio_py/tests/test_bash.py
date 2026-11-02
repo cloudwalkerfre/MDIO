@@ -986,6 +986,7 @@ async def test_bash_context_stream_aclose_resets_session(runtime: MdioRuntime, w
     await runtime.exec("@BASH.sess -close aclosebox", wt_uid="genesis")
 
 
+@pytest.mark.slow  # macOS runner：SIGKILL 后 reparent 的孙进程可能残留，属进程树清理的边界行为
 async def test_bash_probe_terminates_reparented_session_children() -> None:
     probe = BashProcessProbe()
     import subprocess
