@@ -815,7 +815,7 @@ wheels = [
 
 [[package]]
 name = "mdio"
-version = "0.8.4"
+version = "0.8.5"
 source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },

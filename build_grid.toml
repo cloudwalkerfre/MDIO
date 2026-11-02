@@ -8,7 +8,18 @@ run = "python3 tools/build_grid/doctor.py"
 
 [targets."rust:test"]
 description = "Rust workspace unit tests"
-run = "MDIO_PROJ_MODE=hs MDIO_PATCH_GRANULARITY=block cargo test --workspace --lib"
+# `curve_*` 测试断言的是时间曲线（阈值/线性），共享 runner 上会抖；CI 跳过，本地照跑。
+run = """
+if [ -n "${CI:-}" ]; then
+  MDIO_PROJ_MODE=hs MDIO_PATCH_GRANULARITY=block cargo test --workspace --lib -- --skip curve_
+else
+  MDIO_PROJ_MODE=hs MDIO_PATCH_GRANULARITY=block cargo test --workspace --lib
+fi
+"""
+
+[targets."rust:test-perf"]
+description = "Rust timing-curve tests (local only; CI skips them)"
+run = "MDIO_PROJ_MODE=hs MDIO_PATCH_GRANULARITY=block cargo test --workspace --lib -- curve_"
 
 [targets."py:sync"]
 description = "Sync Python development environment"

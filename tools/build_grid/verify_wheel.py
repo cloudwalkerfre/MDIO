@@ -44,7 +44,7 @@ def main() -> int:
     env["MDIO_GATEWAY_PORT"] = str(PORT)
     log = TMP / "gateway.log"
     proc = subprocess.Popen(
-        [str(VENV / "bin/mdio"), "start", "--gateway", "--port", str(PORT)],
+        [str(VENV / "bin/mdio"), "serve", "--port", str(PORT)],
         env=env, cwd=str(ROOT), stdout=log.open("wb"), stderr=subprocess.STDOUT,
     )
     try:
