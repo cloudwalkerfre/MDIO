@@ -20,6 +20,16 @@ jobs:
         run: bash mdio_ui/lib/wasm/scripts/bootstrap-wasm-tools.sh
       - name: verify full chain
         run: python3 tools/build_grid/runner.py verify
+      # PyPI rejects plain linux_x86_64 wheels; auditwheel retags the built
+      # wheel and bundles the non-glibc shared libraries it links against.
+      - name: retag wheel for PyPI
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq patchelf
+          uv tool install auditwheel
+          uv tool run auditwheel repair --plat manylinux_2_39_x86_64 -w dist dist/*.whl
+          rm -f dist/*-linux_x86_64.whl
+          ls -l dist/
       - uses: actions/upload-artifact@v4
         with:
           name: dist
