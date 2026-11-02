@@ -38,10 +38,28 @@ def _pytest_cmd(args: list[str], targets: list[str]) -> list[str]:
     return [*cmd, *args, *targets]
 
 
-def _collect_tests() -> list[str]:
-    """Node ids of every test pytest collects under mdio_py/tests."""
+def _marker_expr(args: list[str]) -> str | None:
+    """The -m expression from the pytest args, if any."""
+    for index, arg in enumerate(args):
+        if arg == "-m" and index + 1 < len(args):
+            return args[index + 1]
+        if arg.startswith("-m") and len(arg) > 2:
+            return arg[2:]
+    return None
+
+
+def _collect_tests(marker: str | None = None) -> list[str]:
+    """Node ids of the tests pytest collects under mdio_py/tests.
+
+    The marker filter is applied here too: a file whose tests are all
+    deselected (slow/perf) would otherwise form a chunk that runs no tests and
+    exits with pytest's "no tests ran" status 5.
+    """
+    collect_args = ["--collect-only", "-q"]
+    if marker:
+        collect_args += ["-m", marker]
     out = subprocess.run(
-        _pytest_cmd(["--collect-only", "-q"], [str(TESTS)]),
+        _pytest_cmd(collect_args, [str(TESTS)]),
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -84,11 +102,11 @@ def main() -> int:
     if chunks <= 1:
         return subprocess.run(_pytest_cmd(args, [str(TESTS)]), cwd=ROOT).returncode
 
-    nodes = _collect_tests()
+    nodes = _collect_tests(_marker_expr(args))
     if not nodes:
         print(f"no tests collected under {TESTS}", file=sys.stderr)
         return 2
-    print(f"[pytest-chunks] collected {len(nodes)} test(s)", flush=True)
+    print(f"[pytest-chunks] collected {len(nodes)} selected test(s)", flush=True)
 
     status = 0
     for index, files in enumerate(_file_bins(nodes, chunks), start=1):

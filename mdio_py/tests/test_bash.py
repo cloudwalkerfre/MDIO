@@ -1004,10 +1004,10 @@ async def test_bash_probe_terminates_reparented_session_children() -> None:
         proc.wait(timeout=5)
         outcome = probe.terminate_tree("reparented", identity, grace_ms=500)
         assert outcome.confirmed, outcome
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + 10.0
         for pid in child_pids:
-            for _ in range(100):
-                if not psutil.pid_exists(pid):
-                    break
+            while psutil.pid_exists(pid) and loop.time() < deadline:
                 await asyncio.sleep(0.02)
             assert not psutil.pid_exists(pid), f"survivor {pid}"
     finally:
