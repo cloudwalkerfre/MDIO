@@ -12,8 +12,9 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     env:
-      # macOS runners hit the per-process thread limit with 4 xdist workers.
-      MDIO_PYTEST_WORKERS: ${{ matrix.os == 'macos-latest' && '2' || '4' }}
+      # macOS runners hit the per-user thread limit; split the suite into
+      # sequential processes so each one starts from a small thread count.
+      MDIO_PYTEST_CHUNKS: ${{ matrix.os == 'macos-latest' && '4' || '1' }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
