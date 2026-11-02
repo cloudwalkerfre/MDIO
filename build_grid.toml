@@ -28,7 +28,7 @@ run = "uv sync --python 3.14"
 [targets."py:test"]
 description = "Python test suite (stable subset)"
 depends = ["py:sync", "py:arrow", "py:fts"]
-run = "MDIO_PROJ_MODE=cf MDIO_PATCH_GRANULARITY=block uv run --python 3.14 python -m pytest mdio_py/tests -q -m 'not slow and not perf' -n 4 --dist loadgroup --timeout=300"
+run = "MDIO_PROJ_MODE=cf MDIO_PATCH_GRANULARITY=block uv run --python 3.14 python -m pytest mdio_py/tests -q -m 'not slow and not perf' -n ${MDIO_PYTEST_WORKERS:-4} --dist loadgroup --timeout=300"
 
 [targets."py:test-slow"]
 description = "Python slow test suite"

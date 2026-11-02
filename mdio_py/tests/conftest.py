@@ -244,6 +244,16 @@ def _clear_ckpt_cache():
     _ckpt_text_cache.clear()
 
 
+@pytest.fixture(autouse=True)
+def _gc_after_test_on_ci():
+    """CI 的 macOS runner 线程上限较紧：运行时/持久化对象晚释放会累积 native 线程，
+    跑到中途 spawn 失败（EAGAIN）。每个测试后强制回收一轮，尽早归还线程。"""
+    yield
+    if os.environ.get("CI"):
+        import gc
+        gc.collect()
+
+
 # Telemetry: pytest --telemetry[=bench] 全局开关
 
 def pytest_addoption(parser):
