@@ -50,7 +50,7 @@ $ /demo.md:: -pj raw | arrow -duckdb "
 </p>
 
 <details>
-<summary><strong>DEMO</strong> · original recording</summary>
+<summary><strong>DEMO</strong> · Pure MD frontend mapping, live MD edits (CRDT or MDIO writes), live UI updates</summary>
 
 <p align="center">
   <a href="./docs/assets/genesis-demo-2026-11-02-1920.webp">

@@ -50,7 +50,7 @@ $ /demo.md:: -pj raw | arrow -duckdb "
 </p>
 
 <details>
-<summary><strong>DEMO</strong> · 原始录屏</summary>
+<summary><strong>DEMO</strong> · 纯 MD 前端映射, MD 实时编辑(CRDT 或 MDIO 写), UI 实时更新</summary>
 
 <p align="center">
   <a href="./docs/assets/genesis-demo-2026-11-02-1920.webp">
