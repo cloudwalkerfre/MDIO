@@ -19,6 +19,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TESTS = ROOT / "mdio_py" / "tests"
+# 显式指定 pytest 配置：按文件列表调用时 rootdir 不再落到 mdio_py，
+# 否则 asyncio_mode / markers / addopts 全部丢失（异步 fixture 当场报错）。
+CONFIG = ROOT / "mdio_py" / "pyproject.toml"
+
+
+def _pytest_cmd(args: list[str], files: list[str]) -> list[str]:
+    cmd = [sys.executable, "-m", "pytest"]
+    if CONFIG.is_file():
+        cmd += ["-c", str(CONFIG)]
+    return [*cmd, *args, *files]
 
 
 def main() -> int:
@@ -28,8 +38,6 @@ def main() -> int:
     except ValueError:
         print("MDIO_PYTEST_CHUNKS must be an integer", file=sys.stderr)
         return 2
-    if chunks <= 1:
-        return subprocess.run([sys.executable, "-m", "pytest", *args], cwd=ROOT).returncode
 
     files = sorted(
         str(p.relative_to(ROOT)) for p in TESTS.rglob("test_*.py")
@@ -38,15 +46,16 @@ def main() -> int:
         print(f"no test files under {TESTS}", file=sys.stderr)
         return 2
 
+    if chunks <= 1:
+        return subprocess.run(_pytest_cmd(args, files), cwd=ROOT).returncode
+
     status = 0
     for index in range(chunks):
         bucket = files[index::chunks]
         if not bucket:
             continue
         print(f"[pytest-chunks] {index + 1}/{chunks}: {len(bucket)} file(s)", flush=True)
-        code = subprocess.run(
-            [sys.executable, "-m", "pytest", *args, *bucket], cwd=ROOT
-        ).returncode
+        code = subprocess.run(_pytest_cmd(args, bucket), cwd=ROOT).returncode
         if code != 0:
             status = code
     return status
