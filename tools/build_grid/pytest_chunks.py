@@ -109,11 +109,21 @@ def main() -> int:
     print(f"[pytest-chunks] collected {len(nodes)} selected test(s)", flush=True)
 
     status = 0
-    for index, files in enumerate(_file_bins(nodes, chunks), start=1):
+    bins = _file_bins(nodes, chunks)
+    for index, files in enumerate(bins, start=1):
         if not files:
             continue
-        print(f"[pytest-chunks] {index}/{chunks}: {len(files)} file(s)", flush=True)
+        print(
+            f"[pytest-chunks] {index}/{chunks}: {len(files)} file(s): "
+            + " ".join(files),
+            flush=True,
+        )
         code = subprocess.run(_pytest_cmd(args, files), cwd=ROOT).returncode
+        if code == 5:
+            # pytest: no tests ran. The files were collected during binning, so
+            # treat it as a selection quirk rather than a failing test.
+            print(f"[pytest-chunks] {index}/{chunks}: no tests ran (skipped)", flush=True)
+            continue
         if code != 0:
             status = code
     return status
