@@ -12,9 +12,12 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     env:
-      # macOS runners hit the per-user thread limit; split the suite into
-      # sequential processes so each one starts from a small thread count.
-      MDIO_PYTEST_CHUNKS: ${{ matrix.os == 'macos-latest' && '4' || '1' }}
+      # macOS runners cap a process at ~kern.num_threads/5 threads (~2047 on the
+      # hosted VMs), and each engine instance costs ~6 threads until its loop is
+      # closed, so a single long pytest process runs out around 450 tests.
+      # Ten chunks keep every process near 240 tests; verified in a 4-core/8GB
+      # macOS VM with the same 2047-thread cap.
+      MDIO_PYTEST_CHUNKS: ${{ matrix.os == 'macos-latest' && '10' || '1' }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
