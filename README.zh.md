@@ -38,9 +38,6 @@ $ /demo.md:: -pj raw | arrow -duckdb "
 " -rows
 ```
 
-<details>
-<summary><strong>DEMO</strong></summary>
-
 <p align="center">
   <a href="https://md-io.org/">
     <img src="./docs/assets/hs-writes-en.webp" width="100%"
@@ -50,6 +47,16 @@ $ /demo.md:: -pj raw | arrow -duckdb "
 
 <p align="center">
   <sub>动态预览 · <a href="https://md-io.org/">打开交互演示</a></sub>
+</p>
+
+<details>
+<summary><strong>DEMO</strong> · 原始录屏</summary>
+
+<p align="center">
+  <a href="./docs/assets/genesis-demo-2026-11-02-1920.webp">
+    <img src="./docs/assets/genesis-demo-2026-11-02-1920.webp" width="100%"
+         alt="MDIO 原始演示">
+  </a>
 </p>
 
 </details>
