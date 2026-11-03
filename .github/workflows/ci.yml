@@ -2,7 +2,31 @@ name: ci
 
 on:
   push:
+    paths-ignore:
+      - "README.md"
+      - "README.zh.md"
+      - "CHANGELOG.md"
+      - "CODE_OF_CONDUCT.md"
+      - "CONTRIBUTING.md"
+      - "SECURITY.md"
+      - "THIRD_PARTY_NOTICES.md"
+      - "commonmark.md"
+      - "commonmark-LICENSE.txt"
+      - "LICENSE"
+      - "docs/**"
   pull_request:
+    paths-ignore:
+      - "README.md"
+      - "README.zh.md"
+      - "CHANGELOG.md"
+      - "CODE_OF_CONDUCT.md"
+      - "CONTRIBUTING.md"
+      - "SECURITY.md"
+      - "THIRD_PARTY_NOTICES.md"
+      - "commonmark.md"
+      - "commonmark-LICENSE.txt"
+      - "LICENSE"
+      - "docs/**"
 
 jobs:
   test:

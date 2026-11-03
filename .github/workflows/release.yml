@@ -7,7 +7,40 @@ on:
       - "v*"
 
 jobs:
+  build-needed:
+    # Path filters are not evaluated for tag pushes, so decide inside the run:
+    # a docs-only tag move must not rebuild the wheel and republish it.
+    runs-on: ubuntu-latest
+    outputs:
+      needed: ${{ steps.check.outputs.needed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: check
+        name: check whether code changed
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          base="$(git rev-parse HEAD^ 2>/dev/null || true)"
+          if [ -z "$base" ]; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed="$(git diff --name-only "$base" HEAD | grep -vE \
+            '(^docs/|^LICENSE|\.md$|\.txt$|\.png$|\.jpe?g$|\.gif$|\.webp$|\.svg$)' || true)"
+          echo "changed code paths: ${changed:-<none>}"
+          if [ -n "$changed" ]; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          fi
+
   verify:
+    needs: build-needed
+    if: needs.build-needed.outputs.needed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
