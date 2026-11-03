@@ -2,6 +2,9 @@ name: ci
 
 on:
   push:
+    # Tag pushes are handled by release.yml; path filters do not apply to tags,
+    # so restrict this workflow to branches to avoid a full matrix per tag.
+    branches: ["**"]
     paths-ignore:
       - "README.md"
       - "README.zh.md"
