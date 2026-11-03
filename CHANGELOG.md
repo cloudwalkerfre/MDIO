@@ -19,14 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-## [0.8.5] - unreleased
+## [0.8.5] - 2026-11-03
 
-First public release. **Replace the placeholder entries below before tagging.**
+First public release.
 
-Platform scope: Linux x86_64 and macOS arm64. Windows is supported through WSL2,
-which consumes the same Linux wheel; native Windows is not supported. Platforms
-without a prebuilt wheel can build from the sdist (requires Rust, Node and
-Docker).
+Platform scope: Windows is supported through WSL2, which consumes the same
+Linux wheel as native Linux; native Windows is not supported. The 0.8.5 PyPI
+release ships the Linux x86_64 wheel (`manylinux_2_34`); the macOS arm64 wheel
+follows within this version.
 
 ### Added
 
@@ -38,5 +38,16 @@ Docker).
 - Distribution name unified as `mdio-py`; the build backend switched to maturin.
 
 ### Fixed
+
+- The published wheel uses a single `manylinux_2_34` platform tag; PyPI rejects
+  `linux_x86_64`, and a compressed `manylinux_2_34.manylinux_2_39` tag is not
+  installable by pip.
+- The release smoke test boots the gateway with `mdio serve`; `mdio start` no
+  longer exists.
+- The macOS test job runs the Python suite as several short-lived processes: a
+  single pytest process exhausts the hosted runner's thread limit around 450
+  tests and later setups fail to spawn threads.
+- Chunk collection only accepts real test ids, so a warning line containing
+  `::` can no longer turn into a bogus test target.
 
 ### Removed
