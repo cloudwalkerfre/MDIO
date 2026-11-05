@@ -167,12 +167,24 @@ class TestCliLoad:
         result = runner.invoke(main, ["load", str(root), "--wt", "genesis"])
         assert result.exit_code != 0
         assert "already running with root" in result.output
+        assert "mdio stop" in result.output
+        assert "single-worktree loads stay hot" in result.output
 
     def test_pwt_requires_single_wt(self, runner, tmp_path):
         root = self._wts(tmp_path)
         result = runner.invoke(main, ["load", str(root), "--pwt", "other"])
         assert result.exit_code != 0
         assert "--pwt" in result.output
+
+    def test_rejects_loose_markdown_dir(self, runner, tmp_path):
+        """D33: 既无 install.md 又无 wt/ 的裸目录必须明确拒绝，不能静默成功产空树。"""
+        loose = tmp_path / "loose"
+        loose.mkdir()
+        (loose / "a.md").write_text("# A\n", encoding="utf-8")
+        result = runner.invoke(main, ["load", str(loose)])
+        assert result.exit_code != 0, result.output
+        assert "neither a WTS" in result.output
+        assert "nothing was loaded" in result.output
 
     def test_select_one(self, runner, tmp_path, monkeypatch):
         from mdio_py.cli import commands

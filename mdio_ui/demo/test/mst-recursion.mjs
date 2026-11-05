@@ -1,6 +1,6 @@
 // test/mst-recursion.mjs —— 把「递归 React 函数组件 + MST/observer」的机制钉成回归测试。
 //
-// 背景（见 .tmp/sop/MST-REACT-RESEARCH.md §3 / §6 / §13）：三处独立来源（mobx#3836 具名函数自绑定、
+// 背景：三处独立来源（mobx#3836 具名函数自绑定、
 // MST#1718 维护者答、SO#70568283 采纳答案）+ 源码机制都指向同一条规则 —— **递归调用点必须引用 observer 包装后的绑定**，
 // 否则递归子层既没有 per-instance Reaction（不订阅任何东西），也没有 memo。
 //

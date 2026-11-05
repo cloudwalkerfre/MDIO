@@ -18,6 +18,7 @@ pipe_chain: atom ("|" atom?)*
      | scope_block
      | exec_block
      | basic_op
+     | ls_call
      | func_call
      | plugin_call
      | MACRO_IDENT
@@ -31,6 +32,7 @@ pipe_chain: atom ("|" atom?)*
          | plugin_call
          | UNDERSCORE
          | MACRO_IDENT
+         | HEX_IDENT
          | path_prefix
 
 literal: string_lit | list_lit | dict_lit | number_lit | bool_lit
@@ -132,6 +134,15 @@ slice_chain: slice_item ("," slice_item)*
 slice_item: NUMBER | range_slice
 range_slice: [NUMBER] COLON [NUMBER] [COLON [NUMBER]]
 
+// ── shell 化 ls（专用 production）──
+// `ls` 是"接近 shell 的体验"命令：空格分隔多路径、flags 任意位置、`.`/`..`
+// 相对路径、引号含空格路径，通用 func_call 的 args/kwarg_flag 语法表达不了
+// （`ls /a /b` 会被吞成一个 path_prefix，`ls -l /` 会把 / 当 -l 的值）。
+// 做法：整个 "ls <rest>" 收成单个 LS_CMD token（不含 `| ; { } ( ) [ ] #` 与换行，
+// 这些仍由既有语法消费），transformer 里按 shell 词法重新切词。终端 regex 需要
+// 字面空格，故只能整行收口；LALR 无新增冲突（LS_CMD 与 FUNC_NAME 靠优先级区分）。
+ls_call: LS_CMD
+
 // Functions & Plugins
 
 func_call: FUNC_NAME args? kwarg_flag*
@@ -176,6 +187,12 @@ STRING_DOUBLE.70: /"(?:[^"\\]|\\.)*"/
 STRING_SINGLE.70: /'(?:[^'\\]|\\.)*'/
 
 NUMBER.65: /-?\d+(\.\d+)?/
+// 数字开头的十六进制 snap hash（12/64 位）：必须优先于 NUMBER，
+// 否则 `47b35b…` 会被贪心成 NUMBER("47") + PATH_IDENT("b35b…")，实参位置
+// 没有对应产生式 ⇒ P001（D15）。放在 arg_atom 里，命令参数可裸传。
+// 必须至少含一个 a-f 字母：纯数字（如 12345678）仍是 NUMBER 字面量，
+// 不能被抢成字符串实参（否则 `time 12345678` 等数值参数变字符串）。
+HEX_IDENT.66: /[0-9](?=[0-9a-fA-F]{7,})[0-9a-fA-F]*[a-fA-F][0-9a-fA-F]*/
 
 DOUBLE_COLON.60: "::"
 
@@ -212,3 +229,7 @@ HOOK_KW.110: /hook(?!\w)/
 EMPTY_KW.110: /empty(?!\w)/
 MACRO_IDENT.110: /%[a-zA-Z_][a-zA-Z0-9_]*/
 TYPE_ANNOT.105: /_[a-zA-Z][\w\-]*/
+
+// ls 专用：从字面 "ls" 起到命令边界（空白/换行/管道/分号/括号/花括号/中括号/#）
+// 为止的整条参数串。引号内允许空格与 `|;` 等（`ls "a b"`）。transformer 重新切词。
+LS_CMD.120: /ls(?![A-Za-z0-9_])(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|[^\s|;{}()\[\]#"']+))*/

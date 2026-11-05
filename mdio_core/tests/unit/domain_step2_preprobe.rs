@@ -1,5 +1,5 @@
 // domain step2 预实验 P0（不动生产）：S1/S5 机制原型 + 发现 A 处置 + 强链接前置。
-// 判官库存三份 fixture 由 cargo test --list 生成（再生命令见 DEV/domain_step2_plan P0 节）。
+// 判官库存三份 fixture 由 cargo test --list 生成。
 
 use crate::domain::DOMAINS;
 use crate::trinity::{LawId, LawStatus, LAW_TABLE};

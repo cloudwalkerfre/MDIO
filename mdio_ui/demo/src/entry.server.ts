@@ -12,7 +12,7 @@
  *   · 其余 chunk 名**自带内容哈希**（`…​.BNt2tJBR.final.mjs`）：integrity 有效，而且**必须留**——
  *     去掉它会让 `modulepreload` 与真实 import **失配**，同一个模块被加载两份（A/B 实测：
  *     `check-module-graph` 从「各 1 份」变「各 2 份」，资源 56 → 77 条）。
- * 生产构建（`NODE_ENV=production`）两条都原样保留。判据：`scripts/check-dev-no-sri.mjs`。
+ * 生产构建（`NODE_ENV=production`）两条都原样保留（人工检查：仓库里没有独立的 SRI 脚本）。
  */
 import type { RenderContext } from "@esmx/core";
 

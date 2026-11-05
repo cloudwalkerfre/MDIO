@@ -265,7 +265,7 @@ export const UiDecl = types
   // **写操作必须落在 `.actions` 里**：MST 对受保护对象的修改只认 action。
   //    这里曾被一次清理误删 `.actions((self) => ({`，结果 `load()` 里的 `claims.replace` 抛
   //    「Cannot modify Claim[]@/claims, the object is protected」⇒ **整个应用起不来**。
-  //    判据：`.tmp/p0/check_store_boot.mjs`（新建，已进判据批）。
+  //    检查：启动后必须能 load（人工跑一次应用启动即可；仓库里没有同名脚本）。
   .actions((self) => ({
     /** 换 route：命中判定与祖先链都从头算（route 是 path 门控的键）。 */
     setRoute(path) { self.route = String(path == null ? "" : path); },

@@ -70,32 +70,79 @@ pub enum BlockType {
     HtmlElement = 26,
 }
 
+impl BlockType {
+    /// 判别值 → 变体（`transmute` 的安全替代）。
+    ///
+    /// `PackedLineInfo::node_type` / blob 解码等「整数 → 枚举」面必须走这里：
+    /// 27 个合法变体（0..=26；`HtmlElement` 最大）之外的 u8 返回 `None`。
+    /// 注意 0xFF 是 `PackedLineInfo` 的哨兵，其 `& 0x3F` 得到 63 —— 不是合法种类。
+    #[inline]
+    pub fn from_discriminant(v: u8) -> Option<Self> {
+        Some(match v {
+            0 => BlockType::Header1,
+            1 => BlockType::Header2,
+            2 => BlockType::Header3,
+            3 => BlockType::Header4,
+            4 => BlockType::Header5,
+            5 => BlockType::Header6,
+            6 => BlockType::Bullet,
+            7 => BlockType::CodeFenceOpen,
+            8 => BlockType::Blockquote,
+            9 => BlockType::OrderedListItem,
+            10 => BlockType::Paragraph,
+            11 => BlockType::Comment,
+            12 => BlockType::TableRow,
+            13 => BlockType::Checklist,
+            14 => BlockType::HsHead1,
+            15 => BlockType::HsHead2,
+            16 => BlockType::HsSep,
+            17 => BlockType::HtmlBlock,
+            18 => BlockType::ThematicBreak,
+            19 => BlockType::CodeFenceClose,
+            20 => BlockType::CodeContent,
+            21 => BlockType::HtmlContent,
+            22 => BlockType::IndentedCode,
+            23 => BlockType::TableSeparator,
+            24 => BlockType::Blank,
+            25 => BlockType::RefDef,
+            26 => BlockType::HtmlElement,
+            _ => return None,
+        })
+    }
+}
+
 
 // PackedLineInfo
 
 
-/// Compact line info stored in a single byte:
+/// 紧凑行信息：一字节存储。
 ///
-/// Bit layout: 0xFF = invalid (sentinel), otherwise bits 5-0 = BlockType (0-63).
+/// 位布局：0xFF = invalid（哨兵，无有效类型），否则 bits5-0 = BlockType 判别值
+/// （合法 0..=26）、bit7 = 续行标志（`CONT_BIT`），bit6 保留恒 0。
+/// bits5-0 的 27..=63 无对应变体——外部字节输入必须经
+/// `BlockType::from_discriminant`（blob 解码已做严格校验），**不得 transmute**。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct PackedLineInfo(pub u8);
 
 impl PackedLineInfo {
-    /// Zero-copy view: `&[PackedLineInfo]` → `&[u8]`.
+    /// Zero-copy view: `&[PackedLineInfo]` → `&[u8]`。
     /// Safe because `#[repr(transparent)]` guarantees identical layout.
     #[inline(always)]
     pub fn as_bytes(slice: &[Self]) -> &[u8] {
         unsafe { std::slice::from_raw_parts(slice.as_ptr() as *const u8, slice.len()) }
     }
 
-    pub(crate) const TYPE_MASK: u8 = 0x3F;   // 0011_1111 = 6 bits (64 types)
+    pub(crate) const TYPE_MASK: u8 = 0x3F;   // bits5-0 — BlockType 判别值（合法 0..=26，见 from_discriminant）
     const INVALID_VAL: u8 = 0xFF; // All bits set = invalid
     pub const CONT_BIT: u8 = 0x80; // bit7 — 块续行标志
+    pub(crate) const RESERVED_BIT: u8 = 0x40; // bit6 — 保留位，编码器恒 0
 
     #[inline(always)]
     pub fn pack(node_type: BlockType) -> Self {
-        debug_assert!((node_type as u8) < 64, "BlockType discriminant must be < 64");
+        // BlockType 判别值最大 26（HtmlElement），< 27 恒真；保留断言作为
+        // 「枚举扩容必须同步位宽/校验」的文档锚点（历史上误写为 < 64）。
+        debug_assert!((node_type as u8) < 27, "BlockType discriminant must be < 27");
         Self(node_type as u8)
     }
 
@@ -112,7 +159,7 @@ impl PackedLineInfo {
     #[inline(always)]
     pub fn pack_with_cont(node_type: BlockType, cont: bool) -> Self {
         let mut val = node_type as u8;
-        debug_assert!(val < 64, "BlockType discriminant must be < 64");
+        debug_assert!(val < 27, "BlockType discriminant must be < 27");
         if cont { val |= Self::CONT_BIT; }
         Self(val)
     }
@@ -123,9 +170,23 @@ impl PackedLineInfo {
     #[inline(always)]
     pub fn is_valid(&self) -> bool { self.0 != Self::INVALID_VAL }
 
+    /// 行种类解码。
+    ///
+    /// # Panics
+    /// 哨兵 0xFF（`is_valid() == false`）或 bits5-0 > 26 的非法字节。
+    /// 旧实现 `transmute(self.0 & 0x3F)` 对这两类输入构造非法判别式枚举 = UB；
+    /// 现在 fail-fast panic 带出原始字节。合法快照的 `lines` 不含哨兵；
+    /// 读 `prev_col` 等可能含哨兵的列前必须先 `is_valid()`。
     #[inline(always)]
     pub fn node_type(&self) -> BlockType {
-        unsafe { std::mem::transmute(self.0 & Self::TYPE_MASK) }
+        let raw = self.0 & Self::TYPE_MASK;
+        BlockType::from_discriminant(raw).unwrap_or_else(|| {
+            panic!(
+                "PackedLineInfo::node_type: invalid BlockType discriminant {raw} \
+                 (raw byte {:#04x}; valid 0..=26; 0xFF is the invalid sentinel — check is_valid())",
+                self.0
+            )
+        })
     }
 }
 
@@ -349,6 +410,91 @@ pub enum FrameKind {
     TableRow,       // 9 — GFM table data row; body unused (always 0)
 }
 
+impl FrameKind {
+    /// 判别值 → 变体（`transmute` 的安全替代）。
+    ///
+    /// `BlockFrame::kind` 与 blob 解码等「整数 → 枚举」面必须走这里：
+    /// 10 个合法变体（0..=9；`TableRow` 最大）之外的 u8 返回 `None`。
+    #[inline]
+    pub fn from_discriminant(v: u8) -> Option<Self> {
+        Some(match v {
+            0 => FrameKind::BlockQuote,
+            1 => FrameKind::BulletList,
+            2 => FrameKind::OrderedList,
+            3 => FrameKind::CodeFence,
+            4 => FrameKind::HtmlBlock,
+            5 => FrameKind::Table,
+            6 => FrameKind::Comment,
+            7 => FrameKind::HtmlElement,
+            8 => FrameKind::RefDef,
+            9 => FrameKind::TableRow,
+            _ => return None,
+        })
+    }
+}
+
+/// 判别式 ↔ 枚举的安全性钉：旧实现把「掩码范围（0..=63 / 0..=15）」当成
+/// 「枚举变体数（27 / 10）」直接 transmute，外部字节（blob）可构造非法值 = UB。
+#[cfg(test)]
+mod discriminant_pin {
+    use super::*;
+
+    /// 27 个 BlockType 变体逐个 roundtrip（pack / pack_with_cont / node_type）。
+    #[test]
+    fn block_type_discriminants_roundtrip() {
+        for v in 0..=26u8 {
+            let t = BlockType::from_discriminant(v).unwrap_or_else(|| panic!("discriminant {v} must be valid"));
+            assert_eq!(t as u8, v);
+            assert_eq!(PackedLineInfo::pack(t).node_type(), t);
+            let with_cont = PackedLineInfo::pack_with_cont(t, true);
+            assert!(with_cont.cont(), "cont bit must be set for {t:?}");
+            assert_eq!(with_cont.node_type(), t, "cont bit must not disturb node_type");
+        }
+        for invalid in [27u8, 28, 63] {
+            assert!(BlockType::from_discriminant(invalid).is_none(), "{invalid} must be rejected");
+        }
+    }
+
+    /// 非法字节在 node_type() 上 fail-fast panic（safe），而不是 transmute UB。
+    #[test]
+    #[should_panic(expected = "invalid BlockType discriminant 31")]
+    fn node_type_panics_on_invalid_discriminant() {
+        let _ = PackedLineInfo(0x1F).node_type();
+    }
+
+    /// 0xFF 哨兵没有类型：调用方必须先 is_valid()（prev_col 等列允许哨兵）。
+    #[test]
+    #[should_panic(expected = "invalid BlockType discriminant 63")]
+    fn node_type_panics_on_invalid_sentinel() {
+        let _ = PackedLineInfo::invalid().node_type();
+    }
+
+    /// 10 个 FrameKind 变体逐个 roundtrip（new / kind / from_discriminant）。
+    #[test]
+    fn frame_kind_discriminants_roundtrip() {
+        for v in 0..=9u8 {
+            let k = FrameKind::from_discriminant(v).unwrap_or_else(|| panic!("discriminant {v} must be valid"));
+            assert_eq!(k as u8, v);
+            let f = BlockFrame::new(k, 7, 42);
+            assert_eq!(f.kind(), k);
+            assert_eq!(f.indent(), 7);
+            assert_eq!(f.body(), 42);
+            // kind 段占用 frame 的 bits15-12，其余位域解码不得回写到 kind。
+            assert_eq!(((f.0 >> 12) & 0xF) as u8, v);
+        }
+        for invalid in [10u8, 11, 15] {
+            assert!(FrameKind::from_discriminant(invalid).is_none(), "{invalid} must be rejected");
+        }
+    }
+
+    /// 非法 kind nibble 在 kind() 上 fail-fast panic（safe），而不是 transmute UB。
+    #[test]
+    #[should_panic(expected = "invalid FrameKind discriminant 10")]
+    fn block_frame_kind_panics_on_invalid_nibble() {
+        let _ = BlockFrame(0xA000).kind();
+    }
+}
+
 
 // BlockFrame(u16) — definition-is-storage
 
@@ -379,7 +525,12 @@ impl BlockFrame {
     #[inline]
     pub fn kind(self) -> FrameKind {
         let raw = ((self.0 >> 12) & 0xF) as u8;
-        unsafe { std::mem::transmute(raw) }
+        FrameKind::from_discriminant(raw).unwrap_or_else(|| {
+            panic!(
+                "BlockFrame::kind: invalid FrameKind discriminant {raw} \
+                 (raw frame {:#06x}; valid 0..=9)", self.0
+            )
+        })
     }
 
     #[inline]

@@ -1,4 +1,4 @@
-//! 复盘修复方案 testbed 验证（DEV/check_core_layers_plan 复盘研究结论）——不动生产：
+//! 复盘修复方案 testbed 验证——不动生产：
 //! 在这里用「拟议新规则」的本地副本跑状态空间网格 + 合成靶子，全绿后才把逻辑搬进 lib。
 
 use std::collections::{HashMap, HashSet};

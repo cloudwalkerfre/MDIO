@@ -685,3 +685,286 @@ async def test_release_scope_keeps_ws_peer(tmp_path):
     assert not gs.has_scope(uid), "无 peer 后 scope 应回收"
 
     gs.deactivate_wt(uid)
+
+
+# Part 9: D35 — unmount 必须按 path 解析 owner，不能回落到 active WT
+#
+# 旧链路：CLI unmount --wt 缺省 None → /gateway/unmount 缺省 active_worktree_uid →
+# store.unmount(active, path)。mount 目标与 active 不是同一棵树时，删除打到错树：
+# 目标树 gateway.md/rule 残留（重启 reconcile 从残留记录复活挂载）；错树若恰有同名
+# 条目则被静默删掉。修复后：未显式给 WT 时按 path 在三档挂载点里唯一解析。
+
+
+def _mount_ticket():
+    ticket_data = json.dumps({"addr": "addr1", "token": "tok1", "path": "/docs"})
+    b64 = base64.urlsafe_b64encode(ticket_data.encode()).decode().rstrip("=")
+    return f"iroh-share://{b64}"
+
+
+def _gateway_text(rt, wt_uid):
+    return rt.store.get_text(wt_uid, "/.mds/gateway.md") or ""
+
+
+def _stop_all(*stores, wt_uids=()):
+    for store in stores:
+        for active in list(store._actives.values()):
+            if active.handler:
+                active.handler.stop()
+        for uid in wt_uids:
+            store.deactivate_wt(uid)
+
+
+@pytest.mark.asyncio
+async def test_unmount_by_path_resolves_owner_not_active_wt(tmp_path):
+    """D35 主回归：mount 到非 active 树 A，只给 path unmount ⇒ 清 A、不动 active 树 B、重启不复活。"""
+    gs, rt = _gs(tmp_path)
+    uid_a = _mk_wt(gs, rt, "wt_owner_a")
+    uid_b = _mk_wt(gs, rt, "wt_owner_b")
+    rt._workspace.active_worktree_uid = uid_b   # active ≠ mount 目标（D35 触发条件）
+
+    gs.mount(uid_a, _mount_ticket(), "team-a")
+    gs.mount(uid_b, _mount_ticket(), "keep-b")   # B 上的哨兵：不许被误改
+    handler_a = gs._actives[f"{uid_a}:team-a"].handler
+    assert handler_a is not None
+
+    result = gs.unmount_by_path("/share/team-a/")   # 不给 wt_uid/wt_name；尾斜杠应归一化
+
+    assert result["wt_uid"] == uid_a, f"应按 path 解析到 A: {result}"
+    assert result["name"] == "team-a"
+    assert result["resolved_by"] == "path"
+    assert result["removed"] is True
+    assert handler_a.state == "idle", "运行时 handler 应已停"
+
+    # A：gateway.md / rule / Active 三处清理干净（读回校验已由 unmount 内部执行）
+    assert "## team-a" not in _gateway_text(rt, uid_a)
+    assert ("/share/team-a", "team-a") not in rt.store.rule_remote_entries(uid_a)
+    assert f"{uid_a}:team-a" not in gs._actives
+
+    # B：未被误改
+    assert "## keep-b" in _gateway_text(rt, uid_b)
+    assert ("/share/keep-b", "keep-b") in rt.store.rule_remote_entries(uid_b)
+    assert f"{uid_b}:keep-b" in gs._actives
+    assert rt._workspace.active_worktree_uid == uid_b, "active WT 不应被副作用改写"
+
+    # 重启：新 GatewayStore reconcile 后 A 的 team-a 不得从残留记录复活。
+    _stop_all(gs, wt_uids=(uid_a, uid_b))
+    gs2 = GatewayStore(store=rt.store, workspace=rt._workspace, iroh_endpoint=None)
+    gs2.reconcile_all()
+    try:
+        assert f"{uid_a}:team-a" not in gs2._actives, \
+            f"重启后 A 的挂载不应复活: {list(gs2._actives)}"
+        assert f"{uid_b}:keep-b" in gs2._actives, "B 的挂载应正常恢复"
+    finally:
+        _stop_all(gs2, wt_uids=(uid_a, uid_b))
+
+
+@pytest.mark.asyncio
+async def test_unmount_by_path_ambiguous_lists_candidates(tmp_path):
+    """两棵树挂同名 path：多命中必须报 400 并列出候选，且不删任何一棵。"""
+    from mdio_py.gateway.store import GatewayTargetAmbiguous
+
+    gs, rt = _gs(tmp_path)
+    uid_a = _mk_wt(gs, rt, "wt_dup_a")
+    uid_b = _mk_wt(gs, rt, "wt_dup_b")
+    gs.mount(uid_a, _mount_ticket(), "dup")
+    gs.mount(uid_b, _mount_ticket(), "dup")
+
+    with pytest.raises(GatewayTargetAmbiguous) as ei:
+        gs.unmount_by_path("/share/dup")
+
+    msg = str(ei.value)
+    assert ei.value.status_code == 400
+    assert uid_a in msg and uid_b in msg and "dup" in msg, f"候选需可执行: {msg}"
+    # 未消歧 ⇒ 一棵都不动
+    assert f"{uid_a}:dup" in gs._actives
+    assert f"{uid_b}:dup" in gs._actives
+    assert "## dup" in _gateway_text(rt, uid_a)
+    assert "## dup" in _gateway_text(rt, uid_b)
+
+    # 显式 wt_uid / wt_name 都能消歧（保持既有显式语义）
+    r1 = gs.unmount_by_path("/share/dup", wt_uid=uid_a)
+    assert r1["wt_uid"] == uid_a and r1["resolved_by"] == "wt_uid"
+    assert f"{uid_b}:dup" in gs._actives, "A 的卸载不许碰 B"
+    r2 = gs.unmount_by_path("/share/dup", wt_name="wt_dup_b")
+    assert r2["wt_uid"] == uid_b and r2["resolved_by"] == "wt_name"
+    assert f"{uid_a}:dup" not in gs._actives and f"{uid_b}:dup" not in gs._actives
+
+    _stop_all(gs, wt_uids=(uid_a, uid_b))
+
+
+@pytest.mark.asyncio
+async def test_unmount_by_path_not_found_and_explicit_mismatch(tmp_path):
+    """无命中/显式 WT 与 path 不匹配都必须明确报错，绝不能回落到 active WT。"""
+    from mdio_py.gateway.store import GatewayTargetNotFound
+
+    gs, rt = _gs(tmp_path)
+    uid_a = _mk_wt(gs, rt, "wt_nf_a")
+    uid_b = _mk_wt(gs, rt, "wt_nf_b")
+    rt._workspace.active_worktree_uid = uid_b
+    gs.mount(uid_a, _mount_ticket(), "only-a")
+
+    # ① 无命中
+    with pytest.raises(GatewayTargetNotFound) as e1:
+        gs.unmount_by_path("/share/nope")
+    assert e1.value.status_code == 404
+    assert "没有对应挂载点" in str(e1.value)
+
+    # ② 显式 WT 与 path 不匹配（旧实现会静默拿 active 兜底/什么都不删）
+    with pytest.raises(GatewayTargetNotFound) as e2:
+        gs.unmount_by_path("/share/only-a", wt_uid=uid_b)
+    assert uid_b in str(e2.value)
+    assert f"{uid_a}:only-a" in gs._actives, "错树请求不许删任何东西"
+    assert "## only-a" in _gateway_text(rt, uid_a)
+
+    # ③ 未知 WT 名同样报错（旧实现 resolve 失败就静默改用 active）
+    with pytest.raises(GatewayTargetNotFound):
+        gs.unmount_by_path("/share/only-a", wt_name="ghost-wt")
+
+    # ④ 显式指向正确树 ⇒ 正常卸载
+    r = gs.unmount_by_path("/share/only-a", wt_uid=uid_a)
+    assert r["wt_uid"] == uid_a and r["removed"] is True
+    assert "## only-a" not in _gateway_text(rt, uid_a)
+
+    _stop_all(gs, wt_uids=(uid_a, uid_b))
+
+
+@pytest.mark.asyncio
+async def test_unmount_readback_verification_fails_loud(tmp_path):
+    """gateway.md 条目没删掉就必须按失败返回（读回校验），且不动运行时。"""
+    gs, rt = _gs(tmp_path)
+    uid = _mk_wt(gs, rt, "wt_verify")
+    gs.mount(uid, _mount_ticket(), "verify")
+
+    # 模拟「调用过但没写掉」：删除实现被架空
+    gs._rewrite_gateway_md = lambda wt_uid, entry_id: None
+
+    with pytest.raises(RuntimeError, match="读回校验失败"):
+        gs.unmount_by_path("/share/verify")
+
+    assert "## verify" in _gateway_text(rt, uid), "演示用：文件确实没删"
+    assert f"{uid}:verify" in gs._actives, "文件清理失败 ⇒ 运行时保持原样"
+
+    _stop_all(gs, wt_uids=(uid,))
+
+
+@pytest.mark.asyncio
+async def test_unmount_http_endpoint_no_active_fallback(tmp_path):
+    """HTTP 层：/gateway/unmount 不带 wt_uid/name 时也不得回落到 active WT（D35）。
+
+    直接调 handler.fn（litestar 装饰器保留的原函数），绕过启动 HTTP 服务的成本。
+    """
+    from mdio_py.gateway.api.gateway import IrohGatewayController
+
+    class _FakeRequest:
+        def __init__(self, data):
+            self._data = data
+
+        async def json(self):
+            return self._data
+
+    gs, rt = _gs(tmp_path)
+    uid_a = _mk_wt(gs, rt, "wt_http_a")
+    uid_b = _mk_wt(gs, rt, "wt_http_b")
+    rt._workspace.active_worktree_uid = uid_b   # active ≠ mount 目标
+    previous = getattr(rt._workspace, "_gateway_store", None)
+    rt._workspace._gateway_store = gs
+    handler = IrohGatewayController.unmount_iroh
+
+    def call(data):
+        return handler.fn(object.__new__(IrohGatewayController), _FakeRequest(data), rt)
+
+    def status(resp):
+        # litestar Response 不显式给 status_code 时留 None（运行时按 200 序列化）
+        return resp.status_code or 200
+
+    try:
+        gs.mount(uid_a, _mount_ticket(), "http-a")
+
+        # ① 只给 path：按 owner 解析到 A（旧实现会拿 active=B）
+        resp = await call({"path": "/share/http-a"})
+        assert status(resp) == 200, resp.content
+        assert resp.content["wt_uid"] == uid_a
+        assert resp.content["resolved_by"] == "path"
+        assert f"{uid_a}:http-a" not in gs._actives
+        assert "## http-a" not in _gateway_text(rt, uid_a)
+
+        # ② 无命中：404，绝不静默 200
+        resp = await call({"path": "/share/ghost"})
+        assert status(resp) == 404, resp.content
+        assert "没有对应挂载点" in resp.content["error"]
+
+        # ③ 多命中：400 且候选可执行
+        gs.mount(uid_a, _mount_ticket(), "dup-x")
+        gs.mount(uid_b, _mount_ticket(), "dup-x")
+        resp = await call({"path": "/share/dup-x"})
+        assert status(resp) == 400, resp.content
+        assert uid_a in resp.content["error"] and uid_b in resp.content["error"]
+
+        # ④ 显式 wt_uid / name 消歧（name 仍走 resolve_worktree_name）
+        resp = await call({"path": "/share/dup-x", "wt_uid": uid_b})
+        assert status(resp) == 200 and resp.content["wt_uid"] == uid_b
+        resp = await call({"path": "/share/dup-x", "name": "wt_http_a"})
+        assert status(resp) == 200 and resp.content["wt_uid"] == uid_a
+    finally:
+        _stop_all(gs, wt_uids=(uid_a, uid_b))
+        rt._workspace._gateway_store = previous
+
+
+def test_cli_unmount_does_not_default_to_active_wt(monkeypatch):
+    """CLI 不指定 --wt 时不向服务端发送任何 WT 缺省值（否则服务端会打错树）。"""
+    from click.testing import CliRunner
+    import mdio_py.cli.commands as commands
+    from mdio_py.cli import main
+
+    calls = []
+
+    def _fake_post(path, payload=None, timeout=10.0):
+        calls.append((path, payload))
+        return {"status": "ok", "wt_uid": "uid-A", "path": "/share/x", "removed": True}
+
+    monkeypatch.setattr(commands, "_post_json", _fake_post)
+    runner = CliRunner()
+
+    r = runner.invoke(main, ["unmount", "--path", "/share/x"])
+    assert r.exit_code == 0, r.output
+    assert calls == [("/gateway/unmount", {"path": "/share/x"})], calls
+    assert "unmounted /share/x from uid-A" in r.output
+
+    # 显式 --wt 语义保持：作为 name 传给服务端（服务端再 resolve_worktree_name）
+    calls.clear()
+    r = runner.invoke(main, ["unmount", "-p", "/share/x", "--wt", "wt-A"])
+    assert r.exit_code == 0, r.output
+    assert calls == [("/gateway/unmount", {"path": "/share/x", "name": "wt-A"})], calls
+
+    # 服务端解析失败（400 带候选详情）⇒ CLI 原样报出可执行信息
+    def _fail(path, payload=None, timeout=10.0):
+        raise RuntimeError(
+            "server returned HTTP 400: path '/share/x' 命中多个挂载点，"
+            "请用 --wt 指定 worktree：uid-A:dup(/share/dup), uid-B:dup(/share/dup)")
+
+    monkeypatch.setattr(commands, "_post_json", _fail)
+    r = runner.invoke(main, ["unmount", "-p", "/share/x"])
+    assert r.exit_code == 0
+    assert "- mdio_error:" in r.output
+    assert "uid-A:dup" in r.output and "uid-B:dup" in r.output
+
+
+def test_cli_http_error_carries_server_detail(monkeypatch):
+    """_request_json 的 HTTPError 分支要把服务端 {"error": ...} 详情带进异常消息。"""
+    import io
+    import urllib.error
+    import mdio_py.cli.commands as commands
+
+    def _raise_http(*_args, **_kwargs):
+        body = json.dumps({"error": "path '/share/x' 命中多个挂载点"}).encode()
+        raise urllib.error.HTTPError(
+            "http://127.0.0.1:8011/gateway/unmount", 400, "Bad Request", {}, io.BytesIO(body))
+
+    monkeypatch.setattr(commands, "_opener_for", lambda host: _raise_http)
+
+    with pytest.raises(RuntimeError) as ei:
+        commands._request_json("POST", "/gateway/unmount", {"path": "/share/x"})
+
+    message = str(ei.value)
+    assert "HTTP 400" in message
+    assert "命中多个挂载点" in message, f"服务端详情必须带出: {message}"

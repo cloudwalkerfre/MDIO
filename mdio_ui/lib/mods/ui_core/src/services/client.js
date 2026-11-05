@@ -266,6 +266,8 @@ export const Node = types.model("Node", {
   s: types.optional(types.union(types.string, types.frozen()), ""),
   alt: types.optional(types.union(types.string, types.frozen()), ""),
   ti: types.optional(types.union(types.string, types.frozen()), ""),
+  // u = refdef(rd) 的 URL（引擎交付键；未声明 ⇒ MST 静默丢弃、引用定义渲染成无链接标签）。
+  u: types.optional(types.string, ""),
   // 表格列定义等引擎附加字段：形状不定（string | array），一律 frozen 兜底
   // 表格列定义：引擎给 string（实测 `/demos/antd/README.md` 的 `tb.cols`），也可能给数组 ⇒ 联合类型（不再是裸 frozen）。
   cols: types.optional(types.union(types.string, types.frozen()), ""),
@@ -296,7 +298,7 @@ export const Node = types.model("Node", {
       if (typeof up2.nt !== "string") break;
       cur = up2;
     }
-    // **根在前、本站在尾** —— 这是 `ancestorsOf` 的既有契约（判据 `check_ancestors_root`「链首是根」、`check_md_store`「chain[0] === 店」都按它写）；
+    // **根在前、本站在尾** —— 本 getter 返回序的人工约定：祖先链含本站与文档根。
     // IR 的匹配也是从根往下走（app 注入的 `chainWalk`），顺序反了会全不命中（本轮实测踩过）。
     return out.reverse();
   },

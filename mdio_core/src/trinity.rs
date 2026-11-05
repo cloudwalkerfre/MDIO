@@ -8297,24 +8297,33 @@ x
                 .parent()
                 .unwrap()
                 .join("mdio_py/tests/commonmark_spec/gauntlet.md");
-            let gdoc = std::fs::read_to_string(&gp).expect("gauntlet 可读");
-            let mut g_bad = 0usize;
-            {
-                let mut st = State::new(&gdoc);
-                let snap = st.snapshot();
-                let scanned = crate::trinity::obs::carrier_from(&snap.rope, &snap.lines, &snap.frame_log.entries);
-                let bundle = RealBundle::from_snapshot(&snap);
-                let restored = crate::trinity::obs::restore_rows(&bundle);
-                if scanned.rows.len() == restored.len() {
-                    for (a, b) in scanned.rows.iter().zip(restored.iter()) {
-                        if a != b {
-                            g_bad += 1;
+            // gauntlet.md 被 .gitignore 覆盖（夹具不随仓库分发）：缺失时打印跳过说明、
+            // 跳过该段（对齐 test_spec_prod_equivalence_on_lcg_fuzz 的 has_gauntlet 约定）；
+            // 存在时保持原语义——已知分歧钉住 == 1。
+            match std::fs::read_to_string(&gp) {
+                Ok(gdoc) => {
+                    let mut g_bad = 0usize;
+                    {
+                        let mut st = State::new(&gdoc);
+                        let snap = st.snapshot();
+                        let scanned = crate::trinity::obs::carrier_from(&snap.rope, &snap.lines, &snap.frame_log.entries);
+                        let bundle = RealBundle::from_snapshot(&snap);
+                        let restored = crate::trinity::obs::restore_rows(&bundle);
+                        if scanned.rows.len() == restored.len() {
+                            for (a, b) in scanned.rows.iter().zip(restored.iter()) {
+                                if a != b {
+                                    g_bad += 1;
+                                }
+                            }
                         }
                     }
+                    println!("[T1-GAUNTLET] 已知分歧 {g_bad}（钉住 == 1）");
+                    assert_eq!(g_bad, 1, "gauntlet 的已知 1 处分歧必须精确为 1（改善或回归都要红）");
                 }
+                Err(e) => println!(
+                    "[T1-GAUNTLET] gauntlet.md 不在（{e}），跳过（夹具未随仓库分发时不误判）"
+                ),
             }
-            println!("[T1-GAUNTLET] 已知分歧 {g_bad}（钉住 == 1）");
-            assert_eq!(g_bad, 1, "gauntlet 的已知 1 处分歧必须精确为 1（改善或回归都要红）");
             assert_eq!(bad, 0, "T1 载荷（t + cont）两侧必须逐字段相等，分歧 {bad}");
         }
 
@@ -11348,10 +11357,10 @@ pub mod obs {
     pub fn corpus_layer_sites() -> Vec<(CorpusLayer, &'static str, &'static str)> {
         use CorpusLayer::*;
         vec![
-            (SelfProving, "self_corpus_scan（DEV/research 的 md 全过判官）", "self_corpus_scan"),
+            (SelfProving, "self_corpus_scan（历史研究文档的 md 全过判官）", "self_corpus_scan"),
             (Spec, "CORPUS 30 篇（手推黄金决策词）", "test_corpus_sweep_all_green"),
             (ExternalGolden, "commonmark.md 整篇（9811 行）", "test_commonmark_full_doc"),
-            (ExternalGolden, "gauntlet.md（1910 行；与 commonmark 同层，消费者 = A24 呈现画像对拍）", "test_ctx_class_mirror_vs_production"),
+            (ExternalGolden, "gauntlet.md（61 行 / 1910 字节；与 commonmark 同层，消费者 = A24 呈现画像对拍）", "test_ctx_class_mirror_vs_production"),
         ]
     }
 
@@ -13077,7 +13086,12 @@ b
             }
             for p in ["mdio_py/tests/commonmark_spec/gauntlet.md", "commonmark.md"] {
                 let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().join(p);
-                docs.push(std::fs::read_to_string(&path).expect("语料文件可读"));
+                // gauntlet.md 被 .gitignore（夹具不随仓库分发）：缺失时打印跳过说明，
+                // 不 panic；commonmark.md（tracked）照常入域。
+                match std::fs::read_to_string(&path) {
+                    Ok(doc) => docs.push(doc),
+                    Err(e) => println!("[CTX-CLASS] {p} 不在（{e}），跳过（夹具未随仓库分发时不误判）"),
+                }
             }
             let mut total = 0usize;
             let mut bad = 0usize;

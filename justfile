@@ -69,6 +69,14 @@ test-omp:
 test-trinity:
     {{grid}} test:trinity
 
+# 重新生成 mdio_core/tests/unit/ledger_report.txt（与 ledger_report_fixture_is_current 同源）
+regen-ledger-report:
+    cargo run -q -p mdio_core --features trinity-obs --example regen_ledger_report
+
+# 对照当前代码与已提交夹具（夹具过期则红）
+check-ledger-report:
+    cargo test -q -p mdio_core --lib --features trinity-obs ledger_report_fixture_is_current
+
 check:
     {{grid}} check
 

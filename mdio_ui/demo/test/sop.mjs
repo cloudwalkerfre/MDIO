@@ -10,7 +10,7 @@ armWatchdog("sop", 165000);   /* = 165s；实测 82.3s（放宽到 280s 跑一�
 // 为什么能可靠驱动 Monaco：MonaPanel 监听自定义事件 `mdio-sop-edit`（detail: {line, from, to, text}），
 // 用 model.pushEditOperations 改文本 ⇒ 走**同一条** onDidChangeContent 发送链。合成鼠标/键盘事件在自动化里落点不稳。
 // 为什么查丢帧：sendPayload 在上行环背压时会**静默丢弃整条 op**（曾导致"删了字符却还在"），
-// 现在会经 devview 日志报 `丢帧`（见 .tmp/sop/TRACE-23.md）。
+// 现在会经 devview 日志报 `丢帧`。
 const GW = process.env.GW || "http://127.0.0.1:8011";
 const CDP = process.env.CDP || "http://127.0.0.1:9222";
 guardTarget(CDP, "sop");   // 9222 = 业主 Chrome，默认拒绝

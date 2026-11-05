@@ -1,4 +1,4 @@
-//! mdio-dircheck 库：方向闸的表、规则与扫描器（DEV/check_core_layers_plan_20261012 S2 单源化）。
+//! mdio-dircheck 库：方向闸的表、规则与扫描器。
 //! 不 import mdio_core——事实全部来自源码文本；probe（tests/unit）经 dev-dep 引用本库同一份实现。
 
 use std::collections::{BTreeSet, HashSet};

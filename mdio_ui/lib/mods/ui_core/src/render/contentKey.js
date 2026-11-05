@@ -6,7 +6,7 @@
  *   ⇒ 在 `observer` 的渲染里读它 = **订阅整棵子树** ⇒ 深层一改，祖先链依次失效（O(深度)）。
  *   而「把子件交回框架」的容器**只画自己那一格** ⇒ 它不需要订整棵子树。
  *
- * 三条类别（依据 = std 的实际画法；`.tmp/p0/check_key_layers.mjs` 的漂移检查盯着这几行）：
+ * 三条类别（依据 = std 的实际画法）：
  *   ① 纯容器（`h` / `bl` / `od` / `bq` / `admonition` / `vmr_container`）
  *      ⇒ 键 = 祖先名字链 + 本格 + **孩子身份序列**（std.js:363/380/384/386；节壳由框架 SectionKids 补画）
  *   ② 混合（`b` / `x` / `ol`）：`p` 与非块孩子**就地画**、块孩子交回（std.js:310 的 BLOCK_CHILD · :350 三岔）
@@ -47,8 +47,8 @@ const rawOf = (v) => (v === undefined || v === null ? "" : typeof v === "object"
 const ownOf = (n) => ownKeysOf(n).map((k) => k + "=" + rawOf(n[k])).join(",");
 
 /** 对象 → 稳定 token（同一个对象恒同串）；原始值原样返回。给 `resetKey` 用（对象/字符串都安全）。
- *  **复用 `nodeKey.js` 的 `keyOf`**（同一个 WeakMap 发号器）：不新开第二个身份表 —— 收口判据（check_no_new_machinery）
- *  立刻抓到了第一版自带的 `tokenIds`，这里按「一处所有者」改回复用。 */
+ *  **复用 `nodeKey.js` 的 `keyOf`**（同一个 WeakMap 发号器）：不新开第二个身份表 —— 一处所有者的
+ *  人工约定：这里按它改回复用（仓库里没有同名自动门禁）。 */
 export function tokenOf(v) {
   return v === null || typeof v !== "object" ? String(v) : "o" + keyOf(v);
 }

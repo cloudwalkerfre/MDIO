@@ -240,3 +240,9 @@ name = "cell-probe-828"
 path = "src/bin/cell_probe_828.rs"
 required-features = ["telemetry"]
 
+# `just regen-ledger-report`：与 ledger_report_fixture_is_current 同源写回夹具。
+[[example]]
+name = "regen_ledger_report"
+path = "examples/regen_ledger_report.rs"
+required-features = ["trinity-obs"]
+

@@ -371,81 +371,169 @@ pub struct SelectorIR {
 
 // FilterExpr::from_json_array
 
+/// 规范类型名全集（与 `TypeName` 变体一一对应）。
+/// 用户别名（b/x/c/codeblock/head1..6/blockquote/table/checklist/...）由
+/// Python 侧 `TYPE_ANNOT` 归一后到达；Rust 侧只接受这里列出的规范名。
+pub const VALID_TYPE_NAMES: &[&str] = &[
+    "h", "h1", "h2", "h3", "h4", "h5", "h6", "bullet", "ol", "code",
+    "indtcode", "paragraph", "bq", "tb", "comment", "html",
+];
+
+/// 合法 filter tag（与 from_json_array 的 match 臂同步）。
+pub const VALID_FILTER_TAGS: &[&str] = &[
+    "TYPECHECK", "CMP", "REGEX", "AND", "OR", "NOT", "HAS", "EQ", "RE",
+    "EMPTY", "BY", "BY_EMPTY", "BY_ANY", "BY_ALL",
+];
+
+fn type_name_err(name: &str) -> String {
+    format!(
+        "unknown type name {name:?} (valid canonical names: {}; \
+         user aliases such as b/x/c/codeblock/head/blockquote/table are normalized on the Python side)",
+        VALID_TYPE_NAMES.join("/")
+    )
+}
+
+fn proj_err(name: &str) -> String {
+    format!(
+        "unknown projection {name:?} (valid: .tag/.t, .content/.ct, .raw/.r, .container/.ctn, .mark/.m)"
+    )
+}
+
+fn op_err(name: &str) -> String {
+    format!("unknown comparison operator {name:?} (valid: ==, =, !=, >=, <=)")
+}
+
+fn arg_str<'a>(arr: &'a [JsonValue], idx: usize, tag: &str) -> Result<&'a str, String> {
+    arr.get(idx)
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| format!("{tag}: expected a string argument at index {idx}"))
+}
+
+fn arg_array<'a>(arr: &'a [JsonValue], idx: usize, tag: &str) -> Result<&'a Vec<JsonValue>, String> {
+    arr.get(idx)
+        .and_then(|v| v.as_array())
+        .ok_or_else(|| format!("{tag}: expected an array argument at index {idx}"))
+}
+
+fn arg_value<'a>(arr: &'a [JsonValue], idx: usize, tag: &str) -> Result<&'a JsonValue, String> {
+    arr.get(idx)
+        .ok_or_else(|| format!("{tag}: missing argument at index {idx}"))
+}
 
 impl FilterExpr {
-    pub fn from_json_array(arr: &[JsonValue]) -> Option<Self> {
-        let tag = arr.first()?.as_str()?;
+    /// 从 Python IR 的 filter 数组构造 `FilterExpr`。
+    ///
+    /// 严格失败（`Err` 带可读原因）：未知类型名、未知投影/比较符、坏子表达式
+    /// 一律不透传、不静默丢弃。旧实现返回 `Option`，调用方（AND/OR 子句、
+    /// TraversalFilter filters 循环）会把坏子表达式直接跳过——`..*[zzz]`
+    /// 因此退化为「无 filter = 全量」。
+    pub fn from_json_array(arr: &[JsonValue]) -> Result<Self, String> {
+        let tag = arr
+            .first()
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| {
+                "filter expression must be a non-empty array starting with a string tag".to_string()
+            })?;
         match tag {
             "TYPECHECK" => {
-                let tn = parse_type_name(arr.get(1)?.as_str()?)?;
-                Some(FilterExpr::TypeCheck(tn))
+                let name = arg_str(arr, 1, tag)?;
+                let tn = parse_type_name(name).ok_or_else(|| type_name_err(name))?;
+                Ok(FilterExpr::TypeCheck(tn))
             }
             "CMP" => {
-                let proj = parse_proj(arr.get(1)?.as_str()?)?;
-                let op = parse_op(arr.get(2)?.as_str()?)?;
-                let v = parse_value(arr.get(3)?)?;
-                Some(FilterExpr::Cmp { proj, op, value: v })
+                let proj_name = arg_str(arr, 1, tag)?;
+                let proj = parse_proj(proj_name).ok_or_else(|| proj_err(proj_name))?;
+                let op_name = arg_str(arr, 2, tag)?;
+                let op = parse_op(op_name).ok_or_else(|| op_err(op_name))?;
+                let raw = arg_value(arr, 3, tag)?;
+                let v = parse_value(raw)
+                    .ok_or_else(|| format!("CMP: unsupported value {raw:?} (expected string or number)"))?;
+                Ok(FilterExpr::Cmp { proj, op, value: v })
             }
             "REGEX" => {
-                let proj = parse_proj(arr.get(1)?.as_str()?)?;
-                let raw = arr.get(2)?.as_str()?.trim_matches(|c| c == '"' || c == '\'');
-                let regex = Regex::new(raw).ok()?;
-                Some(FilterExpr::Regex { proj, regex })
+                let proj_name = arg_str(arr, 1, tag)?;
+                let proj = parse_proj(proj_name).ok_or_else(|| proj_err(proj_name))?;
+                let raw = arg_str(arr, 2, tag)?.trim_matches(|c| c == '"' || c == '\'');
+                let regex = Regex::new(raw).map_err(|e| format!("REGEX: invalid pattern {raw:?}: {e}"))?;
+                Ok(FilterExpr::Regex { proj, regex })
             }
             "AND" | "OR" => {
-                let mut subs = Vec::new();
-                for sub in arr.get(1)?.as_array()? {
-                    if let Some(sa) = sub.as_array() {
-                        if let Some(f) = FilterExpr::from_json_array(sa) { subs.push(f); }
-                    }
+                let subs_json = arg_array(arr, 1, tag)?;
+                let mut subs = Vec::with_capacity(subs_json.len());
+                for (i, sub) in subs_json.iter().enumerate() {
+                    let sa = sub
+                        .as_array()
+                        .ok_or_else(|| format!("{tag}: sub-filter[{i}] must be an array"))?;
+                    let f = FilterExpr::from_json_array(sa)
+                        .map_err(|e| format!("{tag}: sub-filter[{i}]: {e}"))?;
+                    subs.push(f);
                 }
-                if tag == "AND" { Some(FilterExpr::And(subs)) } else { Some(FilterExpr::Or(subs)) }
+                if tag == "AND" { Ok(FilterExpr::And(subs)) } else { Ok(FilterExpr::Or(subs)) }
             }
             "NOT" => {
-                let sub = arr.get(1)?.as_array()?;
-                Some(FilterExpr::Not(Box::new(FilterExpr::from_json_array(sub)?)))
+                let sub = arg_array(arr, 1, tag)?;
+                let inner = FilterExpr::from_json_array(sub)
+                    .map_err(|e| format!("NOT: sub-filter: {e}"))?;
+                Ok(FilterExpr::Not(Box::new(inner)))
             }
             "HAS" => {
-                let proj = parse_proj(arr.get(1)?.as_str()?)?;
-                let text = arr.get(2)?.as_str()?.to_string();
-                Some(FilterExpr::Method { proj, method: FilterMethod::Has(text) })
+                let proj_name = arg_str(arr, 1, tag)?;
+                let proj = parse_proj(proj_name).ok_or_else(|| proj_err(proj_name))?;
+                let text = arg_str(arr, 2, tag)?.to_string();
+                Ok(FilterExpr::Method { proj, method: FilterMethod::Has(text) })
             }
             "EQ" => {
-                let proj = parse_proj(arr.get(1)?.as_str()?)?;
-                let v = parse_value(arr.get(2)?)?;
-                Some(FilterExpr::Method { proj, method: FilterMethod::Eq(v) })
+                let proj_name = arg_str(arr, 1, tag)?;
+                let proj = parse_proj(proj_name).ok_or_else(|| proj_err(proj_name))?;
+                let raw = arg_value(arr, 2, tag)?;
+                let v = parse_value(raw)
+                    .ok_or_else(|| format!("EQ: unsupported value {raw:?} (expected string or number)"))?;
+                Ok(FilterExpr::Method { proj, method: FilterMethod::Eq(v) })
             }
             "RE" => {
-                let proj = parse_proj(arr.get(1)?.as_str()?)?;
-                let raw = arr.get(2)?.as_str()?.trim_matches(|c| c == '"' || c == '\'');
-                let regex = Regex::new(raw).ok()?;
-                Some(FilterExpr::Method { proj, method: FilterMethod::Re(regex) })
+                let proj_name = arg_str(arr, 1, tag)?;
+                let proj = parse_proj(proj_name).ok_or_else(|| proj_err(proj_name))?;
+                let raw = arg_str(arr, 2, tag)?.trim_matches(|c| c == '"' || c == '\'');
+                let regex = Regex::new(raw).map_err(|e| format!("RE: invalid pattern {raw:?}: {e}"))?;
+                Ok(FilterExpr::Method { proj, method: FilterMethod::Re(regex) })
             }
             "EMPTY" => {
-                let proj = parse_proj(arr.get(1)?.as_str()?)?;
-                Some(FilterExpr::Method { proj, method: FilterMethod::Empty })
+                let proj_name = arg_str(arr, 1, tag)?;
+                let proj = parse_proj(proj_name).ok_or_else(|| proj_err(proj_name))?;
+                Ok(FilterExpr::Method { proj, method: FilterMethod::Empty })
             }
             "BY" | "BY_EMPTY" | "BY_ANY" | "BY_ALL" => {
-                let proj = parse_proj(arr.get(1)?.as_str()?)?;
-                let inner = arr.get(2)?.as_array()?;
-                let inner_filter = FilterExpr::from_json_array(inner)?;
+                let proj_name = arg_str(arr, 1, tag)?;
+                let proj = parse_proj(proj_name).ok_or_else(|| proj_err(proj_name))?;
+                let inner = arg_array(arr, 2, tag)?;
+                let inner_filter = FilterExpr::from_json_array(inner)
+                    .map_err(|e| format!("{tag}: inner filter: {e}"))?;
                 let steps = vec![Step::RecursiveWildcard, Step::Filter(inner_filter)];
                 let quantifier = match tag {
                     "BY" => ByQuantifier::Exists,
                     "BY_EMPTY" => ByQuantifier::Empty,
                     "BY_ANY" => {
-                        let pred_arr = arr.get(3)?.as_array()?;
-                        ByQuantifier::Any(Box::new(FilterExpr::from_json_array(pred_arr)?))
+                        let pred_arr = arg_array(arr, 3, tag)?;
+                        ByQuantifier::Any(Box::new(
+                            FilterExpr::from_json_array(pred_arr)
+                                .map_err(|e| format!("BY_ANY: predicate filter: {e}"))?,
+                        ))
                     }
                     "BY_ALL" => {
-                        let pred_arr = arr.get(3)?.as_array()?;
-                        ByQuantifier::All(Box::new(FilterExpr::from_json_array(pred_arr)?))
+                        let pred_arr = arg_array(arr, 3, tag)?;
+                        ByQuantifier::All(Box::new(
+                            FilterExpr::from_json_array(pred_arr)
+                                .map_err(|e| format!("BY_ALL: predicate filter: {e}"))?,
+                        ))
                     }
-                    _ => return None,
+                    _ => unreachable!("outer match restricts tag to BY*"),
                 };
-                Some(FilterExpr::By { proj, steps, quantifier })
+                Ok(FilterExpr::By { proj, steps, quantifier })
             }
-            _ => None,
+            _ => Err(format!(
+                "unsupported filter tag {tag:?} (valid filter tags: {})",
+                VALID_FILTER_TAGS.join("/")
+            )),
         }
     }
 }
@@ -505,21 +593,30 @@ impl<'de> Deserialize<'de> for Step {
                     .map_err(|e| de::Error::custom(format!("TraversalFilter bad traversal: {}", e)))?;
                 let filters_arr = arr.get(2).and_then(|v| v.as_array())
                     .ok_or(de::Error::custom("TraversalFilter missing filters"))?;
-                let mut filters = Vec::new();
-                for fa in filters_arr {
-                    if let Some(fa_arr) = fa.as_array() {
-                        if let Some(fe) = FilterExpr::from_json_array(fa_arr) {
-                            filters.push(fe);
-                        }
-                    }
+                // 坏 filter 不得静默丢弃（旧实现 `if let Some(fe)` 跳过：`..*[zzz]`
+                // 融合后 filters 为空 = 全量）。逐项严格解析并带上位置。
+                let mut filters = Vec::with_capacity(filters_arr.len());
+                for (i, fa) in filters_arr.iter().enumerate() {
+                    let fa_arr = fa.as_array().ok_or_else(|| {
+                        de::Error::custom(format!("TraversalFilter filter[{i}] is not an array"))
+                    })?;
+                    let fe = FilterExpr::from_json_array(fa_arr).map_err(|e| {
+                        de::Error::custom(format!("TraversalFilter filter[{i}]: {e}"))
+                    })?;
+                    filters.push(fe);
                 }
                 let limit = arr.get(3).and_then(|v| v.as_u64()).unwrap_or(1) as usize;
                 Ok(Step::TraversalFilter { traversal: Box::new(traversal), filters, limit })
             }
             _ => {
+                // 未知 tag 保持原「unknown step tag」错误；已知 filter tag 的
+                // 解析失败要给出具体原因（旧实现把两者都压成 None -> unknown）。
+                if !VALID_FILTER_TAGS.contains(&tag) {
+                    return Err(de::Error::custom(format!("unknown step tag: {}", tag)));
+                }
                 FilterExpr::from_json_array(&arr)
                     .map(Step::Filter)
-                    .ok_or_else(|| de::Error::custom(format!("unknown step tag: {}", tag)))
+                    .map_err(|e| de::Error::custom(format!("invalid {tag} filter: {e}")))
             }
         }
     }
@@ -1599,16 +1696,34 @@ fn scan_blocks(snap: &Snapshot, bc: &mut BlockBoundaryCache,
     #[cfg(feature = "telemetry")] drop(_sp_sec);
     // sel 对齐：容器边界直接消费 build_structure_parts 的 ContainerRec，
     // 不再用 BlockEndCursor 复刻 boundary_for。record.end 已含
-    // end_includes_close/真实 Pop 结算；PopPush 续行的每个 push_line 也
-    // 需要一条 (line, kind) 边界，与旧游标对 Push 半部的入栈语义一致。
+    // end_includes_close/真实 Pop 结算。
+    // 例外是 content item 帧臂（is_content_item_frame——TableRow）：容器记录被
+    // 多行复用、end 是表尾；该臂的块尾是 item 级尾，必须逐 Push 结算——第 i 个
+    // Push 的尾 = 其 PopPush pop 行（= 下一个 push 行；表行即下一行），末次 Push
+    // 用记录最终 end。与旧 BlockEndCursor 的 Push/PopPush 语义逐值一致。
     #[cfg(feature = "telemetry")] let _sp_set = crate::telemetry_span!("fdc_settled_loop");
     let mut settled_raw: Vec<(usize, u8, usize)> = Vec::new();
     for r in recs_full {
         let rec_end = r.end_usize().unwrap_or(end).min(end);
-        for pl in r.push_lines_of(&seg.arena) {
-            let pl = pl as usize;
-            if pl >= start && pl < end {
-                settled_raw.push((pl, r.frame.kind() as u8, rec_end));
+        let kind = r.frame.kind();
+        if crate::effect::is_content_item_frame(kind) {
+            let mut it = r.push_lines_of(&seg.arena).peekable();
+            while let Some(pl) = it.next() {
+                let pl = pl as usize;
+                let tail = match it.peek() {
+                    Some(&next) => (next as usize).min(rec_end),
+                    None => rec_end,
+                };
+                if pl >= start && pl < end {
+                    settled_raw.push((pl, kind as u8, tail));
+                }
+            }
+        } else {
+            for pl in r.push_lines_of(&seg.arena) {
+                let pl = pl as usize;
+                if pl >= start && pl < end {
+                    settled_raw.push((pl, kind as u8, rec_end));
+                }
             }
         }
     }
@@ -2875,6 +2990,127 @@ mod light_opt_tests {
         let fresh = sig(&select_nodes(&snap, &steps));
         let cached = sig(&select_nodes(&snap, &steps));
         assert_eq!(fresh, cached);
+    }
+}
+
+#[cfg(test)]
+mod strict_filter_deserialize_tests {
+    use super::*;
+    use serde_json::json;
+
+    fn parse_step(v: serde_json::Value) -> Result<Step, String> {
+        serde_json::from_value::<Step>(v).map_err(|e| e.to_string())
+    }
+
+    /// D23 Rust 兜底：未知类型名必须报错并列出合法规范名（旧实现静默 None）。
+    #[test]
+    fn unknown_type_name_is_rejected_with_valid_names() {
+        let err = parse_step(json!(["TYPECHECK", "zzz"])).unwrap_err();
+        assert!(err.contains("zzz"), "错误信息应带非法值: {err}");
+        for valid in ["bullet", "indtcode", "html"] {
+            assert!(err.contains(valid), "合法名清单缺少 {valid}: {err}");
+        }
+        assert!(
+            err.contains("Python"),
+            "应说明用户别名由 Python 侧归一（Rust 只收规范名）: {err}"
+        );
+        // 未归一的用户别名（b）在 Rust 层也拒绝，而不是静默透传。
+        let alias_err = parse_step(json!(["TYPECHECK", "b"])).unwrap_err();
+        assert!(alias_err.contains("Python"), "{alias_err}");
+    }
+
+    /// TraversalFilter 的坏 filter 不得静默丢弃（旧实现 if let Some(fe) 跳过）。
+    #[test]
+    fn traversal_filter_bad_filter_is_rejected_not_dropped() {
+        let err = parse_step(json!([
+            "TraversalFilter", ["Wildcard"], [["TYPECHECK", "zzz"]], 1
+        ]))
+        .unwrap_err();
+        assert!(err.contains("TraversalFilter") && err.contains("filter[0]"), "{err}");
+        assert!(err.contains("zzz"), "{err}");
+
+        // filter 元素不是数组：不得跳过，必须报错。
+        let err = parse_step(json!(["TraversalFilter", ["Wildcard"], ["TYPECHECK"], 1]))
+            .unwrap_err();
+        assert!(err.contains("filter[0] is not an array"), "{err}");
+    }
+
+    /// AND/OR 内层坏子句不得丢弃（旧实现 if let Some(f) 跳过）。
+    #[test]
+    fn and_or_bad_subexpression_is_rejected() {
+        for tag in ["AND", "OR"] {
+            let err = parse_step(json!([tag, [["TYPECHECK", "zzz"]]])).unwrap_err();
+            assert!(err.contains(tag) && err.contains("sub-filter[0]"), "{tag}: {err}");
+            assert!(err.contains("zzz"), "{tag}: {err}");
+
+            // 子项不是数组：不得跳过，必须报错。
+            let err = parse_step(json!([tag, ["NOT-AN-ARRAY"]])).unwrap_err();
+            assert!(err.contains("sub-filter[0] must be an array"), "{tag}: {err}");
+        }
+    }
+
+    /// NOT / BY* 的内层坏 filter 同样不得静默失败。
+    #[test]
+    fn nested_inner_filter_errors_are_propagated() {
+        let err = parse_step(json!(["NOT", ["TYPECHECK", "zzz"]])).unwrap_err();
+        assert!(err.contains("NOT") && err.contains("zzz"), "{err}");
+        let err = parse_step(json!(["BY", ".tag", ["TYPECHECK", "zzz"]])).unwrap_err();
+        assert!(err.contains("BY") && err.contains("zzz"), "{err}");
+        let err = parse_step(json!(["BY_ANY", ".tag", ["TYPECHECK", "h"], ["TYPECHECK", "zzz"]]))
+            .unwrap_err();
+        assert!(err.contains("BY_ANY") && err.contains("zzz"), "{err}");
+    }
+
+    /// 未知 tag 的错误语义保持不变（不是 filter 解析错误）。
+    #[test]
+    fn unknown_filter_tag_still_reports_unknown_step_tag() {
+        let err = parse_step(json!(["BOGUS", ["x"]])).unwrap_err();
+        assert!(err.contains("unknown step tag: BOGUS"), "{err}");
+    }
+
+    /// 合法规范名 / 合法 filter 仍照常工作（不误伤）。
+    #[test]
+    fn valid_type_names_and_filters_still_work() {
+        for name in VALID_TYPE_NAMES {
+            let st = parse_step(json!(["TYPECHECK", name]))
+                .unwrap_or_else(|e| panic!("{name}: {e}"));
+            match st {
+                Step::Filter(FilterExpr::TypeCheck(tn)) => {
+                    assert_eq!(parse_type_name(name).unwrap(), tn, "{name}");
+                }
+                other => panic!("{name}: unexpected {other:?}"),
+            }
+        }
+        // 融合形态：两个合法 filter 都必须保留。
+        let st = parse_step(json!([
+            "TraversalFilter", ["Wildcard"],
+            [["TYPECHECK", "bullet"], ["CMP", ".tag", "==", "k"]], 1
+        ]))
+        .unwrap();
+        match st {
+            Step::TraversalFilter { filters, limit, .. } => {
+                assert_eq!(filters.len(), 2, "filters 不得丢失");
+                assert_eq!(limit, 1);
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+        // AND 合法子项全部保留。
+        let st = parse_step(json!(["AND", [["TYPECHECK", "h"], ["TYPECHECK", "bullet"]]])).unwrap();
+        match st {
+            Step::Filter(FilterExpr::And(subs)) => assert_eq!(subs.len(), 2),
+            other => panic!("unexpected {other:?}"),
+        }
+    }
+
+    /// 端到端：SelectorIR（PyO3 depythonize 同路径）对坏类型名报错，合法 IR 仍解析。
+    #[test]
+    fn selector_ir_rejects_unknown_type_name_end_to_end() {
+        let bad = r#"{"steps":[["Wildcard"],["TYPECHECK","zzz"]]}"#;
+        let err = serde_json::from_str::<SelectorIR>(bad).unwrap_err().to_string();
+        assert!(err.contains("zzz"), "{err}");
+        let ok = r#"{"steps":[["Drill","H"],["Wildcard"],["TYPECHECK","bullet"]]}"#;
+        let ir = serde_json::from_str::<SelectorIR>(ok).expect("valid IR must parse");
+        assert_eq!(ir.steps.len(), 3);
     }
 }
 

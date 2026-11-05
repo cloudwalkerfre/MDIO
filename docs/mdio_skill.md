@@ -1,5 +1,7 @@
 # MDIO 基础
 
+> MDIO exec 不是 Shell, 是 mdio **内部**命令管道
+
 ## VFS
 
 MDIO 的文档放在 VFS 中：`/dir/file.md` 是虚拟路径，不是宿主文件系统路径。每个 worktree 有自己的 VFS 命名空间；worktree 的细节在后面的“工作树”章单独讲。
@@ -320,6 +322,8 @@ MDIO 将 Markdown 投影为 `HS + proj`。
   - `calc` 计算：`_` 代表管道数据
     > "50" | calc -e "_ + 1"
   - `ls` / `mk` / `rm`：列目录 / 建文件 / 删文件
+    - `ls [-alRrtd1] [--] [path...]`；无参数 = 当前目录；flags 可前/中/后、可合并（`-la`）；多路径空格分隔，含空格的名字加引号；`--` 后全为路径
+    > ls -la /docs
     > ls -l /demo.md | fmt "- {}"
 - 字符串 ↔ 列表
   - `split` 按分隔符拆成列表，`join` 用分隔符合回文本

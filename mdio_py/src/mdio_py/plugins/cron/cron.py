@@ -660,9 +660,13 @@ class CRONPlugin(PluginBase):
         cp = self._cron_md_path(ctx)
         try:
             if not workspace.store.path_exists(ctx.wt_uid, cp):
+                # 空 selector + `/>` = 用骨架文本整体替换本文档。
+                # 旧写法用 drill("CRON_JOBS") 定位一个尚不存在的标题：auto_scaffold
+                # 先补 `# CRON_JOBS`，`/>` 又把 "# CRON_JOBS\n" 写到文末 ⇒ cron.md
+                # 出现第二个 `# CRON_JOBS`（D17）。这里直接整篇替换，只产生一个标题。
                 workspace.write_locator(
                     ctx.wt_uid, cp,
-                    drill("CRON_JOBS"),
+                    SelectorBuilder().build(),
                     "/>", "# CRON_JOBS\n", auto_scaffold=True, god=True,
                 )
         except Exception:

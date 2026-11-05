@@ -4,8 +4,11 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
+import pytest
+
 from mdio_py import MdioRuntime
 from mdio_py.core import parse_code
+from mdio_py.core.error import MdioError, ErrCode
 from mdio_py.core.mdio_ir import SelectorIR
 from mdio_py.core.selector_builder import SelectorBuilder
 
@@ -8153,6 +8156,121 @@ def _write_deep(store, steps, op, text, proj):
         op, text, True, True, False, False, proj,
     )
     return store.get_text("genesis", "/x.md")
+
+
+# ══════════════════════════════════════════════════════════════════════
+# D23：Python 侧类型名白名单（未知名 fail-fast，禁止静默透传给 Rust）
+# ══════════════════════════════════════════════════════════════════════
+
+# Rust selector.rs::parse_type_name 的 16 个规范名
+_CANONICAL_TYPES = {
+    "h", "h1", "h2", "h3", "h4", "h5", "h6",
+    "bullet", "ol", "code", "indtcode", "paragraph", "bq", "tb",
+    "comment", "html",
+}
+
+# 语法层可以出现类型名的两个位置：路径位（`.._x`，带前导 `_`）与
+# 过滤器位（`[x]`，无前导 `_`）。
+_D23_BAD_CODES = [
+    "$ ..*[zzz]",
+    "$ ..*[headng]",
+    "$ ..*_zzz",
+    "$ /a.md::..*_zzz",
+    "$ ..*[b && zzz]",
+    "$ ..*[b || zzz]",
+    "$ ..*[zzz && b]",
+    "$ ..*[!zzz]",
+    "$ ..*[zzz]._zzz",
+]
+
+
+def test_d23_unknown_type_name_rejected_at_parse():
+    """未知名在 parse_code 阶段就抛 P001，不进入 Rust。"""
+    for code in _D23_BAD_CODES:
+        with pytest.raises(MdioError) as ei:
+            parse_code(code)
+        err = ei.value
+        assert err.code == ErrCode.PARSE_TOKEN, (code, err.code)
+        assert "未知类型名" in err.message, (code, err.message)
+        # 消息必须给出合法别名与规范名（可供 LLM/用户自纠）
+        assert "合法别名" in err.message and "规范名" in err.message, err.message
+        assert "bullet" in err.message, err.message
+        # 坏名字本身被点名（zzz / headng）
+        assert ("zzz" in err.message) or ("headng" in err.message), err.message
+
+
+def test_d23_legal_type_names_unchanged():
+    """16 个规范名 + 全部别名解析结果不变（含 `_` 前缀与别名映射）。"""
+    aliases = {
+        "b": "bullet", "blt": "bullet", "x": "bullet", "checklist": "bullet",
+        "bullet": "bullet",
+        "o": "ol", "orderlist": "ol", "ordered_list": "ol", "ol": "ol",
+        "c": "code", "codeblock": "code", "code": "code", "indtcode": "indtcode",
+        "p": "paragraph", "paragraph": "paragraph", "h": "h", "head": "h",
+        "h1": "h1", "head1": "h1", "h2": "h2", "head2": "h2",
+        "h3": "h3", "head3": "h3", "h4": "h4", "head4": "h4",
+        "h5": "h5", "head5": "h5", "h6": "h6", "head6": "h6",
+        "bq": "bq", "blockquote": "bq", "tb": "tb", "table": "tb",
+        "comment": "comment", "html": "html",
+    }
+    assert set(aliases.values()) == _CANONICAL_TYPES
+
+    def typecheck(code):
+        steps = parse_code(code)[0].atoms[0].selector.steps
+        checks = [s for s in steps if s and s[0] == "TYPECHECK"]
+        assert len(checks) == 1, (code, steps)
+        return checks[0][1]
+
+    for annot, canonical in aliases.items():
+        assert typecheck(f"$ ..*[{annot}]") == canonical, annot
+        assert typecheck(f"$ ..*_{annot}") == canonical, annot
+
+    # filter 内的 AND/OR/NOT 组合仍然可用，且两侧都是规范名
+    ir = parse_code("$ ..*[b && h1]")[0].atoms[0].selector
+    assert ["AND", [["TYPECHECK", "bullet"], ["TYPECHECK", "h1"]]] in ir.steps
+    ir = parse_code("$ ..*[b || head]")[0].atoms[0].selector
+    assert ["OR", [["TYPECHECK", "bullet"], ["TYPECHECK", "h"]]] in ir.steps
+    ir = parse_code("$ ..*[!b]")[0].atoms[0].selector
+    assert ["NOT", ["TYPECHECK", "bullet"]] in ir.steps
+
+
+async def test_d23_runtime_exec_reports_error(runtime: MdioRuntime, tmp_path: Path):
+    """运行时层：exec 返回 mdio_error P001，且不再退化成全量 `..*` 结果。"""
+    await runtime.exec('mk -f /d23.md', wt_uid="genesis")
+    await runtime.exec(
+        '"""# A\n## data\n- user_1: admin\n- type: strip\n""" | /> /d23.md:: -pj raw',
+        wt_uid="genesis")
+
+    full = await runtime.exec('$ /d23.md::..*', wt_uid="genesis")
+    assert "admin" in full and "# A" in full  # 基线：`..*` 确实是全量
+
+    for code in ("$ /d23.md::..*[zzz]", "$ /d23.md::..*_zzz",
+                 "$ /d23.md::..*[b && zzz]"):
+        res = await runtime.exec(code, wt_uid="genesis")
+        assert res.lstrip().startswith("- mdio_error: [P001]"), (code, res)
+        assert "未知类型名" in res, (code, res)
+        assert "# A" not in res and "admin" not in res, (code, res)
+
+    # 合法别名运行时行为不变
+    ok = await runtime.exec('$ /d23.md::..*[b]', wt_uid="genesis")
+    assert "user_1: admin" in ok and "- type: strip" in ok
+    assert "# A" not in ok
+
+
+def test_d23_selector_builder_rejects_unknown_type():
+    """D23 收口：编程构造面 SelectorBuilder.type_is 同样不得静默透传未知名。"""
+    from mdio_py.core.selector_builder import SelectorBuilder
+
+    with pytest.raises(MdioError) as ei:
+        SelectorBuilder().type_is("zzz")
+    err = ei.value
+    assert err.code == ErrCode.PARSE_TOKEN, err.code
+    assert "未知类型名" in err.message and "bullet" in err.message, err.message
+
+    # 合法别名与 DSL 同源：b → bullet，且类型步前自动补 Wildcard（旧语义不变）
+    steps = SelectorBuilder().type_is("b").build().steps
+    # build() 会走 fuse_steps：末段 [T, F*] → TraversalFilter(limit=0)
+    assert steps == [["TraversalFilter", ["Wildcard"], [["TYPECHECK", "bullet"]], 0]], steps
 
 
 

@@ -795,7 +795,7 @@ pub(crate) fn poppush_is_list_replacement(entries: &[u64], ei: usize) -> bool {
     }
     let e = entries.get(ei).copied().unwrap_or(0);
     let kind = crate::block::entry_frame(e).kind();
-    (crate::effect::is_list_container(kind) || kind == FrameKind::TableRow)
+    crate::effect::decl_for(kind).has_pop_push
         && is_poppush_pair(entries, ei - 1, true)
 }
 
@@ -3711,9 +3711,7 @@ pub fn container_log_end(
             let is_poppush = is_poppush_kindonly(entries[ei], entries.get(ei + 1).copied());
             // 列表 sibling 替换 = 容器延续（PopPush）；BQ 等其他 shell 的
             // 同行 pop+push 是「关旧开新」（blank 重开）→ 真关闭。
-            if is_poppush
-                && (crate::effect::is_list_container(fk) || fk == FrameKind::TableRow)
-            {
+            if is_poppush && crate::effect::decl_for(fk).has_pop_push {
                 depth = depth.max(1);
                 ei += 2;
                 continue;
@@ -3752,9 +3750,9 @@ pub(crate) fn container_end_fallback(
     if let Some(end) = container_log_end(entries, lines, start_line, fk) {
         return end;
     }
-    // TableRow 帧不镜像 Table 容器（稀疏记录），根尾由外层 Table pop 结算
-    // → 用下一个事件行。
-    if fk == FrameKind::TableRow {
+    // content item 帧（TableRow）不镜像 Table 容器（稀疏记录），根尾由外层
+    // Table pop 结算 → 用下一个事件行；与 settle 的 item 级结算同源谓词。
+    if crate::effect::is_content_item_frame(fk) {
         return if ei < entries.len() {
             crate::block::entry_line(entries[ei]) as usize
         } else {

@@ -6,6 +6,105 @@ from .error import MdioError, ErrCode
 
 DEBUG = False
 
+# ── D23：类型名严格解析（唯一入口）──
+# 合法来源：TYPE_ANNOT 的别名键 ∪ 其值域（规范名，= Rust selector.rs
+# parse_type_name 认的 16 个名字）。未知名必须在 Python 侧 fail-fast：
+# Rust 侧 from_json_array 对解析不出的 TYPECHECK 返回 None，整块 filter
+# 被静默丢弃，`..*[zzz]` 会退化成 `..*`（实测），不能靠 Rust 兜底。
+CANONICAL_TYPE_NAMES = frozenset(TYPE_ANNOT.values())
+_TYPE_ALIAS_NAMES = tuple(sorted(TYPE_ANNOT.keys()))
+_TYPE_CANONICAL_NAMES = tuple(sorted(CANONICAL_TYPE_NAMES))
+
+
+def resolve_type_name(annot, *, where: str = "类型标注") -> str:
+    """用户书写的类型名（可带 `_` 前缀）→ Rust 认的规范名。
+
+    非法名抛 MdioError(P001)（项目错误协议），消息列出全部合法别名与规范名。
+    """
+    raw = str(annot)
+    key = raw[1:] if raw.startswith('_') else raw
+    canonical = TYPE_ANNOT.get(key)
+    if canonical is None:
+        raise MdioError(
+            "parser", ErrCode.PARSE_TOKEN,
+            f"未知类型名 '{key}'（{where}）。合法别名: "
+            f"{', '.join(_TYPE_ALIAS_NAMES)}；规范名: "
+            f"{', '.join(_TYPE_CANONICAL_NAMES)}")
+    return canonical
+
+
+# ── shell 化 ls：LS_CMD 原文 → shell argv → FuncCall ──
+
+def shell_split_words(text: str) -> list:
+    """简化 POSIX shell 词法：空白分隔；`"..."` / `'...'` 引号内原样保留
+    （引号本身剥离）。不实现反斜杠转义——路径含空格请用引号。
+
+    `started` 记录「本词是否出现过（含空引号）」：显式空操作数 `ls ""`
+    要保留成空词并逐路径报错，不能静默退化成「无操作数 = 当前目录」。
+    """
+    words = []
+    cur = []
+    quote = None
+    started = False
+    for ch in str(text):
+        if quote is not None:
+            if ch == quote:
+                quote = None
+            else:
+                cur.append(ch)
+            started = True
+        elif ch in ('"', "'"):
+            quote = ch
+            started = True
+        elif ch in (' ', '\t'):
+            if started:
+                words.append(''.join(cur)); cur = []; started = False
+        else:
+            cur.append(ch)
+            started = True
+    if started:
+        words.append(''.join(cur))
+    return words
+
+
+def _is_macro_word(word: str) -> bool:
+    """`%name` 形态的 shell 词 → 旧语法里它是 MACRO_IDENT 位置参数（求值成路径）。"""
+    if len(word) < 2 or word[0] != '%':
+        return False
+    rest = word[1:]
+    return (rest[0].isalpha() or rest[0] == '_') and all(
+        ch.isalnum() or ch == '_' for ch in rest[1:])
+
+
+def make_ls_call(command) -> FuncCall:
+    """`ls` 命令原文（含前缀 ls）→ FuncCall(args=[路径...], kwargs={flag: True})。
+
+    shell 约定：`--` 之后全部视为路径；`-xxx` 为 flag；其余为路径
+    （绝对/相对/`.`/`..`/跨 wt `uid::/path` 皆可）。原有 -l/-a/-t/-r/-R/-d
+    语义与 -p 跨 wt 用法在 fs_ops 消费时保持；未知 flag 无害。
+    兼容旧位置参数语义：`%macro` → MacroToken（执行时解析成路径），
+    `_` → PIPE_DATA（当前管道数据即路径）。
+    """
+    text = str(command).strip()
+    words = shell_split_words(text[2:] if text.startswith('ls') else text)
+    kwargs = {}
+    paths = []
+    end_of_options = False
+    for word in words:
+        if not end_of_options and word == '--':
+            end_of_options = True
+            continue
+        if not end_of_options and len(word) > 1 and word.startswith('-'):
+            kwargs[word] = True
+            continue
+        if word == '_':
+            paths.append(PIPE_DATA)
+        elif _is_macro_word(word):
+            paths.append(MacroToken(name=word[1:]))
+        else:
+            paths.append(word)
+    return FuncCall(name='ls', args=paths, kwargs=kwargs)
+
 class MdioString(str):
     """偷运元数据的隐形特工"""
     is_triple_quoted: bool = False
@@ -151,8 +250,8 @@ class MdioTransformer(Transformer):
                 i += 1; continue
 
             if tt == 'TYPE_ANNOT':
-                annot = tv[1:] if tv.startswith('_') else tv
-                type_name = TYPE_ANNOT.get(annot, annot)
+                # 路径位写法：`.._b` / `..*_h3`（token 含前导 `_`）
+                type_name = resolve_type_name(tv, where=f"路径位 '{tv}'")
                 _prepend_wildcard(steps)
                 steps.append(["TYPECHECK", type_name])
                 i += 1; continue
@@ -378,8 +477,8 @@ class MdioTransformer(Transformer):
     KNOWN_METHODS = {'has','eq','re','empty'}
 
     def type_expr(self, annot_token, method=None):
-        annot = str(annot_token)
-        type_name = TYPE_ANNOT.get(annot, annot)
+        # 过滤器位写法：`[b]` / `[b && ...]`（PATH_IDENT，无前导 `_` 惯例）
+        type_name = resolve_type_name(annot_token, where=f"过滤器位 '{annot_token}'")
         if method is None:
             return ['TYPECHECK', type_name]
         # 有 method 时组合为 AND: [TYPECHECK, type_name] AND method_result
@@ -492,6 +591,10 @@ class MdioTransformer(Transformer):
     def arg_atom(self, atom):
         if getattr(atom, 'type', None) == 'UNDERSCORE':
             return PIPE_DATA
+        # HEX_IDENT 是裸数字开头 snap hash（D15）：args() 默认会丢弃 Token，
+        # 这里先脱成字符串，否则 `worktree checkout <hash>` 会变成空参数。
+        if getattr(atom, 'type', None) == 'HEX_IDENT':
+            return str(atom)
         return atom
 
     def kwarg_value(self, val):
@@ -501,6 +604,10 @@ class MdioTransformer(Transformer):
             return PIPE_DATA
         return val
          
+    # shell 化 ls：LS_CMD 是整条命令原文，重新按 shell 词法切词
+    def ls_call(self, command):
+        return make_ls_call(command)
+
     def func_call(self, *args):
         clean_args, kwargs = self._extract_args_and_kwargs(args)
         raw_name = str(clean_args[0])
@@ -531,6 +638,11 @@ class MdioTransformer(Transformer):
         """在这里就把传入函数的包装壳（Literal/FString/Token）全部褪去，只给引擎留纯粹的 Python 数据"""
         clean_args = []
         for x in a:
+            # D15：HEX_IDENT 是裸数字开头 snap hash。args() 默认丢弃 Token，
+            # 但它必须作为字符串实参保留（否则 `worktree checkout <hash>` 变空参）。
+            if getattr(x, 'type', None) == 'HEX_IDENT':
+                clean_args.append(str(x))
+                continue
             # 兼容 Cython Token (判断鸭子模型或类名)
             if type(x).__name__ == 'Token' or (hasattr(x, 'type') and hasattr(x, 'value') and not hasattr(x, 'raw_value')): 
                 continue

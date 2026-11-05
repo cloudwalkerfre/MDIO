@@ -70,7 +70,7 @@ LEDGER|变异组 content_kind 3 点 wired=Some("test_ic_threshold_mutation_is_se
 LEDGER|变异组 ctx 2 点 wired=Some("test_ctx_mutation_stack_and_prev_sensitive")
 LEDGER|变异组 extract 3 点 wired=Some("test_ws_dual_arm_mutations_go_red")
 LEDGER|未覆盖 DomainMutation - 0 点
-LEDGER|层 SelfProving 入口 self_corpus_scan（self_corpus_scan（DEV/research 的 md 全过判官））
+LEDGER|层 SelfProving 入口 self_corpus_scan（self_corpus_scan（历史研究文档的 md 全过判官））
 LEDGER|层 Spec 入口 test_corpus_sweep_all_green（CORPUS 30 篇（手推黄金决策词））
 LEDGER|层 ExternalGolden 入口 test_commonmark_full_doc（commonmark.md 整篇（9811 行））
-LEDGER|层 ExternalGolden 入口 test_ctx_class_mirror_vs_production（gauntlet.md（1910 行；与 commonmark 同层，消费者 = A24 呈现画像对拍））
+LEDGER|层 ExternalGolden 入口 test_ctx_class_mirror_vs_production（gauntlet.md（61 行 / 1910 字节；与 commonmark 同层，消费者 = A24 呈现画像对拍））

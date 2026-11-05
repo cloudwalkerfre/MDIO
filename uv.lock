@@ -848,7 +848,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "maturin" },
-    { name = "mdio-py" },
+    { name = "mdio-py", extra = ["test"] },
 ]
 
 [package.metadata]
@@ -883,7 +883,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "maturin", specifier = ">=1.4,<2.0" },
-    { name = "mdio-py", editable = "mdio_py" },
+    { name = "mdio-py", extras = ["test"], editable = "mdio_py" },
 ]
 
 [[package]]
@@ -917,12 +917,16 @@ dependencies = [
     { name = "psutil" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
+    { name = "tabulate" },
+    { name = "websockets" },
+]
+
+[package.optional-dependencies]
+test = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
-    { name = "tabulate" },
-    { name = "websockets" },
 ]
 
 [package.metadata]
@@ -953,13 +957,14 @@ requires-dist = [
     { name = "psutil", specifier = ">=7.2,<8" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "pydantic-settings", specifier = ">=2.12.0" },
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "pytest-asyncio", specifier = ">=1.0.0" },
-    { name = "pytest-timeout", specifier = ">=2.3.1" },
-    { name = "pytest-xdist", specifier = ">=3.8.0" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=9.0.2" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=1.0.0" },
+    { name = "pytest-timeout", marker = "extra == 'test'", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", marker = "extra == 'test'", specifier = ">=3.8.0" },
     { name = "tabulate", specifier = ">=0.10.0" },
     { name = "websockets", specifier = ">=16.0" },
 ]
+provides-extras = ["test"]
 
 [[package]]
 name = "mdurl"

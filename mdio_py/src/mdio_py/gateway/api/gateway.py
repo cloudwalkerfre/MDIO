@@ -294,7 +294,13 @@ class IrohGatewayController(Controller):
         request: Request,
         runtime: MdioRuntime,
     ) -> Response:
-        """folder 级：断开一个远程 folder（文件留本地）。body: {path: "/share/<name>", name?/wt_uid?}"""
+        """folder 级：断开一个远程 folder（文件留本地）。
+
+        body: {path: "/share/<name>", wt_uid?, name?}；wt_uid/name 都是**显式**选择器。
+        未显式指定时按 path 在全部 worktree 中解析挂载所属树——不再回落到
+        active_worktree_uid（D35：旧缺省会静默把删除打到另一棵树，目标树残留
+        gateway.md/rule，重启 reconcile 又从残留记录复活挂载）。
+        """
         try:
             data = await request.json()
         except Exception:
@@ -305,15 +311,21 @@ class IrohGatewayController(Controller):
         gs = getattr(runtime._workspace, "_gateway_store", None)
         if gs is None:
             return Response({"error": "gateway store not available"}, status_code=503)
+        from mdio_py.gateway.store import GatewayTargetError
         try:
-            wt_uid = data.get("wt_uid") or getattr(runtime._workspace, "active_worktree_uid", "genesis")
-            if data.get("name"):
-                resolved = runtime._workspace.resolve_worktree_name(data["name"])
-                if resolved:
-                    wt_uid = resolved
-            gs.unmount(wt_uid, path)
-            return Response({"status": "ok", "wt_uid": wt_uid, "path": path})
+            result = gs.unmount_by_path(
+                path,
+                wt_uid=data.get("wt_uid") or None,
+                wt_name=data.get("name") or None,
+            )
+            return Response({"status": "ok", **result})
+        except GatewayTargetError as e:
+            # 解析失败必须显式报错（候选/范围写进 message），不能退回任何缺省树
+            return Response({"error": str(e)},
+                            status_code=getattr(e, "status_code", 400))
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return Response({"error": f"{type(e).__name__}: {e}"}, status_code=500)
 
     @post("/{wt_uid:str}/share")

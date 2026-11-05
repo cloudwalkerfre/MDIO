@@ -1,4 +1,4 @@
-//! mdio-dircheck CLI（DEV/check_core_layers_plan_20261012）。
+//! mdio-dircheck CLI。
 //! 用法:
 //!   mdio-dircheck <src_dir>                    打印边集与 outlets（扫描模式）
 //!   mdio-dircheck check <src_dir> [--baseline <file>]   门禁模式（基线棘轮，红 = 退出码 1）

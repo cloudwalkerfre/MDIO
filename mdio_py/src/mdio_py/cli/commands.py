@@ -62,7 +62,19 @@ def _request_json(method: str, path: str, payload: dict | None = None,
         with _opener_for(_gateway_host())(req, timeout=timeout) as resp:
             body = resp.read().decode("utf-8")
     except urllib.error.HTTPError as e:
-        raise RuntimeError(f"server returned HTTP {e.code}") from e
+        # 把服务端 {"error": ...} 的详情带出来：unmount 的「命中多个挂载点，请用 --wt
+        # 指定哪棵树」这类可执行信息就在 body 里，只报 "HTTP 404" 用户永远看不到（D35）。
+        detail = ""
+        try:
+            raw = e.read().decode("utf-8")
+            try:
+                detail = (json.loads(raw) or {}).get("error") or ""
+            except Exception:
+                detail = raw.strip()
+        except Exception:
+            detail = ""
+        suffix = f": {detail}" if detail else ""
+        raise RuntimeError(f"server returned HTTP {e.code}{suffix}") from e
     return json.loads(body) if body.strip() else {}
 
 
@@ -367,6 +379,15 @@ def load_cmd(source, pwt, rule, dest, ref, subdir, load_all, wt_name, list_only,
             click.echo(f"target:  {wt_root}")
             click.echo(f"parent:  {pwt}")
             return
+        # D33: 裸目录既不符合 WTS（无 install.md），也不是 MDIO 项目根（无 wt/）。
+        # 旧行为会把它当项目根登记，随后静默产出一个空工作树（文档在目录里但
+        # loader 只认 <root>/wt）。dry-run 仍允许看解析结果，真正 load 前明确拒绝。
+        if wt_root == root and not (root / "wt").is_dir():
+            raise click.ClickException(
+                f"{root} is neither a WTS (missing install.md) nor an MDIO project "
+                f"root (missing wt/); mdio load imports worktrees, not loose .md "
+                f"files — nothing was loaded"
+            )
         selected = [(None, wt_root, pwt)]
 
     host = _gateway_host()
@@ -385,7 +406,8 @@ def load_cmd(source, pwt, rule, dest, ref, subdir, load_all, wt_name, list_only,
         if actual_root and Path(actual_root).resolve() != root_path.resolve():
             click.echo(
                 f"- mdio_error: gateway already running with root {actual_root}; "
-                f"stop it before loading WTS root {root_path}"
+                f"switching the WTS root requires a restart: run `mdio stop`, "
+                f"then retry (single-worktree loads stay hot and do not need this)"
             )
             raise click.exceptions.Exit(1)
 
@@ -431,16 +453,28 @@ def mount_cmd(ticket, as_name, target):
 
 @click.command("unmount")
 @click.option("--path", "-p", required=True, help="要断开的远程 folder 路径（/share/<name>）")
-@click.option("--wt", "--name", "-n", "name", default=None, help="目标 WT（缺省=服务端 active WT）")
+@click.option("--wt", "--name", "-n", "name", default=None,
+              help="目标 WT（uid 或 worktree 名）；缺省=按 --path 解析所属 WT，多命中会列出候选")
 def unmount_cmd(path, name):
     """断开一个远程 folder（文件保留为本地）。"""
+    # 不指定 --wt 时**不要**替服务端填 active WT 的缺省值：那会静默把删除打到另一棵树
+    # （D35：目标树 gateway.md/rule 残留，重启 reconcile 又从残留记录复活挂载）。
+    # 让服务端按 --path 解析 owner：唯一命中才执行，多命中/无命中都明确报错。
+    payload = {"path": path}
+    if name:
+        payload["name"] = name
     try:
-        result = _post_json("/gateway/unmount", {"path": path, "name": name})
+        result = _post_json("/gateway/unmount", payload)
     except (RuntimeError, urllib.error.URLError) as e:
         click.echo(f"- mdio_error: {e}")
         return
     if "error" in result:
         click.echo(f"- mdio_error: {result['error']}")
+    elif result.get("already_absent"):
+        click.echo(
+            f"folder: {result.get('path')} 本就不在网关记录中"
+            f"（wt {result.get('wt_uid')}），无需卸载"
+        )
     else:
         click.echo(f"folder: unmounted {result.get('path')} from {result.get('wt_uid')}")
 

@@ -128,7 +128,10 @@ async def test_folder_verbs_still_require_share_path(tmp_path: Path):
     m = str(await rt.exec("worktree mount", wt_uid="genesis"))
     assert "mount requires /share/" in m, m
     u = str(await rt.exec("worktree unmount", wt_uid="genesis"))
-    assert "unmount requires /share/" in u, u
+    assert "unmount requires --path /share/" in u, u
+    # 位置参数形态不可用（语法会把裸路径当读表达式）——与 mount 同款，必须 --path
+    u_pos = str(await rt.exec("worktree unmount /share/foo", wt_uid="genesis"))
+    assert "unmount requires --path /share/" in u_pos, u_pos
     # 改名后旧名不存在（不是并存）
     old = str(await rt.exec("worktree unload /share/x", wt_uid="genesis"))
     assert "unknown worktree sub-command" in old, old
@@ -171,3 +174,137 @@ async def test_load_project_named_genesis_gets_suffixed_name(tmp_path: Path):
     assert "genesis_1" in names, names
     assert "genesis" not in names, names
     assert rt._workspace.resolve_worktree_name("genesis_1") == uid
+
+
+# ── folder 级 unmount：owner 解析 + 持久化 + gateway.md 清理 ──
+
+async def _std_mount_foo(rt):
+    res = str(await rt.exec(
+        'worktree mount --path /share/foo --from "iroh://abc" --as foo',
+        wt_uid="genesis"))
+    assert "added remote" in res and "mdio_error" not in res, res
+
+
+async def test_std_unmount_resolves_owner_by_path_and_persists(tmp_path: Path):
+    """D35 同类：unmount 不能再缺省 active 树；删完必须写回 worktrees.md，rebuild 不复活。"""
+    rt = MdioRuntime(str(tmp_path))
+    await rt.exec('worktree cfork "kid"', wt_uid="genesis")
+    kid = rt._workspace.active_worktree_uid
+    await _std_mount_foo(rt)
+    assert rt.store.rule_remote_entries(kid) == [("/share/foo", "foo")]
+
+    # 切回 genesis（旧实现拿 active=genesis 当目标：静默成功、kid 的 rule 还在）
+    await rt.exec('worktree use "genesis"', wt_uid="genesis")
+    res = str(await rt.exec('worktree unmount --path /share/foo', wt_uid="genesis"))
+    assert "unmounted" in res and kid in res, res
+    assert rt.store.rule_remote_entries(kid) == [], res
+
+    # 强制全量 rebuild：若 rule 没写回文件，这里会从 worktrees.md 复活
+    rt.store.flush_worktree_sessions("genesis")
+    rt.store.rule_add_remote("genesis", "/probe", "probe")
+    rt.store.tree_ensure()
+    assert rt.store.rule_remote_entries(kid) == []
+
+
+async def test_std_unmount_removes_gateway_md_entry(tmp_path: Path):
+    """gateway.md 条目也必须清：只删 rule 时重启 reconcile 仍会看到挂载声明。"""
+    from mdio_py.core.selector_builder import SelectorBuilder
+
+    rt = MdioRuntime(str(tmp_path))
+    await rt.exec('worktree cfork "kid"', wt_uid="genesis")
+    kid = rt._workspace.active_worktree_uid
+    await _std_mount_foo(rt)
+    rt._workspace.write_locator(
+        kid, "/.mds/gateway.md", SelectorBuilder().build(), "+>",
+        "# GATEWAY\n\n## foo\n- local_prefix: /share/foo\n", auto_scaffold=True)
+    await rt.exec('worktree use "genesis"', wt_uid="genesis")
+
+    res = str(await rt.exec('worktree unmount --path /share/foo', wt_uid="genesis"))
+    assert "unmounted" in res and "mdio_error" not in res, res
+    gw = rt.store.get_text(kid, "/.mds/gateway.md") or ""
+    assert "## foo" not in gw, gw
+    assert rt.store.rule_remote_entries(kid) == []
+
+
+async def test_std_unmount_explicit_wrong_wt_does_not_delete(tmp_path: Path):
+    """显式给出别的 WT 时，路径不属于它 ⇒ 报错，不能删到别的树。"""
+    rt = MdioRuntime(str(tmp_path))
+    await rt.exec('worktree cfork "kid"', wt_uid="genesis")
+    kid = rt._workspace.active_worktree_uid
+    await _std_mount_foo(rt)
+    await rt.exec('worktree cfork "kid2"', wt_uid="genesis")
+    kid2 = rt._workspace.active_worktree_uid
+    assert kid2 != kid
+
+    res = str(await rt.exec(
+        'worktree unmount --path /share/foo --name kid2', wt_uid="genesis"))
+    assert "mdio_error" in res and "unmounted" not in res, res
+    assert rt.store.rule_remote_entries(kid) == [("/share/foo", "foo")]
+
+    # 未知 wt 名：必须返回可读错误（旧代码用了不存在的 ErrCode.NOT_FOUND ⇒ I500）
+    res_ghost = str(await rt.exec(
+        'worktree unmount --path /share/foo --name ghost', wt_uid="genesis"))
+    assert "mdio_error" in res_ghost and "not found" in res_ghost, res_ghost
+    assert rt.store.rule_remote_entries(kid) == [("/share/foo", "foo")]
+
+    # 无任何命中：也必须报错，不能静默成功
+    res2 = str(await rt.exec('worktree unmount --path /share/nope', wt_uid="genesis"))
+    assert "mdio_error" in res2 and "unmounted" not in res2, res2
+    assert rt.store.rule_remote_entries(kid) == [("/share/foo", "foo")]
+
+
+async def test_std_unmount_ambiguous_requires_explicit_wt(tmp_path: Path):
+    """同 path 在多个 WT 都有挂载点时列候选、拒绝猜；显式 --name 才执行。"""
+    rt = MdioRuntime(str(tmp_path))
+    await rt.exec('worktree cfork "kid"', wt_uid="genesis")
+    kid = rt._workspace.active_worktree_uid
+    await _std_mount_foo(rt)
+    await rt.exec('worktree cfork "kid2"', wt_uid="genesis")
+    kid2 = rt._workspace.active_worktree_uid
+    await _std_mount_foo(rt)
+    await rt.exec('worktree use "genesis"', wt_uid="genesis")
+
+    res = str(await rt.exec('worktree unmount --path /share/foo', wt_uid="genesis"))
+    assert "mdio_error" in res and "命中多个挂载点" in res, res
+    assert rt.store.rule_remote_entries(kid) == [("/share/foo", "foo")]
+    assert rt.store.rule_remote_entries(kid2) == [("/share/foo", "foo")]
+
+    ok = str(await rt.exec('worktree unmount --path /share/foo --name kid', wt_uid="genesis"))
+    assert "unmounted" in ok and "mdio_error" not in ok, ok
+    assert rt.store.rule_remote_entries(kid) == []
+    assert rt.store.rule_remote_entries(kid2) == [("/share/foo", "foo")]
+
+
+async def test_std_unmount_prefers_live_gateway_store(tmp_path: Path):
+    """serve/HTTP 进程里有 _gateway_store 时必须复用它（才能停对应 handler），不能另起临时实例。"""
+    rt = MdioRuntime(str(tmp_path))
+    await rt.exec('worktree cfork "kid"', wt_uid="genesis")
+    kid = rt._workspace.active_worktree_uid
+    calls = []
+
+    class _FakeGatewayStore:
+        def unmount_by_path(self, path, *, wt_uid=None, wt_name=None):
+            calls.append((path, wt_uid, wt_name))
+            return {"path": path, "wt_uid": wt_uid or "fake"}
+
+    rt._workspace._gateway_store = _FakeGatewayStore()
+    res = str(await rt.exec(
+        'worktree unmount --path /share/x --name kid', wt_uid="genesis"))
+    assert "unmounted" in res and "mdio_error" not in res, res
+    assert calls == [("/share/x", None, "kid")], calls
+
+
+def test_worktree_checkout_bare_numeric_snap_hash_parses():
+    """D15：数字开头的 snap hash 不开引号也必须进实参，不能变成 P001。"""
+    from mdio_py.core import parse_code
+
+    for h in ("47b35b1f29ac", "47b35b1f29ac50e2c541c37355bec178384902a750746989c15de4d5e66bb9a2"):
+        ir = parse_code(f"worktree checkout {h}")
+        atom = ir[0].atoms[0]
+        assert atom.name == "worktree"
+        checkout = atom.args[0]
+        assert checkout.name == "checkout"
+        assert checkout.args == [h]
+    # 纯数字（无 a-f）不能被 HEX_IDENT 抢成字符串实参。
+    num = parse_code("x 12345678")[0].atoms[0]
+    assert num.args == [12345678]

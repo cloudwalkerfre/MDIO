@@ -2,7 +2,7 @@
 /**
  * **认领与可见性的策略**（app 层 · 认领与可见性归 `basic_render`）。
  *
- * 规则（与 `ui_core/render/uiStore.gates` 语义一致）：
+ * 规则（与 `ui_core/store/uiStore.gates` 语义一致）：
  *   ① 认领：`activeClaims` **从表尾往前扫、第一个命中即胜者**（= 声明序「后写覆盖」）；**不继承容器**。
  *   ② 可见：`exclude` 优先；没有 `include` 条目 ⇒ 全可见；否则 `include` 命中者可见；两种都用**容器跟孩子走**。
  * 谓词不搬：`claimMatches`（路径门控 + 候选面 + 链上命中）是**能力面**，仍住框架，经 `read` 交给本层。

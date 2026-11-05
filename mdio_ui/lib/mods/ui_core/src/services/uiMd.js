@@ -53,7 +53,7 @@
  *   · **经读面暴露给组件**：apply · isTransparentShell · asArray（+ 内部 kidsOf/descendants/readField）
  *     —— 组件**只许** `read.*` 拿它们；**不许** `import ... from "ui_core/uiMd"` 直接用（越层）。
  * **判据面**（仓内生产代码零调用，只有判据/测试在读）：positionalStepOf
- *   —— 不是死码，但**不许被生产新增调用**；要挪用它先挪栏（由 check_no_new_machinery 守）。
+ *   —— 不是死码，但**不许被生产新增调用**；要挪用它先挪栏（人工约定；仓库里没有同名自动门禁）。
  */
 export const TOPOLOGY = {
   /**
@@ -180,9 +180,6 @@ export function makeRead() {
   });
 }
 
-/** 读面的唯一出生点（单源）：NodeView 与装配点都 import 它，不再各造一份。 */
-export const READ = makeRead();
-
 /** 摊平写法（判据与过滤用）：就是上面的值按「表头 + 逐行」拼接；**两处同源，别各写一遍**。 */
 export function contentFaceOf(node) {
   const v = contentValueOf(node);
@@ -204,11 +201,10 @@ export const TYPE_SPELLINGS = ["b", "blt", "bullet", "x", "checklist", "o", "ol"
 // `src/tables/{t1_nt,t2_names,t3_values,t4_faces}.json` 不再使用：
 //   它们无人 import（不是第二份实现），且知识主体（出处/实测/修法）本来就在本文件的注释里 ⇒ 只把那几张表**仅存**的实测数字
 //   （注入叶「每 item 扣 1」的 9/6 计数、bullet 的 `x`→`b` 2251 例）搬进注释后删除。
-//    连带影响：`.tmp/p0` 那套读 `src/tables/*` 的对拍脚本（`check_tables.mjs` / `check_tables_two_copies.mjs`）会因此报缺件 —— 那是**判据侧的旧装置**，不是运行时依赖。
+//    连带影响：配套的 `src/tables/*` 对拍脚本已不在仓库内；它们不是运行时依赖。
 // 运行时形态就是上面这些既有常量（`TOPOLOGY` · `TYPE_SPELLINGS` · `CONTENT_BY_NT`/`CONTENT_UNREADABLE`）——
 // **不另起分组名**：发明的中间层只会多一套说法。
-// 同步由判据保：`.tmp/p0/check_tables_in_repo.mjs`（JSON ↔ 字面量）· `.tmp/apply-tables/check_tables.mjs`（JSON ↔ 引擎）。
-// 另一份**逐字节相同的拷贝**在 `.tmp/apply-tables/`（对拍脚本按名读它）——相等由 `.tmp/p0/check_tables_two_copies.mjs` 守，改一边就红。
+// 三表一致性目前靠人工比对（仓库里没有同名自动判据）。
 /** 丐版契约红灯：未知 step / 未知 filter tag / 表外拼写（一次遍历，递归进 filter 内层）。 */
 function irProblems(ir, out) {
   for (const st of ir || []) {
@@ -401,6 +397,17 @@ export const walkPrims = {
   isContainer: (nt) => CONTAINER.has(nt),
   localFilterTags: LOCAL_FILTER_TAGS,
 };
+
+/**
+ * 读面的唯一出生点（单源）：NodeView 与装配点都 import 它，不再各造一份。
+ * **位置有硬约束（TDZ）**：makeRead 在返回对象里**直接读取**这些 const 标识符，而 `const` 没有提升
+ *   ⇒ 本行必须排在 TOPOLOGY · TYPE_SPELLINGS · walkPrims 三个 const 之后（:58 / :198 / :393）。
+ *   修复前它在 HEAD 的 :184（后两者之前）⇒ 模块求值即 `ReferenceError: Cannot access 'walkPrims' / 'TYPE_SPELLINGS' before initialization`（check-slot 实测）。
+ *   也不能反过来把 walkPrims 前移：它自己的字面量读 LOCAL_FILTER_TAGS(:259)，同样 TDZ。
+ *   函数声明（apply / kidsOf / …）会提升，不需要前移。
+ * 循环 import 风险：本文件**无静态 import**（纪律 R1），uiMd 是依赖叶子 ⇒ import 方拿到 READ 时本模块已求值完，安全。
+ */
+export const READ = makeRead();
 
 /** `Slice` = **对当前层的列表**取下标/切片（`[n]` / `[a:b]` / `RANGE`；负数自尾部数）。 */
 function sliceList(cur, spec0) {

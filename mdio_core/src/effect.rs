@@ -848,6 +848,14 @@ pub fn is_list_container(kind: FrameKind) -> bool {
     block_decl(effect_for(kind).block_type).is_list_item
 }
 
+/// content item 帧：产生 PopPush 但不是列表 shell 的唯一帧（TableRow）。
+/// 与 is_list_container 互斥互补：has_pop_push == is_list_container ∪ is_content_item_frame。
+/// 该臂的块尾是 item 级尾（单项），不是容器记录的 end。
+#[inline]
+pub fn is_content_item_frame(kind: FrameKind) -> bool {
+    decl_for(kind).has_pop_push && !effect_for(kind).is_shell
+}
+
 /// 嵌套容器判定：ContainerDecl.is_nesting 的薄封装。
 #[inline]
 pub fn is_nesting_container(kind: FrameKind) -> bool {

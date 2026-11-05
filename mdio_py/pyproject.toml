@@ -4,6 +4,20 @@
 name = "mdio-py"
 version = "0.8.5"
 description = "MDIO Logic SDK & Runtime"
+readme = "../README.md"
+license = { file = "../LICENSE" }
+authors = [
+    { name = "cloudwalkerfre", email = "cloudwalkerfree@gmail.com" },
+]
+keywords = ["markdown", "database", "knowledge-base", "mdio"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Text Processing :: Markup",
+]
 dependencies = [
     "lark==1.3.1",
     "anyio>=4.0.0",  # 用于 Async Task 封装
@@ -11,7 +25,6 @@ dependencies = [
     "litestar>=2.24.0",
     "granian[reload,uvloop]>=2.7.8",
     "msgspec>=0.20.0",
-    "pytest>=9.0.2",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.12.0",
     "lark-cython>=0.0.17",
@@ -25,9 +38,6 @@ dependencies = [
     "pexpect>=4.9.0",
     "psutil>=7.2,<8",
     "nah>=0.7.0",
-    "pytest-asyncio>=1.0.0",
-    "pytest-xdist>=3.8.0",  # addopts -n auto 多进程并行依赖
-    "pytest-timeout>=2.3.1",
     "tabulate>=0.10.0",
     "polars>=1.43.1",
     "duckdb>=2.0.0",
@@ -39,6 +49,19 @@ dependencies = [
     "pandas>=3.0",
 ]
 requires-python = ">=3.11"
+
+[project.optional-dependencies]
+# Runtime wheel 不再默认拉 pytest 系列；开发/CI 环境通过 root pyproject 的
+# [dependency-groups].dev = ["mdio-py[test]"] 安装这组。
+test = [
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.0.0",
+    "pytest-xdist>=3.8.0",  # addopts -n auto 多进程并行依赖
+    "pytest-timeout>=2.3.1",
+]
+
+[project.urls]
+Homepage = "https://md-io.org"
 
 [project.scripts]
 mdio = "mdio_py.cli:main"

@@ -445,6 +445,25 @@ fn golden_table_row() {
     let row = &nodes[0];
     assert_eq!(snap.read_block_proj(row, BlockProj::Mark), "|");
     assert!(!snap.read_block_proj(row, BlockProj::Content).is_empty());
+    // 行级 span：TableRow 行 = item 级尾（下一行），不是表尾/容器尾。
+    let mut spans: Vec<(usize, usize)> = crate::selector::all_nodes(&snap)
+        .into_iter()
+        .filter(|n| n.node_type == BlockType::TableRow)
+        .map(|n| (n.start_line, n.end_line))
+        .collect();
+    spans.sort_unstable();
+    spans.dedup();
+    assert_eq!(spans, vec![(0, 1), (2, 3), (3, 4)], "tb 行 span 必须是行级 item 尾");
+    // 表在文中（后跟段落）：末行尾 = 表关闭行，不是文档尾。
+    let (_, snap2) = snap_from("| A | B |\n|---|---|\n| 1 | 2 |\n\nafter\n");
+    let mut spans2: Vec<(usize, usize)> = crate::selector::all_nodes(&snap2)
+        .into_iter()
+        .filter(|n| n.node_type == BlockType::TableRow)
+        .map(|n| (n.start_line, n.end_line))
+        .collect();
+    spans2.sort_unstable();
+    spans2.dedup();
+    assert_eq!(spans2, vec![(0, 1), (2, 3)], "文中表末行尾 = 关闭行");
 }
 
 // ── golden: write path ──

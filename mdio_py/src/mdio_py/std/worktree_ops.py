@@ -1905,7 +1905,17 @@ async def _wt_checkout(workspace, pipe_data, args, kwargs, ctx) -> str:
     """worktree checkout <hash> [--force] — full-state replacement."""
     target_hash: str | None = None
     for a in args:
+        # D15 的边角：全数字 hash 会被语法当成 NUMBER（int），前导 0 已丢。
+        # 按 12/64 位快照 hash 的已知长度补零还原，保证“裸 hash 一律可用”，
+        # 不需要用户记“有时加引号”。
+        if isinstance(a, int) and not isinstance(a, bool):
+            target_hash = f"{a:012d}" if len(str(a)) <= 12 else f"{a:064d}"
+            break
+        # 运行时可能已把 NUMBER 转成字符串（前导 0 已丢）；短全数字串按 12 位补零。
         s = str(a).strip()
+        if s.isdigit() and len(s) < 12:
+            target_hash = f"{int(s):012d}"
+            break
         if s and not s.startswith("-"):
             target_hash = s
             break
@@ -2056,7 +2066,7 @@ async def _wt_mount(workspace, pipe_data, args, kwargs, ctx) -> str:
     if target_name:
         target_uid = workspace.resolve_worktree_name(target_name)
         if not target_uid:
-            return f"- mdio_error: [{ErrCode.NOT_FOUND}] worktree '{target_name}' not found"
+            return f"- mdio_error: [{ErrCode.SNAP_NO_MATCH}] worktree '{target_name}' not found"
     else:
         target_uid = workspace.active_worktree_uid
 
@@ -2128,10 +2138,19 @@ async def _wt_share(workspace, pipe_data, args, kwargs, ctx) -> str:
 
 
 async def _wt_unmount(workspace, pipe_data, args, kwargs, ctx) -> str:
-    """worktree unmount [--name <wt>] /share/<name> — 断开远程 folder（文件留本地，并停掉投影）。
+    """worktree unmount --path /share/<name> [--name <wt>] — 断开远程 folder（文件留本地，并停掉投影）。
 
-    这是旧的 `unload`（只删规则段）与 `offload`（删规则 + 停 handler）的**并集**：
-    只删规则会把网关 handler 留在那里空转，所以取完整行为；`--name` 保留旧的定向能力。
+    位置参数形态不可用：裸路径会被语法解析成读表达式，必须用 --path（与 mount 同款）。
+    owner 由 path 在 rule / gateway.md / Active 三档来源按归一化路径解析，**不默认
+    active_worktree_uid**（D35 的教训：拿 active 当缺省会把删除打到错树）。
+    - 有 _gateway_store（serve/HTTP 进程）：复用其 unmount_by_path——同时删 rule 段、
+      删 gateway.md 条目、停对应 handler，并做读回校验；
+    - 无 _gateway_store（纯 exec/本地规则模式）：临时装配一个 GatewayStore 做同样的
+      文件清理（重启不会从 worktrees.md/gateway.md 复活）；本进程没有 handler 可停，
+      运行中的 gateway 进程需由它自己的 reconcile 感知文件变化。
+
+    旧的 `unload`（只删规则段）与 `offload`（删规则 + 停 handler）的并集语义不变；
+    `--name` 保留旧的定向能力（写的是 worktree 名，不是挂载点名）。
     """
     path: Optional[str] = None
     target_name: Optional[str] = None
@@ -2147,31 +2166,28 @@ async def _wt_unmount(workspace, pipe_data, args, kwargs, ctx) -> str:
     target_name = kwargs.get("--name", kwargs.get("-n", target_name))
 
     if not path:
-        return f"- mdio_error: [{ErrCode.PARSE_TOKEN}] unmount requires /share/<name>"
+        return f"- mdio_error: [{ErrCode.PARSE_TOKEN}] unmount requires --path /share/<name>"
 
-    if target_name:
-        target_uid = workspace.resolve_worktree_name(target_name)
-        if not target_uid:
-            return f"- mdio_error: [{ErrCode.NOT_FOUND}] worktree '{target_name}' not found"
-    else:
-        target_uid = workspace.active_worktree_uid
-
-    from mdio_py.runtime.rule_manager import RuleManager
+    # 显式 --name 交给 GatewayStore 解析：它同时支持 worktree 名/uid/路径，
+    # 且会校验 path 是否真属于该树。这里不自己 resolve_worktree_name——那会
+    # 把 genesis（无 worktrees.md 条目）这类合法 uid 误判成 not found。
+    # 单一收口：所有删除入口都走 GatewayStore.unmount_by_path（D35 后该方法是
+    # rule/gateway.md/Active 三档状态的唯一清理器，且自己按 path 解析 owner）。
+    # 纯 exec 进程没有常驻 gateway store，用临时实例做同一套文件清理；它没有
+    # handler 可停，但能保证 worktrees.md/gateway.md 干净、重启不复活。
+    from mdio_py.gateway.store import GatewayStore, GatewayTargetError
+    gs = getattr(workspace, "_gateway_store", None)
+    if gs is None:
+        gs = GatewayStore(workspace.store, workspace)
     try:
-        RuleManager(workspace.store).remove_remote(target_uid, path)
+        result = gs.unmount_by_path(path, wt_name=target_name)
+    except GatewayTargetError as e:
+        return f"- mdio_error: [{ErrCode.SNAP_NO_MATCH}] unmount failed: {e}"
     except Exception as e:
         return f"- mdio_error: [{ErrCode.RUST_IO}] unmount failed: {e}"
 
-    # 停掉投影（旧 offload 的这一步）：只删规则不停 handler 会留下空转的同步
-    gs = getattr(workspace, "_gateway_store", None)
-    if gs is not None:
-        try:
-            gs.deactivate_wt(target_uid)
-            gs.reconcile(target_uid)
-        except Exception as e:
-            return f"- mdio_error: [{ErrCode.RUST_IO}] unmount deactivate failed: {e}"
-
-    return f"- worktree: unmounted {path} from {target_name or target_uid}（文件保留为 local）"
+    return (f"- worktree: unmounted {result.get('path', path)} from "
+            f"{result.get('wt_uid', target_name)}（文件保留为 local）")
 
 
 async def _wt_load(workspace, pipe_data, args, kwargs, ctx) -> str:
@@ -2214,7 +2230,7 @@ async def _wt_offload(workspace, pipe_data, args, kwargs, ctx) -> str:
     try:
         uid = workspace.resolve_worktree_ref(str(target))
     except Exception as e:
-        return f"- mdio_error: [{ErrCode.NOT_FOUND}] {e}"
+        return f"- mdio_error: [{ErrCode.SNAP_NO_MATCH}] {e}"
     if uid == GENESIS_WT:
         return f"- mdio_error: [{ErrCode.PARSE_TOKEN}] genesis 不可 offload"
     if uid == ctx.wt_uid or not workspace.is_descendant_or_self(uid, ctx.wt_uid):

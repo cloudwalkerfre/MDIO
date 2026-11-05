@@ -993,13 +993,15 @@ fn build_content_col(snap: &Snapshot, nodes: &[BlockNode]) -> ContentCol {
 
 pub mod blob {
 //! Handoff snapshot blob: internal A/B transport for the five Snapshot columns.
-use crate::block::{FrameLog, PackedLineInfo};
+use crate::block::{BlockFrame, BlockType, FrameKind, FrameLog, PackedLineInfo};
 use crate::projection::{Snapshot, SnapshotConsumption};
 use std::sync::atomic::AtomicU64;
 use std::sync::{Arc, OnceLock, Weak};
 
 const MAGIC: &[u8; 8] = b"MDIOHND1";
 const VERSION: u32 = 1;
+/// 一帧日志条目 = 8 字节（u64）。
+const FRAME_ENTRY_BYTES: usize = 8;
 
 pub fn encode(s: &Snapshot) -> Vec<u8> {
     let text = s.rope.to_string();
@@ -1025,25 +1027,73 @@ fn put_bytes(out: &mut Vec<u8>, b: &[u8]) {
 }
 
 fn take_u32(b: &[u8], off: &mut usize) -> Result<u32, String> {
-    let end = off.checked_add(4).ok_or("blob overflow")?;
-    let v = b.get(*off..end).ok_or("blob truncated")?;
+    let end = off.checked_add(4).ok_or("ARROW_SNAPSHOT_BLOB: offset overflow")?;
+    let v = b.get(*off..end).ok_or("ARROW_SNAPSHOT_BLOB: blob truncated")?;
     *off = end;
-    Ok(u32::from_le_bytes(v.try_into().map_err(|_| "blob u32")?))
+    Ok(u32::from_le_bytes(v.try_into().map_err(|_| "ARROW_SNAPSHOT_BLOB: bad u32 field")?))
 }
 
 fn take_u64(b: &[u8], off: &mut usize) -> Result<u64, String> {
-    let end = off.checked_add(8).ok_or("blob overflow")?;
-    let v = b.get(*off..end).ok_or("blob truncated")?;
+    let end = off.checked_add(8).ok_or("ARROW_SNAPSHOT_BLOB: offset overflow")?;
+    let v = b.get(*off..end).ok_or("ARROW_SNAPSHOT_BLOB: blob truncated")?;
     *off = end;
-    Ok(u64::from_le_bytes(v.try_into().map_err(|_| "blob u64")?))
+    Ok(u64::from_le_bytes(v.try_into().map_err(|_| "ARROW_SNAPSHOT_BLOB: bad u64 field")?))
 }
 
 fn take_bytes(b: &[u8], off: &mut usize) -> Result<Vec<u8>, String> {
     let n = take_u64(b, off)? as usize;
-    let end = off.checked_add(n).ok_or("blob overflow")?;
-    let v = b.get(*off..end).ok_or("blob truncated")?.to_vec();
+    let end = off.checked_add(n).ok_or("ARROW_SNAPSHOT_BLOB: offset overflow")?;
+    let v = b.get(*off..end).ok_or("ARROW_SNAPSHOT_BLOB: blob truncated")?.to_vec();
     *off = end;
     Ok(v)
+}
+
+/// `lines` / `prev_col` 单字节合法性：0xFF 哨兵（invalid），或
+/// bit7=cont 可置、bit6 必须为 0、bits5-0 = BlockType 判别值 0..=26。
+/// 这是防止 `PackedLineInfo::node_type()` 收非法判别式的第一道闸门
+/// （blob 是外部可写输入：SQL `mdio_open_snapshot(blob)` / PyO3 `put_snapshot_doc`）。
+fn validate_packed_line_info(byte: u8, column: &'static str, idx: usize) -> Result<PackedLineInfo, String> {
+    if byte == 0xFF {
+        return Ok(PackedLineInfo(byte)); // invalid sentinel — 合法
+    }
+    if byte & PackedLineInfo::RESERVED_BIT != 0 {
+        return Err(format!(
+            "ARROW_SNAPSHOT_BLOB: {column}[{idx}] = {byte:#04x}: reserved bit {:#04x} set \
+             (valid: bits5-0=BlockType 0..=26, bit7=cont, or 0xFF sentinel)",
+            PackedLineInfo::RESERVED_BIT
+        ));
+    }
+    let discriminant = byte & PackedLineInfo::TYPE_MASK;
+    if BlockType::from_discriminant(discriminant).is_none() {
+        return Err(format!(
+            "ARROW_SNAPSHOT_BLOB: {column}[{idx}] = {byte:#04x}: invalid BlockType discriminant \
+             {discriminant} (valid 0..=26, or 0xFF sentinel)"
+        ));
+    }
+    Ok(PackedLineInfo(byte))
+}
+
+fn decode_line_column(raw: Vec<u8>, column: &'static str) -> Result<Vec<PackedLineInfo>, String> {
+    raw.into_iter()
+        .enumerate()
+        .map(|(idx, byte)| validate_packed_line_info(byte, column, idx))
+        .collect()
+}
+
+/// frame_log 单条目校验：低 16 位是 `BlockFrame`，kind 段 bits15-12 必须是
+/// 合法 `FrameKind`（0..=9）。旧 decode 不校验，`BlockFrame::kind()` 的
+/// transmute 会在 10..=15 上构造非法枚举 = UB。
+fn validate_frame_entry(entry: u64, idx: usize) -> Result<(), String> {
+    let frame = BlockFrame((entry & 0xFFFF) as u16);
+    let kind_nibble = ((frame.0 >> 12) & 0xF) as u8;
+    if FrameKind::from_discriminant(kind_nibble).is_none() {
+        return Err(format!(
+            "ARROW_SNAPSHOT_BLOB: frame_log.entries[{idx}] = {entry:#018x}: invalid FrameKind \
+             discriminant {kind_nibble} in frame {:#06x} (valid 0..=9)",
+            frame.0
+        ));
+    }
+    Ok(())
 }
 
 pub fn decode(b: &[u8]) -> Result<Snapshot, String> {
@@ -1052,12 +1102,26 @@ pub fn decode(b: &[u8]) -> Result<Snapshot, String> {
     let version = take_u32(b, &mut off)?;
     if version != VERSION { return Err(format!("ARROW_SNAPSHOT_BLOB: unsupported version {version}")); }
     let text = String::from_utf8(take_bytes(b, &mut off)?).map_err(|e| format!("ARROW_SNAPSHOT_BLOB: text {e}"))?;
-    let lines = take_bytes(b, &mut off)?.into_iter().map(PackedLineInfo).collect::<Vec<_>>();
-    let prev_col = take_bytes(b, &mut off)?.into_iter().map(PackedLineInfo).collect::<Vec<_>>();
+    let lines = decode_line_column(take_bytes(b, &mut off)?, "lines")?;
+    let prev_col = decode_line_column(take_bytes(b, &mut off)?, "prev_col")?;
     let open_depth = take_bytes(b, &mut off)?;
     let n = take_u64(b, &mut off)? as usize;
+    // 先按剩余载荷给条目数设上界，避免恶意 n 造成 Vec::with_capacity 巨量分配
+    // （分配失败是 abort 而非可捕获错误）。真实 blob 中 n 恒等于剩余字节/8。
+    let remaining = b.len() - off;
+    if n > remaining / FRAME_ENTRY_BYTES {
+        return Err(format!(
+            "ARROW_SNAPSHOT_BLOB: frame entry count {n} exceeds remaining payload \
+             ({remaining} bytes, max {} entries)",
+            remaining / FRAME_ENTRY_BYTES
+        ));
+    }
     let mut entries = Vec::with_capacity(n);
-    for _ in 0..n { entries.push(take_u64(b, &mut off)?); }
+    for idx in 0..n {
+        let entry = take_u64(b, &mut off)?;
+        validate_frame_entry(entry, idx)?;
+        entries.push(entry);
+    }
     if off != b.len() { return Err("ARROW_SNAPSHOT_BLOB: trailing bytes".into()); }
     Ok(Snapshot {
         rope: crop::Rope::from(&*text),
@@ -1085,6 +1149,44 @@ mod tests {
     use super::*;
     use crate::projection::State;
 
+    /// blob 各段偏移（供变异测试定位）。
+    struct Sections {
+        lines: usize,
+        lines_len: usize,
+        prev: usize,
+        prev_len: usize,
+        /// 条目数 u64 字段的起始偏移；其后即 entries 区。
+        n_field: usize,
+        entries: usize,
+        n_entries: usize,
+    }
+
+    fn take_section(b: &[u8], off: &mut usize) -> (usize, usize) {
+        let n = u64::from_le_bytes(b[*off..*off + 8].try_into().unwrap()) as usize;
+        *off += 8;
+        let start = *off;
+        *off += n;
+        (start, n)
+    }
+
+    fn sections(b: &[u8]) -> Sections {
+        let mut off = 12usize;
+        let _text = take_section(b, &mut off);
+        let (lines, lines_len) = take_section(b, &mut off);
+        let (prev, prev_len) = take_section(b, &mut off);
+        let _depth = take_section(b, &mut off);
+        let n_field = off;
+        let n_entries = u64::from_le_bytes(b[off..off + 8].try_into().unwrap()) as usize;
+        off += 8;
+        Sections { lines, lines_len, prev, prev_len, n_field, entries: off, n_entries }
+    }
+
+    fn encode_text(text: &str) -> Vec<u8> {
+        let mut st = State::new(text);
+        let s = st.snapshot();
+        encode(&s)
+    }
+
     #[test]
     fn blob_roundtrip() {
         let mut st = State::new("# T\n\npara\n\n- a\n- b\n");
@@ -1096,6 +1198,162 @@ mod tests {
         assert_eq!(&*s.prev_col, &*d.prev_col);
         assert_eq!(&*s.open_depth, &*d.open_depth);
         assert_eq!(s.frame_log.entries, d.frame_log.entries);
+    }
+
+    /// 合法编码器的输出必须全部通过严格校验（防「校验过严拒绝合法快照」）。
+    /// 同时把每条行字节/每个 entry 的 kind 都真实解码一次：覆盖 safe match 的全部真实取值。
+    #[test]
+    fn strict_validation_accepts_encoder_output() {
+        let docs = [
+            "# T\n\npara\n\n- a\n- b\n",
+            "> quote\n> - list\n- [x] task\n",
+            "```rust\ncode\n```\n\n    indented\n",
+            "| a | b |\n| - | - |\n| 1 | 2 |\n",
+            "<div>\nhtml\n</div>\n\n<!-- comment -->\n",
+            "[ref]: /url \"t\"\n\n---\n\nsetext\n======\n",
+            include_str!("../tests/corpus/same_line.md"),
+            include_str!("../tests/corpus/multi_line.md"),
+            include_str!("../tests/corpus/sections.md"),
+            include_str!("../tests/corpus/nested.md"),
+            include_str!("../tests/corpus/same_line_bq.md"),
+            include_str!("../tests/corpus/crlf.md"),
+        ];
+        for (i, text) in docs.iter().enumerate() {
+            let mut st = State::new(text);
+            let s = st.snapshot();
+            let b = encode(&s);
+            let d = decode(&b).unwrap_or_else(|e| panic!("doc[{i}]: encoder output rejected: {e}"));
+            // 严格校验不改变载荷：re-encode 逐字节一致。
+            assert_eq!(encode(&d), b, "doc[{i}]: re-encode differs");
+            // lines 列（fresh scan 恒有效）逐条真解码。
+            assert_eq!(d.lines.len(), s.lines.len(), "doc[{i}]: lines length");
+            for (li, line) in d.lines.iter().enumerate() {
+                assert!(line.is_valid(), "doc[{i}]: fresh-scan lines[{li}] must not be the 0xFF sentinel");
+                assert_eq!(line.node_type(), s.lines[li].node_type(), "doc[{i}]: lines[{li}] type drift");
+            }
+            // prev_col 允许哨兵：有效值必须能解码，哨兵必须 is_valid()==false。
+            assert_eq!(d.prev_col.len(), s.prev_col.len(), "doc[{i}]: prev_col length");
+            for (li, p) in d.prev_col.iter().enumerate() {
+                if p.is_valid() { let _ = p.node_type(); } else { assert_eq!(p.0, 0xFF); }
+                assert_eq!(p, &s.prev_col[li], "doc[{i}]: prev_col[{li}] drift");
+            }
+            // 帧日志每条都过 kind()（safe match）。
+            assert_eq!(d.frame_log.entries, s.frame_log.entries, "doc[{i}]: frame log drift");
+            for (ei, e) in d.frame_log.entries.iter().enumerate() {
+                let f = entry_frame_for_test(*e);
+                let _ = f.kind();
+                assert!(
+                    FrameKind::from_discriminant(((f.0 >> 12) & 0xF) as u8).is_some(),
+                    "doc[{i}]: entries[{ei}] kind nibble invalid"
+                );
+            }
+        }
+    }
+
+    fn decode_err(b: &[u8]) -> String {
+        match decode(b) {
+            Ok(_) => panic!("expected decode to fail"),
+            Err(e) => e,
+        }
+    }
+
+    fn entry_frame_for_test(e: u64) -> BlockFrame {
+        BlockFrame((e & 0xFFFF) as u16)
+    }
+
+    #[test]
+    fn decode_rejects_invalid_lines_byte() {
+        let mut b = encode_text("# T\n\npara\n");
+        let sec = sections(&b);
+        assert!(sec.lines_len >= 1);
+        b[sec.lines] = 0x1F; // BlockType 判别式 31（>26），非 0xFF 哨兵
+        let err = decode_err(&b);
+        assert!(err.starts_with("ARROW_SNAPSHOT_BLOB:"), "{err}");
+        assert!(err.contains("lines[0]"), "{err}");
+        assert!(err.contains("0x1f") && err.contains("31"), "{err}");
+    }
+
+    #[test]
+    fn decode_rejects_reserved_bit_in_lines_byte() {
+        let mut b = encode_text("# T\n\npara\n");
+        let sec = sections(&b);
+        b[sec.lines] = 0x4A; // bit6 保留位置起 + Paragraph(10)
+        let err = decode_err(&b);
+        assert!(err.starts_with("ARROW_SNAPSHOT_BLOB:"), "{err}");
+        assert!(err.contains("reserved bit 0x40"), "{err}");
+    }
+
+    #[test]
+    fn decode_rejects_invalid_prev_col_byte() {
+        let mut b = encode_text("# T\n\npara\n");
+        let sec = sections(&b);
+        assert!(sec.prev_len >= 1);
+        b[sec.prev] = 63; // 0x3F：判别式 63 非法
+        let err = decode_err(&b);
+        assert!(err.starts_with("ARROW_SNAPSHOT_BLOB:"), "{err}");
+        assert!(err.contains("prev_col[0]"), "{err}");
+        assert!(err.contains("63"), "{err}");
+    }
+
+    #[test]
+    fn decode_accepts_sentinel_and_cont_bytes() {
+        let b = encode_text("# T\n\npara\n");
+        let sec = sections(&b);
+        let mut b = b;
+        // lines[0]: 带 cont 位的合法类型（0x80 | Paragraph(10)）。
+        b[sec.lines] = PackedLineInfo::pack_with_cont(BlockType::Paragraph, true).0;
+        // prev_col[0]: 0xFF 哨兵（无承诺）。
+        b[sec.prev] = 0xFF;
+        let d = decode(&b).expect("sentinel + cont bytes must be accepted");
+        assert_eq!(d.lines[0].node_type(), BlockType::Paragraph);
+        assert!(d.lines[0].cont());
+        assert!(!d.prev_col[0].is_valid());
+        // 最高合法判别式（HtmlElement=26）也要接受。
+        let mut b2 = encode_text("# T\n\npara\n");
+        let sec2 = sections(&b2);
+        b2[sec2.lines] = 26;
+        assert_eq!(decode(&b2).unwrap().lines[0].node_type(), BlockType::HtmlElement);
+    }
+
+    #[test]
+    fn decode_rejects_all_invalid_frame_kind_nibbles() {
+        for bad_kind in 10u64..=15 {
+            let mut b = encode_text("- a\n- b\n");
+            let sec = sections(&b);
+            assert!(sec.n_entries >= 1, "expected frame entries");
+            let e = u64::from_le_bytes(b[sec.entries..sec.entries + 8].try_into().unwrap());
+            let mutated = (e & !0xF000u64) | (bad_kind << 12);
+            b[sec.entries..sec.entries + 8].copy_from_slice(&mutated.to_le_bytes());
+            let err = decode_err(&b);
+            assert!(err.starts_with("ARROW_SNAPSHOT_BLOB:"), "{err}");
+            assert!(err.contains("frame_log.entries[0]"), "kind={bad_kind}: {err}");
+            assert!(
+                err.contains(&format!("invalid FrameKind discriminant {bad_kind}")),
+                "kind={bad_kind}: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn decode_rejects_entry_count_exceeding_payload() {
+        let b = encode_text("# T\n\npara\n");
+        let sec = sections(&b);
+        let mut b = b;
+        b.truncate(sec.n_field);
+        b.extend_from_slice(&((u64::MAX / 8) as u64).to_le_bytes());
+        let err = decode_err(&b);
+        assert!(err.starts_with("ARROW_SNAPSHOT_BLOB:"), "{err}");
+        assert!(err.contains("frame entry count"), "{err}");
+    }
+
+    #[test]
+    fn decode_rejects_truncated_and_trailing_garbage() {
+        let b = encode_text("# T\n\npara\n");
+        assert!(decode_err(&b[..b.len() - 1]).contains("truncated"));
+        let mut b2 = b.clone();
+        b2.push(0);
+        assert!(decode_err(&b2).contains("trailing bytes"));
+        assert!(decode_err(b"not-a-blob").contains("bad magic"));
     }
 }
 }

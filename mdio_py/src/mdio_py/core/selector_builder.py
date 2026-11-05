@@ -39,7 +39,11 @@ class SelectorBuilder:
     # ── Type check (auto-prepends Wildcard like DSL TYPE_ANNOT) ──
 
     def type_is(self, annot: str) -> "SelectorBuilder":
-        type_name = TYPE_ANNOT.get(annot, annot)
+        # D23 收口：编程构造面也必须走严格类型名解析，未知名 fail-fast。
+        # 旧实现 `TYPE_ANNOT.get(annot, annot)` 会把 'zzz' 原样透传给 Rust，
+        # 而 Rust 对解不出的 TYPECHECK 返回 None ⇒ filter 被静默丢弃（全量输出）。
+        from .mdio_transformer import resolve_type_name
+        type_name = resolve_type_name(annot, where="SelectorBuilder.type_is")
         _prepend_wildcard(self._steps)
         self._steps.append(["TYPECHECK", type_name])
         return self

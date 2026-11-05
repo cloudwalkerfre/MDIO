@@ -3,7 +3,8 @@
 package = false
 
 [dependency-groups]
-dev = ["mdio-py", "maturin>=1.4,<2.0"]
+# dev/CI 环境需要 pytest 系列；wheel 用户默认不装（mdio_py 的 test extra）。
+dev = ["mdio-py[test]", "maturin>=1.4,<2.0"]
 
 [project]
 name = "mdio"

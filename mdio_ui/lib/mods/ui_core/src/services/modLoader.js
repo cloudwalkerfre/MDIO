@@ -15,7 +15,7 @@
  *   adoptCssMod        —— 装载成功后统一采纳"mod 携带的样式表"（`services/cssAdopt.js`）
  *   log                —— 可选日志口
  *
- * 返回值里的 `modSrcPaths` / `modSrcs` 是**热重载判据的两段事实**（见下），调用方按约定在每轮装载前清空。
+ * 返回值里的 `modSrcPaths` 是热重载判据的事实（见下），调用方按约定在每轮装载前清空。
  *
  * @param {object} deps 见上
  */

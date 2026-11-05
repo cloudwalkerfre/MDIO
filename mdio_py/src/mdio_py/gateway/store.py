@@ -40,6 +40,40 @@ def doc_channel(doc_id: int) -> str:
     return f"doc:{int(doc_id)}"
 
 
+def _norm_gateway_path(path) -> str:
+    """挂载点路径归一化：去首尾空白与尾部 `/`（根路径 `/` 保留）。
+
+    unmount 的关键字是「path 属于哪棵树」：`/share/x` 与 `/share/x/` 必须算同一个
+    挂载点，否则 rule 段删不中、读回校验也会误报残留。
+    """
+    text = str(path or "").strip()
+    if len(text) > 1:
+        text = text.rstrip("/")
+    return text
+
+
+class GatewayTargetError(Exception):
+    """unmount 目标解析失败（无命中 / 多命中 / 与显式 WT 不符）。
+
+    `status_code` 供 HTTP 层直接映射；错误消息必须可执行——列出候选或说明该往哪查，
+    因为 D35 的根因正是「解析失败时静默回落到别的树」。
+    """
+
+    status_code = 400
+
+
+class GatewayTargetNotFound(GatewayTargetError):
+    """path 在指定范围内没有对应挂载点（含显式 WT 下不匹配）。"""
+
+    status_code = 404
+
+
+class GatewayTargetAmbiguous(GatewayTargetError):
+    """path 命中多个 worktree 的挂载点，必须由调用方用 --wt 消歧。"""
+
+    status_code = 400
+
+
 def _kv_from_md_text(text: str, *, workspace=None, store=None) -> dict:
     """gateway.md 片段 → {键: 文本}（新路径：tojson 信封 + bullets_to_kv）。
 
@@ -343,39 +377,236 @@ class GatewayStore:
         self.reconcile(wt_uid)
         return active
 
-    def unmount(self, wt_uid: str, path: str) -> None:
-        """卸载 remote 段。先删声明（文件），再销运行时。§五"""
-        entry_id = path.rstrip("/").rsplit("/", 1)[-1]
+    def unmount(self, wt_uid: str, path: str, entry_id: str | None = None) -> dict:
+        """卸载 remote 段。先删声明（文件）再销运行时，返回清理结果并做读回校验。
+
+        这是**低层执行器**：认为调用方已传对 wt（/gateway/unmount 的唯一入口是
+        unmount_by_path，先按 path 解析 owner）。D35 的教训：传错树时这里的文件
+        操作会安静地打到错树，因此返回前必须读回确认声明真的没了，不能"调过即成功"。
+
+        entry_id: 挂载点在 gateway.md/Active 里的名字（缺省取 path 最后一段）。
+        """
+        norm_path = _norm_gateway_path(path)
+        entry_id = entry_id or norm_path.rsplit("/", 1)[-1]
         key = f"{wt_uid}:{entry_id}"
         # 2.5 步要用 decl.path —— 这里**只查不取**（真正的 pop 留到文件操作全部成功之后，
         # 保持「删除失败就不动运行时」的原意）。直接引用尚未赋值的 active ⇒ UnboundLocalError，
         # 调用方（/gateway/unmount）只看到 500，handler 却还挂着（实测）。
         existing = self._actives.get(key)
 
+        # 清理前快照：既用于幂等结论（removed/already_absent），也用于把残留的 rule 段
+        # 一并收掉（rule 段与 gateway.md 是重启恢复的两个输入，只清一个都可能留下脏数据）。
+        gateway_before = self._gateway_entry_titles(wt_uid)
+        rule_before = [(_norm_gateway_path(p), str(n)) for p, n in
+                       self._store.rule_remote_entries(wt_uid)]
+        had_gateway = entry_id in gateway_before
+        rule_paths = {norm_path}
+        if existing is not None:
+            rule_paths.add(_norm_gateway_path(existing.decl.path))
+        rule_paths |= {p for p, n in rule_before if p == norm_path or n == entry_id}
+        had_rule = any(p in rule_paths for p, _n in rule_before)
+
         # 文件操作期间 suppress reconcile——由显式清理接管
         self._reconcile_enabled = False
         try:
             # 1. 删 worktrees.md rule 段 + 写回文件（不调 tree_ensure，同 mount）
-            self._store.rule_remove_remote(wt_uid, path)
+            for rule_path in rule_paths:
+                self._store.rule_remove_remote(wt_uid, rule_path)
             self._write_rule_to_file(wt_uid)
 
-            # 2. 删 gateway.md entry
-            self._rewrite_gateway_md(wt_uid, entry_id)
-
-            # 2.5. 删 rule（与 share 对称：share 写 rule 供重启恢复）
-            if existing is not None:
-                self._store.rule_remove_remote(wt_uid, existing.decl.path)
-                self._write_rule_to_file(wt_uid)
+            # 2. 删 gateway.md entry（本来就没有就跳过：write_locator "->" 对空目标会抛，
+            #    "调过就成功"与"幂等成功"要分开判断）
+            if had_gateway:
+                self._rewrite_gateway_md(wt_uid, entry_id)
         finally:
             self._reconcile_enabled = True
 
-        # 3-5. 销毁运行时（MD 意图：两步文件操作全部成功，才进这里）
+        # 读回校验：文件必须真的干净（D35：按错树时两个文件全留着，旧实现照样返回
+        # 成功/500，谁也不知道到底删没删）。
+        gateway_after = self._gateway_entry_titles(wt_uid)
+        rule_after = [_norm_gateway_path(p) for p, _n in
+                      self._store.rule_remote_entries(wt_uid)]
+        leftovers = []
+        if entry_id in gateway_after:
+            leftovers.append(f"gateway.md 条目 ## {entry_id}")
+        if any(p in rule_paths for p in rule_after):
+            leftovers.append("rule 段 " + ", ".join(sorted(rule_paths)))
+        if leftovers:
+            raise RuntimeError(
+                f"unmount 读回校验失败（{wt_uid}:{entry_id}）：仍残留 "
+                + "、".join(leftovers))
+
+        # 3-5. 销毁运行时（MD 意图：文件操作全部成功且校验通过，才进这里）
+        removed = had_gateway or had_rule or existing is not None
         active = self._actives.pop(key, None)
-        if active is None:
-            return
-        if active.handler:
-            active.handler.stop()
-        self._release_scope(wt_uid)
+        if active is not None:
+            if active.handler:
+                active.handler.stop()
+            self._release_scope(wt_uid)
+        return {
+            "wt_uid": wt_uid,
+            "path": path,
+            "name": entry_id,
+            "removed": removed,
+            "already_absent": not removed,
+        }
+
+    def unmount_by_path(self, path: str, *, wt_uid: str | None = None,
+                        wt_name: str | None = None) -> dict:
+        """按 path 解析所属 WT 后卸载——/gateway/unmount 的唯一入口。
+
+        未显式指定 WT 时**绝不**回落到 active_worktree_uid：D35 的根因就是拿 active
+        树当缺省，把删除打到别的树（目标树的 gateway.md/rule 残留、重启 reconcile
+        又从残留记录复活挂载；若错树恰好有同名条目，还会静默删掉错树的东西）。
+        """
+        target = self.resolve_unmount_target(path, wt_uid=wt_uid, wt_name=wt_name)
+        resolved = "path" if not (wt_uid or wt_name) else ("wt_uid" if wt_uid else "wt_name")
+        result = self.unmount(target["wt_uid"], path, entry_id=target["name"])
+        result["resolved_by"] = resolved
+        return result
+
+    def resolve_unmount_target(self, path: str, *, wt_uid: str | None = None,
+                               wt_name: str | None = None) -> dict:
+        """把 unmount 的 path 解析成唯一的 {wt_uid, name, local_prefix}。
+
+        规则（D35）：
+        - 显式 wt_uid：直接当 uid 用（保持旧行为），但 path 必须真属于该树，否则
+          GatewayTargetNotFound——不允许"显式指定了却打到别的树"。
+        - 显式 wt_name：走 workspace.resolve_worktree_name（保持旧行为的 name 语义）；
+          解析不出再按 uid 试，都不行就报错（旧实现静默忽略未知 name ⇒ 打错树）。
+        - 二者都给且不一致：报错，不猜。
+        - 都没给：在全部 worktree 的挂载点（Active + gateway.md + rule 三档来源）里
+          按归一化路径找；唯一命中才执行，多命中列候选，无命中明确报错。
+        """
+        # ── 显式选择器 ──────────────────────────────────────────
+        explicit: str | None = None
+        if wt_name:
+            explicit = self._resolve_wt_ref(str(wt_name))
+            if explicit is None:
+                raise GatewayTargetNotFound(f"worktree not found: {wt_name}")
+        if wt_uid:
+            uid_text = str(wt_uid)
+            if explicit is not None and explicit != uid_text:
+                raise GatewayTargetError(
+                    f"wt 冲突：wt_uid={uid_text} 与 name={wt_name} 指向不同 worktree"
+                    f"（name → {explicit}）")
+            if not self._store.has_worktree(uid_text) and uid_text != "genesis":
+                raise GatewayTargetNotFound(f"worktree not found: {uid_text}")
+            explicit = uid_text
+
+        # ── 按 path 找候选 ─────────────────────────────────────
+        candidates = self._match_mount_targets(path, wt_uid=explicit)
+        if not candidates:
+            scope = f" worktree {explicit} " if explicit else "全部 worktree "
+            known = ", ".join(self._format_mount_targets(self._iter_mount_targets())) or "(无)"
+            raise GatewayTargetNotFound(
+                f"path {path!r} 在{scope}下没有对应挂载点（已知挂载点：{known}）")
+        if len(candidates) > 1:
+            raise GatewayTargetAmbiguous(
+                f"path {path!r} 命中多个挂载点，请用 --wt 指定 worktree："
+                + ", ".join(self._format_mount_targets(candidates)))
+        return candidates[0]
+
+    def _resolve_wt_ref(self, ref: str) -> str | None:
+        """WT 名/uid/路径 → uid：优先 resolve_worktree_name（旧 name 语义），再按 uid/路径。"""
+        ref = ref.strip()
+        if not ref:
+            return None
+        try:
+            resolved = self._workspace.resolve_worktree_name(ref)
+        except Exception:
+            resolved = None
+        if resolved:
+            return str(resolved)
+        try:
+            if self._store.has_worktree(ref):
+                return ref
+            return str(self._workspace.resolve_worktree_ref(ref) or "") or None
+        except Exception:
+            return None
+
+    def _gateway_entry_titles(self, wt_uid: str) -> list[str]:
+        """gateway.md 里所有非空条目名（读回校验用；读不到按空表——另有 rule 侧兜底）。"""
+        try:
+            entries = self._read_gateway_entries(wt_uid)
+        except Exception:
+            return []
+        return [str(e.get("_title")) for e in entries if e.get("_title")]
+
+    def _iter_mount_targets(self) -> list[dict]:
+        """列出全部可卸载挂载点（三档来源合并去重）。
+
+        来源优先级：运行时 Active（权威，带 decl.local_prefix）→ gateway.md
+        （持久层，重启前唯一可见）→ rule 段（gateway.md 丢失时的兜底，path 即挂载点）。
+        只在 unmount 解析时调用，不参与热路径。
+        """
+        targets: dict[tuple[str, str], dict] = {}
+
+        def _add(wt_uid, name, local_prefix, path, source) -> None:
+            wt_key = str(wt_uid or "")
+            entry = str(name or "")
+            if not wt_key or not entry:
+                return
+            key = (wt_key, entry)
+            if key in targets:
+                return
+            targets[key] = {
+                "wt_uid": wt_key,
+                "name": entry,
+                "local_prefix": str(local_prefix or ""),
+                "path": str(path or ""),
+                "source": source,
+            }
+
+        for active in self._actives.values():
+            decl = active.decl
+            _add(decl.wt_uid, decl.entry_id, decl.local_prefix, decl.path, "active")
+
+        for wt_uid, *_rest in self._store.list_worktrees():
+            try:
+                gateway_entries = self._read_gateway_entries(wt_uid)
+            except Exception:
+                gateway_entries = []
+            for entry in gateway_entries:
+                _add(wt_uid, entry.get("_title"), entry.get("local_prefix"), "",
+                     "gateway.md")
+            try:
+                rule_entries = self._store.rule_remote_entries(wt_uid)
+            except Exception:
+                rule_entries = []
+            for rule_path, name in rule_entries:
+                _add(wt_uid, name or _norm_gateway_path(rule_path).rsplit("/", 1)[-1],
+                     rule_path, rule_path, "rule")
+        return list(targets.values())
+
+    def _match_mount_targets(self, path: str, wt_uid: str | None = None) -> list[dict]:
+        """按归一化路径匹配挂载点：local_prefix 优先，声明路径（rule 段 path）也认。
+
+        mount 条目两者相同；share 条目 local_prefix 是本地被分享路径、声明路径才是
+        `/share/<name>`，所以两个都认才能保持「unmount 给 /share/<name>」的旧可用性
+        （http /unmount 是当前唯一能从外部断开 share 的入口——store.unshare 没有调用方）。
+        """
+        wanted = _norm_gateway_path(path)
+        if not wanted:
+            return []
+        matched: list[dict] = []
+        for target in self._iter_mount_targets():
+            if wt_uid is not None and target["wt_uid"] != wt_uid:
+                continue
+            local_prefix = _norm_gateway_path(target["local_prefix"])
+            rule_path = _norm_gateway_path(target["path"])
+            if wanted == local_prefix or wanted == rule_path:
+                matched.append(target)
+        return matched
+
+    @staticmethod
+    def _format_mount_targets(targets: list[dict]) -> list[str]:
+        """候选/已知挂载点的人类可读形式：`wt_uid:name(local_prefix)`。"""
+        return [
+            f"{t['wt_uid']}:{t['name']}"
+            f"({t.get('local_prefix') or t.get('path') or '?'})"
+            for t in targets
+        ]
 
     def share(self, wt_uid: str, path: str, name: str) -> str:
         """分享本地路径为 remote ticket。Active(handler=None, state=Listener)。§五"""

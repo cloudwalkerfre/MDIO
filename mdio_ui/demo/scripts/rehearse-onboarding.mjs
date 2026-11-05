@@ -82,7 +82,7 @@ if (FORM === "package") {
   const dir = path.join(ui, PKG);
   fs.mkdirSync(path.join(dir, "src"), { recursive: true });
   // **零配置形态**（业主口径 · 用户复述）：第三方只写"我是谁 + 我导出什么 + 我用宿主哪份基础件"。
-  // 实测三条（隔离件 `ext_zeroconf_check`）：
+  // 实测三条（人工隔离检查，仓库里没有同名脚本）：
   //   · 不写 `dependencies` / `devDependencies` ⇒ **构建照样成功**（esmx/vite 由宿主出，`build-wt-ui` 从 demo 解析）；
   //   · 不写 `uses` ⇒ **能构建、能装载，但 React 被内联进产物**（1,571 B 里是整个 react 实现）
   //     ⇒ 与宿主各一份 ⇒ 单例破。**`uses` 是承重件**，不是配置噪音；

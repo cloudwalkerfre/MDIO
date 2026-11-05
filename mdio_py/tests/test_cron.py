@@ -162,6 +162,8 @@ async def test_persistence():
         cron_txt = r._workspace.store.get_text("genesis", "/.mds/cron.md")
         assert jid in cron_txt and "every" in cron_txt and "60s" in cron_txt
         assert "created_at:" in cron_txt
+        # D17: 骨架只在开头出现一次；旧 _ensure_cron_md 会把它在文末重复写一次。
+        assert cron_txt.count("# CRON_JOBS") == 1, cron_txt
         proc_txt = r._workspace.store.get_text("genesis", "/.mds/proc.md")
         assert jid in proc_txt
         hook_txt = r._workspace.store.get_text("genesis", "/.mds/hook.md")

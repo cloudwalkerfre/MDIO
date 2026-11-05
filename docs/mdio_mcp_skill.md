@@ -5,6 +5,8 @@ description: Enable you to CRUD over Markdown documents. Use whenever the task i
 
 # MDIO 基础
 
+> MDIO exec 不是 Shell, 是 mdio **内部**命令管道
+
 ## MDIO 在 VFS 上，不在磁盘上
 
 MDIO 把 Markdown 文档放在自己的 **VFS（worktree 文档库）**里。选择器里的 `/dir/file.md` 是 **MDIO 虚拟路径**，不是本机文件路径；所有读写都走 `mcp__mdio__exec`，落盘由 MDIO 自己负责。
@@ -34,6 +36,7 @@ flowchart LR
 
 - 不知道目录里有什么
   > ls -l /dir/
+  > ls -la /dir/
   > ls -R /dir
 - 想一次看所有标题
   > $ /dir/file.md::..*[h] -pj tag

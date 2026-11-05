@@ -90,6 +90,8 @@ const SUITES = [
   { name: "css-mods", cmd: ["node", "scripts/check-css-mods.mjs"], ok: /check-css-mods 全绿/ },          // §63：dev 路径上 CSS mod 真被采纳
   { name: "doc-render", cmd: ["node", "scripts/check-doc-render.mjs"], ok: /check-doc-render 全绿/, env: { SHOT_DIR: ".tmp/steps-gui/verify" } },   // §71：文档面 DOM 与交付树逐项对齐（"命中≠能画"那类静默空白）
   { name: "lock", cmd: ["node", "scripts/check-lock.mjs"], ok: /check-lock 全绿/ },                   // §64：按包构建锁的行为（活锁/空内容/陈旧/无残留）
+  // 声明槽位（appview）解析与取值校验：纯 Node 合成声明树，不需要宿主/浏览器（套件自带 10s 看门狗 ⇒ timeoutMs ×2）。
+  { name: "check-slot", cmd: ["node", "scripts/check-slot.mjs"], ok: /槽位解析判据全绿/, timeoutMs: 20000 },
   // （plan-structure / survey-structure 两条不存在：它们靠正则自己解析 md 结构，违反「md 的解析只有一个来源 = 引擎」）
   { name: "pages-live", cmd: ["node", "test/pages-live.mjs"], ok: /pages-live 全绿/, env: { SHOT_DIR: ".tmp/steps-gui/verify" } },
   { name: "swap-live", cmd: ["node", "test/swap-live.mjs"], ok: /swap-live 全绿/ },

@@ -1,4 +1,4 @@
-// 预实验（DEV/domain_trinity_probe_plan_20261011）：domain 登记表 × trinity 律表的接线审计。
+// 预实验：domain 登记表 × trinity 律表的接线审计。
 //
 // 目的：验证路线图二第②步「律名引用」的机器形态——五条审计能否写成会红的断言。
 // 边界：不接生产 outlet、不新增 LawId 变体、不改 LAW_TABLE 本体；

@@ -537,7 +537,7 @@ function Block({ node, snap, renderNode, read, modMatch, use, exec, appRouter })
 
 // 「什么算一节」**不再手抄**：由框架经**读面**下发（`read.isSectionShell`，就是 `uiMd` 里那个同名函数）。
 // 为什么不能 import：`ui_std` 的 `uses` 只有 `ui_base`（分层不许 import `ui_core`），判官 R1 也禁 services 互 import
-// ⇒ 读面（props `read`）是**唯一**的合法通道。判决：`.tmp/p0/check_section_source.mjs`（本文件不许再有本地谓词）。
+// ⇒ 读面（props `read`）是**唯一**的合法通道（人工约定；本文件不许再有本地谓词）。
 
 /**
  * 默认导出 = **每个节点**的壳（框架逐节点调用本件；不再是"一次调用画整篇"）。

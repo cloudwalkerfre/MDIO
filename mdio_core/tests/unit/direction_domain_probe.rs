@@ -1,4 +1,4 @@
-// 预实验 v1.1 + S2 单源化（DEV/direction_domain_probe_plan_20261012 + DEV/check_core_layers_plan S2）：
+// 预实验 v1.1 + S2 单源化：
 // 方向规则 × domain（outlet 豁免清单形态）。表与规则引用 mdio_dircheck（dev-dep，单源）；
 // DOMAINS 侧（outlet 派生 / fixture / 断言语）留本文件。
 
